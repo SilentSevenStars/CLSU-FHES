@@ -1,3 +1,3 @@
 <div>
-    Panel
+    Panel Hello World
 </div>
