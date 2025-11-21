@@ -8,7 +8,8 @@ class Experience extends Model
 {
     protected $fillable = [
         'education_qualification',
-        'licensure_type',
+        'experience_type',
+        'licensure_examination',
         'passing_licensure_examination',
         'place_board_exam',
         'professional_activities',

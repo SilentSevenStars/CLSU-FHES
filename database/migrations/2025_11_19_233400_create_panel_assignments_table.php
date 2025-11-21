@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('panel_assignments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('panel_id')->constrained()->onDelete('cascade');
-            $table->foreignId('interview_id')->constrained()->onDelete('cascade');
-            $table->foreignId('experience_id')->constrained()->onDelete('cascade');
-            $table->foreignId('performance_id')->constrained()->onDelete('cascade');
+            $table->foreignId('interview_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('experience_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('performance_id')->nullable()->constrained()->onDelete('cascade');
             $table->enum('status', ['not yet', 'complete'])->default('not yet');
+            $table->foreignId('evaluation_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

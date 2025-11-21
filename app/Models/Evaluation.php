@@ -21,4 +21,9 @@ class Evaluation extends Model
     {
         return $this->belongsTo(JobApplication::class);
     }
+
+    public function panelAssignments()
+    {
+        return $this->hasMany(\App\Models\PanelAssignment::class);
+    }
 }

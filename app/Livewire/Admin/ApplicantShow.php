@@ -48,7 +48,7 @@ class ApplicantShow extends Component
             ]);
 
             if ($this->status === 'approve') {
-                $this->application->evaluation()->updateOrCreate([], [
+                $evaluation = $this->application->evaluation()->updateOrCreate([], [
                     'interview_date' => $this->interview_date,
                     'interview_room' => $this->interview_room,
                     'total_score' => 0,

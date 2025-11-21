@@ -9,6 +9,7 @@ class Interview extends Model
     protected $fillable = [
         'general_appearance',
         'manner_of_speaking',
+        'physical_conditions',
         'alertness',
         'self_confidence',
         'ability_to_present_ideas',

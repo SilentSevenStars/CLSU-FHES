@@ -12,5 +12,6 @@ class PanelAssignment extends Model
         'experience_id',
         'performance_id',
         'status',
+        'evaluation_id'
     ];
 }

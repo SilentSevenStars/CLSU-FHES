@@ -10,6 +10,8 @@ use App\Livewire\Applicant\ApplyJob;
 use App\Livewire\Applicant\Dashboard;
 use App\Livewire\Applicant\JobApplication;
 use App\Livewire\Panel\Dashboard as PanelDashboard;
+use App\Livewire\Panel\Interview;
+use App\Livewire\Panel\Performance;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -58,6 +60,8 @@ Route::middleware([
     'role:panel'
 ])->group(function () {
     Route::get('/panel/', PanelDashboard::class)->name('panel.dashboard');
+    Route::get('/panel/interview/{evaluationId}', Interview::class)->name('panel.interview');
+    Route::get('/panel/performance/{evaluationId}/{interviewId}', Performance::class)->name('panel.performance');
 });
 
 
