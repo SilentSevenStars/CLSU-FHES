@@ -5,8 +5,7 @@
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <h1
-                            class="text-4xl font-extrabold bg-gradient-to-r from-[#0B712C] via-blue-600 to-yellow-500 bg-clip-text text-transparent mb-2">
+                        <h1 class="text-4xl font-extrabold bg-[#0a6025] bg-clip-text text-transparent mb-2">
                             Panel
                         </h1>
                         <p class="text-gray-600 flex items-center gap-2">
@@ -24,7 +23,7 @@
             <!-- Enhanced Table Card -->
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn" style="animation-delay: 0.3s;">
                 <!-- Table Header with Filter -->
-                <div class="bg-gradient-to-r from-[#0B712C] via-blue-600 to-indigo-600 p-6">
+                <div class="bg-[#0a6025] to-indigo-600 p-6">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <!-- Left: Title -->
                         <div class="flex items-center gap-3">
@@ -37,20 +36,41 @@
                         <!-- Right: Search + Filter + Create -->
                         <div class="flex flex-wrap items-center gap-3">
                             <!-- Filter -->
-                            <select wire:model.live="filter"
-                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
-                                <option value="all">All College</option>
-                                <option value="vacant">Vacant</option>
-                                <option value="promotion">Promotion</option>
-                                <option value="none">None</option>
+                            <!-- Position Filter -->
+                            <select wire:model.live="filterPosition"
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
+                                <option value="all">All Positions</option>
+                                <option value="head">Head</option>
+                                <option value="señior">Senior</option>
+                                <option value="dean">Dean</option>
+                            </select>
+
+                            <!-- College Filter -->
+                            <select wire:model.live="filterCollege"
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
+                                <option value="all">All Colleges</option>
+                                @foreach($colleges as $col)
+                                <option value="{{ $col->name }}">{{ $col->name }}</option>
+                                @endforeach
+                            </select>
+
+                            <!-- Department Filter -->
+                            <select wire:model.live="filterDepartment"
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
+                                <option value="all">All Departments</option>
+                                @foreach($departments as $dept)
+                                <option value="{{ $dept->name }}">{{ $dept->name }}</option>
+                                @endforeach
                             </select>
 
                             <!-- Per Page -->
                             <select wire:model="perPage"
-                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="5">5 / page</option>
                                 <option value="10">10 / page</option>
                                 <option value="15">15 / page</option>
+                                <option value="20">20 / page</option>
+                                <option value="50">50 / page</option>
                             </select>
                         </div>
                     </div>
@@ -90,7 +110,7 @@
 
                                         <!-- Create Button -->
                                         <div>
-                                            <button wire:click="openCreateModal" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 
+                                            <button wire:click="openCreateModal" class="block text-white bg-[#0D7A2F] hover:bg-[#0a6025] focus:ring-4 focus:ring-blue-300 
                                         font-medium rounded-lg text-sm px-5 py-2.5">
                                                 Create Panel
                                             </button>

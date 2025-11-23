@@ -58,7 +58,7 @@
                <a href="{{ route('admin.applicant') }}"
                   class="flex items-center p-3 rounded-lg
                   {{ request()->routeIs('admin.applicant') ? 'bg-[#0A6025] text-white' : 'text-white hover:bg-[#0A6025]' }}">
-                  <i class="fa-solid fa-briefcase text-xl w-5 flex-shrink-0"></i>
+                  <i class="fa-solid fa-users text-xl w-5 flex-shrink-0"></i>
                   <span class="ml-4 whitespace-nowrap 
                       block sm:hidden sm:group-hover:block
                       transition-all duration-300">
@@ -70,7 +70,7 @@
                <a href="{{ route('admin.scheduled') }}"
                   class="flex items-center p-3 rounded-lg
                   {{ request()->routeIs('admin.scheduled') ? 'bg-[#0A6025] text-white' : 'text-white hover:bg-[#0A6025]' }}">
-                  <i class="fa-solid fa-briefcase text-xl w-5 flex-shrink-0"></i>
+                  <i class="fa-solid fa-calendar-check text-xl w-5 flex-shrink-0"></i>
                   <span class="ml-4 whitespace-nowrap 
                       block sm:hidden sm:group-hover:block
                       transition-all duration-300">
@@ -82,7 +82,7 @@
                <a href="{{ route('admin.panel') }}"
                   class="flex items-center p-3 rounded-lg
                   {{ request()->routeIs('admin.panel') ? 'bg-[#0A6025] text-white' : 'text-white hover:bg-[#0A6025]' }}">
-                  <i class="fa-solid fa-briefcase text-xl w-5 flex-shrink-0"></i>
+                  <i class="fa-solid fa-user-tie text-xl w-5 flex-shrink-0"></i>
                   <span class="ml-4 whitespace-nowrap 
                       block sm:hidden sm:group-hover:block
                       transition-all duration-300">

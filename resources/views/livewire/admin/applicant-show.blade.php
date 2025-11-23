@@ -15,7 +15,7 @@
 
         <div class="bg-white shadow-sm rounded-lg overflow-hidden">
             <!-- Header -->
-            <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-8">
+            <div class="bg-[#0A6025] px-6 py-8">
                 <div class="flex justify-between items-start">
                     <div>
                         <h2 class="text-3xl font-bold text-white mb-2">Applicant Review</h2>
@@ -131,7 +131,7 @@
                                     @else
                                     <div class="aspect-[3/2] bg-gray-100 rounded flex items-center justify-center">
                                         <a href="{{ $reqUrl }}" target="_blank"
-                                            class="inline-flex items-center px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+                                            class="inline-flex items-center px-4 py-3 bg-[#0D7A2F] text-white rounded-lg hover:bg-[#0a6025] transition">
                                             View Document
                                         </a>
                                     </div>
@@ -145,6 +145,15 @@
                     <!-- Review Form -->
                     <div class="bg-white border-2 border-indigo-200 rounded-lg p-6">
                         <h3 class="text-lg font-bold text-gray-900 mb-5">Review Application</h3>
+
+                        @if($isWithinApplicationPeriod)
+                        <p class="mb-4 px-4 py-3 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg">
+                            The application period is still active ({{ $application->position->start_date }}
+                            to {{ $application->position->end_date }}).<br>
+                            You can only review applicants after the deadline.
+                        </p>
+                        @endif
+
                         <form wire:submit.prevent="submitReview" class="space-y-5">
                             @csrf
                             @method('PUT')
@@ -153,15 +162,21 @@
                                 <label for="status" class="block text-sm font-semibold text-gray-700 mb-2">
                                     Decision *
                                 </label>
-                                <select id="status" wire:model="status" wire:change="$refresh" required
-                                    class="block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+
+                                <select id="status" wire:model="status" wire:change="$refresh"
+                                    class="block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-[0a6025] transition"
+                                    {{ $isWithinApplicationPeriod ? 'disabled' : '' }}>
+
                                     <option value="">Select Decision</option>
+
+                                    @if(!$isWithinApplicationPeriod)
                                     <option value="approve">Approve Application</option>
                                     <option value="decline">Decline Application</option>
+                                    @endif
                                 </select>
                             </div>
 
-                            @if($status === 'approve')
+                            @if($status === 'approve' && !$isWithinApplicationPeriod)
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                                 <!-- Interview Date -->
@@ -193,8 +208,10 @@
                                     class="inline-flex items-center px-5 py-2.5 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
                                     Back to List
                                 </a>
+
                                 <button type="submit"
-                                    class="inline-flex items-center px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium">
+                                    class="inline-flex items-center px-4 py-3 bg-[#0D7A2F] text-white rounded-lg hover:bg-[#0a6025] transition"
+                                    {{ $isWithinApplicationPeriod ? 'disabled' : '' }}>
                                     Submit Review
                                 </button>
                             </div>
@@ -225,4 +242,4 @@
                 </div>
             </div>
         </div>
-</main>
+        </main>

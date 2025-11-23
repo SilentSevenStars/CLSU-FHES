@@ -74,4 +74,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Panel::class);
     }
+
+    /**
+     * Get the applicant associated with this user.
+     */
+    public function applicant()
+    {
+        return $this->hasOne(Applicant::class);
+    }
 }
