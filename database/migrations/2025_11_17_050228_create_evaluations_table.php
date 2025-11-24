@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->date('interview_date');
             $table->string('interview_room');
-            $table->decimal('total_score', 4, 2)->nullable();
+            $table->decimal('total_score', 8, 2)->nullable();
             $table->integer('rank')->nullable();
             $table->foreignId('job_application_id')->constrained()->cascadeOnDelete();
             $table->timestamps();

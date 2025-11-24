@@ -90,6 +90,18 @@
                   </span>
                </a>
             </li>
+            <li>
+               <a href="{{ route('admin.screening') }}"
+                  class="flex items-center p-3 rounded-lg
+                  {{ request()->routeIs('admin.screening') ? 'bg-[#0A6025] text-white' : 'text-white hover:bg-[#0A6025]' }}">
+                  <i class="fa-solid fa-user-tie text-xl w-5 flex-shrink-0"></i>
+                  <span class="ml-4 whitespace-nowrap 
+                      block sm:hidden sm:group-hover:block
+                      transition-all duration-300">
+                     Screening
+                  </span>
+               </a>
+            </li>
          </ul>
       </div>
 

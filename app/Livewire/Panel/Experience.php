@@ -14,9 +14,8 @@ class Experience extends Component
     public $evaluation;
     
     public $education_qualification = 0; 
-    public $experience_type = ''; 
-    public $licensure_examination = '';
-    public $passing_licensure_examination = '';
+    public $experience_type = 0; 
+    public $licensure_examination = 0;
     public $place_board_exam = ''; 
     public $professional_activities = 0; 
     public $academic_performance = ''; 
@@ -25,64 +24,35 @@ class Experience extends Component
     
     public $totalScore = 0;
 
-    public $experienceTypeOptions = [
-        0 => 'None',
-        5 => '1 year',
-        10 => '2 years',
-        15 => '3 years',
-        20 => '4 years',
-        25 => '5 years or more',
-    ];
-
-    public $licensureOptions = [
-        0 => 'None',
-        3 => 'Has Licensure',
-        5 => 'Has Licensure with Distinction',
-    ];
-
-    public $passingLicensureOptions = [
-        0 => 'None',
-        3 => 'Passed NC II',
-        5 => 'Passed NC III or higher',
-    ];
-
     public $placeBoardExamOptions = [
-        0 => 'Not Applicable',
-        1 => '10th Place',
-        2 => '9th Place',
-        3 => '8th Place',
-        4 => '7th Place',
-        5 => '6th Place',
-        6 => '5th Place',
-        7 => '4th Place',
-        8 => '3rd Place',
-        9 => '2nd Place',
+        '' => 'Not Applicable',
         10 => '1st Place',
+        8 => '2nd Place',
+        5 => '3rd to 20th Place',
     ];
 
     public $academicPerformanceOptions = [
-        0 => 'None',
-        2 => 'Fair',
-        4 => 'Satisfactory',
-        6 => 'Good',
-        8 => 'Very Good',
-        10 => 'Outstanding',
+        '' => 'Select',
+        10 => 'Summa Cum Laude',
+        8 => 'Magna Cum Laude',
+        6 => 'Cum Laude',
+        4 => 'Honourable Mention',
+        2 => 'No failing grade',
+        0 => 'With failing grade',
     ];
 
     public $publicationOptions = [
-        0 => 'None',
-        2 => '1 Publication',
-        4 => '2 Publications',
-        6 => '3 Publications',
-        8 => '4 Publications',
-        10 => '5 or more Publications',
+        '' => 'Select',
+        10 => '7 or more publications in the last 5 years',
+        5 => '6 and below',
     ];
 
     public $schoolGraduateOptions = [
-        0 => 'Not Applicable',
-        5 => 'State University/College',
-        10 => 'Top 10 National University',
-        15 => 'Top 5 National University',
+        '' => 'Select',
+        15 => 'QS World Rank University',
+        10 => 'Reputable foreign University/Partner foreign institution of CLSU/COE',
+        8 => 'COD',
+        5 => 'Level IV accredited program',
     ];
 
     public function mount($evaluationId)
@@ -116,24 +86,22 @@ class Experience extends Component
     public function calculateTotal()
     {
         $this->totalScore = 
-            intval($this->education_qualification) +
-            intval($this->experience_type) +
-            intval($this->licensure_examination) +
-            intval($this->passing_licensure_examination) +
-            intval($this->place_board_exam) +
-            intval($this->professional_activities) +
-            intval($this->academic_performance) +
-            intval($this->publication) +
-            intval($this->school_graduate);
+            floatval($this->education_qualification) +
+            floatval($this->experience_type) +
+            floatval($this->licensure_examination) +
+            floatval($this->place_board_exam) +
+            floatval($this->professional_activities) +
+            floatval($this->academic_performance) +
+            floatval($this->publication) +
+            floatval($this->school_graduate);
     }
 
     public function saveExperience()
     {
         $this->validate([
             'education_qualification' => 'required|numeric|min:0|max:85',
-            'experience_type' => 'required|numeric',
-            'licensure_examination' => 'required|numeric',
-            'passing_licensure_examination' => 'required|numeric',
+            'experience_type' => 'required|numeric|min:0|max:25',
+            'licensure_examination' => 'required|numeric|min:3|max:5',
             'place_board_exam' => 'required|numeric',
             'professional_activities' => 'required|numeric|min:0|max:15',
             'academic_performance' => 'required|numeric',
@@ -142,9 +110,11 @@ class Experience extends Component
         ], [
             'education_qualification.required' => 'Please enter Educational Qualification points',
             'education_qualification.max' => 'Educational Qualification cannot exceed 85 points',
-            'experience_type.required' => 'Please select Experience Type',
-            'licensure_examination.required' => 'Please select Licensure Examination status',
-            'passing_licensure_examination.required' => 'Please select Passing Licensure Examination status',
+            'experience_type.required' => 'Please enter Academic/Administrative Experience points',
+            'experience_type.max' => 'Academic/Administrative Experience cannot exceed 25 points',
+            'licensure_examination.required' => 'Please enter Licensure Examination points',
+            'licensure_examination.min' => 'Licensure Examination must be at least 3 points',
+            'licensure_examination.max' => 'Licensure Examination cannot exceed 5 points',
             'place_board_exam.required' => 'Please select Place in Board Examination',
             'professional_activities.required' => 'Please enter Professional Activities points',
             'professional_activities.max' => 'Professional Activities cannot exceed 15 points',
@@ -159,7 +129,7 @@ class Experience extends Component
             'education_qualification' => $this->education_qualification,
             'experience_type' => $this->experience_type,
             'licensure_examination' => $this->licensure_examination,
-            'passing_licensure_examination' => $this->passing_licensure_examination,
+            'passing_licensure_examination' => 0,
             'place_board_exam' => $this->place_board_exam,
             'professional_activities' => $this->professional_activities,
             'academic_performance' => $this->academic_performance,

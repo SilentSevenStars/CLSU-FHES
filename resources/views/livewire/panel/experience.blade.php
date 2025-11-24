@@ -3,10 +3,6 @@
         <!-- Header -->
         <div class="bg-white shadow-sm rounded-lg mb-6 px-6 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold text-gray-900">Applicant Details</h1>
-            <a href="{{ route('panel.applicant.view', $evaluation->job_application_id) }}" 
-               class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-150">
-                View here
-            </a>
         </div>
 
         <!-- Main Content -->
@@ -52,18 +48,35 @@
                     <div class="grid grid-cols-12 gap-4 items-center py-4 border-b">
                         <div class="col-span-7">
                             <span class="font-semibold">2. Academic/ Administrative and Industrial/Agricultural/Teaching</span>
+                            <div class="text-sm text-gray-600 mt-2">
+                                <div class="mb-2">
+                                    <span class="font-medium">a. Applicant for College Level</span>
+                                    <ul class="list-disc ml-6 mt-1">
+                                        <li>Teaching Experience in College - 1 pt/yr</li>
+                                        <li>Teaching Experience in High School - 1 pt/yr</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <span class="font-medium">b. Applicant for HS Level</span>
+                                    <ul class="list-disc ml-6 mt-1">
+                                        <li>Teaching Experience in High School - 1 pt/yr</li>
+                                        <li>Teaching Experience in College - 0.5 pt/yr</li>
+                                        <li>Industrial/Agricultural/Research - 1 pt/yr</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-span-2 text-center">
                             <span class="text-lg font-semibold">25</span>
                         </div>
                         <div class="col-span-3">
-                            <select wire:model.live="experience_type"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
-                                <option value="">Select</option>
-                                @foreach($experienceTypeOptions as $value => $label)
-                                    <option value="{{ $value }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
+                            <input type="number" 
+                                   wire:model.live="experience_type"
+                                   min="0" 
+                                   max="25"
+                                   step="0.01"
+                                   placeholder="Input here"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             @error('experience_type') 
                                 <span class="text-red-500 text-sm">{{ $message }}</span> 
                             @enderror
@@ -71,9 +84,9 @@
                     </div>
 
                     <!-- 3. Passing Licensure Examination -->
-                    <div class="grid grid-cols-12 gap-4 items-start py-4 border-b">
+                    <div class="grid grid-cols-12 gap-4 items-center py-4 border-b">
                         <div class="col-span-7">
-                            <span class="font-semibold">3. Passing appropriate Licensure Examination (max of 5)</span>
+                            <span class="font-semibold">3. Passing appropriate Licensure Examination</span>
                             <div class="text-sm text-gray-600 mt-1">
                                 National Certification (NC II) - 3
                             </div>
@@ -82,25 +95,14 @@
                             <span class="text-lg font-semibold">5</span>
                         </div>
                         <div class="col-span-3">
-                            <select wire:model.live="licensure_examination"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white mb-2">
-                                <option value="">Select</option>
-                                @foreach($licensureOptions as $value => $label)
-                                    <option value="{{ $value }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
+                            <input type="number" 
+                                   wire:model.live="licensure_examination"
+                                   min="3"
+                                   max="5"
+                                   step="0.01"
+                                   placeholder="Input here"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             @error('licensure_examination') 
-                                <span class="text-red-500 text-sm block mb-2">{{ $message }}</span> 
-                            @enderror
-                            
-                            <select wire:model.live="passing_licensure_examination"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
-                                <option value="">Select</option>
-                                @foreach($passingLicensureOptions as $value => $label)
-                                    <option value="{{ $value }}">{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            @error('passing_licensure_examination') 
                                 <span class="text-red-500 text-sm">{{ $message }}</span> 
                             @enderror
                         </div>
@@ -109,7 +111,12 @@
                     <!-- 4. Place in Board Examination -->
                     <div class="grid grid-cols-12 gap-4 items-center py-4 border-b">
                         <div class="col-span-7">
-                            <span class="font-semibold">4. Place in Board Examination (1-10)</span>
+                            <span class="font-semibold">4. Place in Board Examination</span>
+                            <div class="text-sm text-gray-600 mt-1">
+                                • 1st Place - 10 pts<br>
+                                • 2nd Place - 8 pts<br>
+                                • 3rd to 20th Place - 5 pts
+                            </div>
                         </div>
                         <div class="col-span-2 text-center">
                             <span class="text-lg font-semibold">10</span>
@@ -117,7 +124,6 @@
                         <div class="col-span-3">
                             <select wire:model.live="place_board_exam"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
-                                <option value="">Select</option>
                                 @foreach($placeBoardExamOptions as $value => $label)
                                     <option value="{{ $value }}">{{ $label }}</option>
                                 @endforeach
@@ -164,7 +170,6 @@
                         <div class="col-span-3">
                             <select wire:model.live="academic_performance"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
-                                <option value="">Select</option>
                                 @foreach($academicPerformanceOptions as $value => $label)
                                     <option value="{{ $value }}">{{ $label }}</option>
                                 @endforeach
@@ -186,7 +191,6 @@
                         <div class="col-span-3">
                             <select wire:model.live="publication"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
-                                <option value="">Select</option>
                                 @foreach($publicationOptions as $value => $label)
                                     <option value="{{ $value }}">{{ $label }}</option>
                                 @endforeach
@@ -208,7 +212,6 @@
                         <div class="col-span-3">
                             <select wire:model.live="school_graduate"
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white">
-                                <option value="">Select</option>
                                 @foreach($schoolGraduateOptions as $value => $label)
                                     <option value="{{ $value }}">{{ $label }}</option>
                                 @endforeach
@@ -219,17 +222,30 @@
                         </div>
                     </div>
 
-                    <!-- Total Score Display -->
-                    @if($totalScore > 0)
-                    <div class="grid grid-cols-12 gap-4 items-center py-6 bg-blue-50 rounded-lg px-4">
+                    <!-- Section Total Score Display -->
+                    <div class="grid grid-cols-12 gap-4 items-center py-4 bg-gray-100 rounded-lg px-4">
                         <div class="col-span-7">
-                            <span class="font-bold text-xl">Total Score</span>
+                            <span class="font-bold text-lg">Section Total Score</span>
                         </div>
                         <div class="col-span-2 text-center">
-                            <span class="text-lg font-semibold">185</span>
+                            <span class="text-xl font-bold text-gray-700">185</span>
                         </div>
                         <div class="col-span-3 text-center">
-                            <span class="text-2xl font-bold text-blue-600">{{ $totalScore }}</span>
+                            <span class="text-xl font-bold text-gray-700">{{ number_format($totalScore, 2) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Overall Total Score Display -->
+                    @if($totalScore > 0)
+                    <div class="grid grid-cols-12 gap-4 items-center py-6 bg-blue-50 rounded-lg px-4 border-2 border-blue-200">
+                        <div class="col-span-7">
+                            <span class="font-bold text-2xl text-blue-900">Overall Total Score</span>
+                        </div>
+                        <div class="col-span-2 text-center">
+                            <span class="text-2xl font-bold text-blue-700">185</span>
+                        </div>
+                        <div class="col-span-3 text-center">
+                            <span class="text-3xl font-bold text-blue-600">{{ number_format($totalScore, 2) }}</span>
                         </div>
                     </div>
                     @endif

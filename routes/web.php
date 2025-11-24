@@ -6,10 +6,12 @@ use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\PanelManager;
 use App\Livewire\Admin\PositionManager;
 use App\Livewire\Admin\ScheduledApplicant;
+use App\Livewire\Admin\Screening;
 use App\Livewire\Applicant\ApplyJob;
 use App\Livewire\Applicant\Dashboard;
 use App\Livewire\Applicant\JobApplication;
 use App\Livewire\Panel\Dashboard as PanelDashboard;
+use App\Livewire\Panel\Experience;
 use App\Livewire\Panel\Interview;
 use App\Livewire\Panel\Performance;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +52,7 @@ Route::middleware([
         Route::get('/applicants/{job_application_id}', ApplicantShow::class)->name('applicant.show');
         Route::get('/panel', PanelManager::class)->name('panel');
         Route::get('/scheduled-applicants', ScheduledApplicant::class)->name('scheduled');
+        Route::get('/screening', Screening::class)->name('screening');
     });
     
 });
@@ -62,6 +65,7 @@ Route::middleware([
     Route::get('/panel/', PanelDashboard::class)->name('panel.dashboard');
     Route::get('/panel/interview/{evaluationId}', Interview::class)->name('panel.interview');
     Route::get('/panel/performance/{evaluationId}/{interviewId}', Performance::class)->name('panel.performance');
+    Route::get('/panel/experience/{evaluationId}', Experience::class)->name('panel.experience');
 });
 
 
