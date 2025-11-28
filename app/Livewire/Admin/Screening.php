@@ -4,6 +4,8 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use App\Models\Evaluation;
+use App\Models\Panel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Screening extends Component
 {
@@ -33,6 +35,8 @@ class Screening extends Component
                 return [
                     'id'             => $position->id,
                     'name'           => $position->name,
+                    'college'        => $position->college,
+                    'department'     => $position->department,
                     'interview_date' => $evaluation->interview_date,
                     'display_name'   => $position->name . ' (' . date('M d, Y', strtotime($evaluation->interview_date)) . ')',
                     'filter_key'     => $position->id . '_' . $evaluation->interview_date,
@@ -153,9 +157,100 @@ class Screening extends Component
 
     public function export()
     {
-        $this->dispatch('export-screening', [
-            'data' => $this->screeningData
+        if (empty($this->screeningData) || !$this->selectedPosition) {
+            session()->flash('error', 'No data to export. Please select a position first.');
+            return;
+        }
+
+        $positionData = collect($this->positions)
+            ->firstWhere('filter_key', $this->selectedPosition);
+
+        // Get panel members from database
+        $panelMembers = $this->getPanelMembersFromDatabase($positionData);
+
+        $pdf = Pdf::loadView('pdf.screening-report', [
+            'screeningData' => $this->screeningData->toArray(),
+            'positionName' => $positionData['name'] ?? 'Various Positions',
+            'college' => $positionData['college'] ?? '',
+            'department' => $positionData['department'] ?? '',
+            'interviewDate' => $positionData['interview_date'] ?? now()->format('M d, Y'),
+            'panelMembers' => $panelMembers,
+            'generatedDate' => now()->format('F d, Y'),
         ]);
+
+        $pdf->setPaper('legal', 'landscape');
+
+        return response()->streamDownload(function() use ($pdf) {
+            echo $pdf->output();
+        }, 'screening-report-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    private function getPanelMembersFromDatabase($positionData)
+    {
+        // Fetch panels based on college and department
+        $panels = Panel::with('user')
+            ->where('college', $positionData['college'])
+            ->where('department', $positionData['department'])
+            ->get();
+
+        // Organize panels by position
+        $organized = [
+            'deans' => [],
+            'heads' => [],
+            'seniors' => [],
+        ];
+
+        foreach ($panels as $panel) {
+            $position = strtolower($panel->panel_position);
+            $name = $panel->user->name ?? 'TBA';
+            
+            if (str_contains($position, 'dean')) {
+                $organized['deans'][] = [
+                    'name' => $name,
+                    'title' => 'Dean, ' . $this->getCollegeAcronym($panel->college)
+                ];
+            } elseif (str_contains($position, 'head')) {
+                $organized['heads'][] = [
+                    'name' => $name,
+                    'title' => 'Head, Dept ' . $panel->department
+                ];
+            } elseif (str_contains($position, 'senior')) {
+                $organized['seniors'][] = [
+                    'name' => $name,
+                    'title' => 'Senior Faculty, ' . $panel->department
+                ];
+            }
+        }
+
+        return [
+            'supervising_admin' => 'Member, Supervising Admin. Officer, HRMO',
+            'fai_president' => 'Member, FAI President/Representative',
+            'glutches_preside' => 'Member, GLUTCHES Preside',
+            'ranking_faculty' => 'Member, Ranking Faculty',
+            'deans' => $organized['deans'],
+            'heads' => $organized['heads'],
+            'seniors' => $organized['seniors'],
+            'chairman_fsb' => 'Chairman, Faculty Selection Board & VPAA',
+            'university_president' => 'University President',
+        ];
+    }
+
+    private function getCollegeAcronym($collegeName)
+    {
+        $acronyms = [
+            'College of Agriculture' => 'CA',
+            'College of Arts and Social Sciences' => 'CASS',
+            'College of Business and Accountancy' => 'CBA',
+            'College of Education' => 'CED',
+            'College of Engineering' => 'CEN',
+            'College of Fisheries' => 'CF',
+            'College of Home Science and Industry' => 'CHSI',
+            'College of Science' => 'COS',
+            'College of Veterinary Science and Medicine' => 'CVSM',
+            'Distance, Open, and Transnational University (DOT-Uni)' => 'DOT-Uni',
+        ];
+
+        return $acronyms[$collegeName] ?? $collegeName;
     }
 
     public function render()

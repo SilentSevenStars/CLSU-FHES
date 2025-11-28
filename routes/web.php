@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ScreeningExportController;
 use App\Livewire\Admin\Applicant;
 use App\Livewire\Admin\ApplicantShow;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
@@ -53,6 +54,8 @@ Route::middleware([
         Route::get('/panel', PanelManager::class)->name('panel');
         Route::get('/scheduled-applicants', ScheduledApplicant::class)->name('scheduled');
         Route::get('/screening', Screening::class)->name('screening');
+        Route::post('/screening/export', [ScreeningExportController::class, 'export'])
+        ->name('admin.screening.export');
     });
     
 });
