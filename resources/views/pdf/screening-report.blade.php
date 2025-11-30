@@ -218,7 +218,7 @@
                 <td>&nbsp;</td>
             </tr>
             <tr>
-                <td class="text-left prepared-by"><strong>Prepared by: Jemara S. Lucido</strong></td>
+                <td class="text-left prepared-by"><strong>Prepared by: Jameka S. Lucido</strong></td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
