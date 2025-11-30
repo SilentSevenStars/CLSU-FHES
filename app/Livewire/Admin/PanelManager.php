@@ -16,9 +16,10 @@ class PanelManager extends Component
 
     public $search = '';
     public $perPage = 10;
-    public $filter = 'all';
+    public $filterPosition = 'all';
+    public $filterCollege = 'all';
+    public $filterDepartment = 'all';
 
-    // Form fields
     public $name, $email, $password, $password_confirmation;
     public $panel_position, $college, $department;
     public $departments = [];
@@ -45,16 +46,25 @@ class PanelManager extends Component
 
     public function updatedCollege()
     {
-        $college = trim($this->college ?? '');
-        if (!empty($college)) {
-            $this->departments = Department::whereRaw('lower(college) = ?', [strtolower($college)])->get();
-            if (count($this->departments) === 0) {
-                $this->departments = Department::where('college', 'like', "%{$college}%")->get();
-            }
+        $collegeName = $this->college;
+
+        if (!empty($collegeName) && $collegeName !== 'all') {
+            $this->departments = Department::where('college', $collegeName)->get();
             $this->department = '';
         } else {
             $this->departments = [];
             $this->department = '';
+        }
+    }
+
+    public function updatedFilterCollege()
+    {
+        if ($this->filterCollege !== 'all') {
+            $this->departments = Department::where('college', $this->filterCollege)->get();
+            $this->filterDepartment = 'all';
+        } else {
+            $this->departments = Department::all();
+            $this->filterDepartment = 'all';
         }
     }
 
@@ -131,21 +141,16 @@ class PanelManager extends Component
 
     public function confirmDelete($id)
     {
-        // Dispatch browser event for SweetAlert
         $this->dispatch('swal:confirm', id: $id);
     }
 
-    // Listener for deleteConfirmed
     protected $listeners = ['deleteConfirmed'];
 
     public function deleteConfirmed($id)
     {
         $panel = Panel::findOrFail($id);
 
-        // Delete associated user first
         User::where('id', $panel->user_id)->delete();
-
-        // Delete panel
         $panel->delete();
 
         session()->flash('success', 'Panel deleted successfully!');
@@ -168,18 +173,40 @@ class PanelManager extends Component
     public function render()
     {
         $colleges = College::all();
+        $departments = Department::all();
+
+        if ($this->filterCollege !== 'all') {
+            $departments = Department::where('college', $this->filterCollege)->get();
+        }
 
         $positions = Panel::with('user')
+
             ->when($this->search, function ($query) {
                 $query->whereHas('user', function ($q) {
                     $q->where('name', 'like', "%{$this->search}%");
-                });
+                })
+                ->orWhere('panel_position', 'like', "%{$this->search}%")
+                ->orWhere('department', 'like', "%{$this->search}%");
             })
+
+            ->when($this->filterPosition !== 'all', function ($query) {
+                $query->where('panel_position', $this->filterPosition);
+            })
+
+            ->when($this->filterCollege !== 'all', function ($query) {
+                $query->where('college', $this->filterCollege);
+            })
+
+            ->when($this->filterDepartment !== 'all', function ($query) {
+                $query->where('department', $this->filterDepartment);
+            })
+
             ->paginate($this->perPage);
 
         return view('livewire.admin.panel-manager', [
             'positions' => $positions,
-            'colleges' => $colleges
+            'colleges' => $colleges,
+            'departments' => $departments
         ])->layout('layouts.app');
     }
 }

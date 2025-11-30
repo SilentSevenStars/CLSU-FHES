@@ -20,6 +20,10 @@ class ApplicantShow extends Component
             ->findOrFail($job_application_id);
     }
 
+    /** 
+     * Allow review only AFTER the application period ends.
+     * today > end_date
+     */
     public function getCanReviewProperty()
     {
         $today = now()->toDateString();
@@ -32,8 +36,30 @@ class ApplicantShow extends Component
         return $today > $position->end_date;
     }
 
+    /**
+     * DISALLOW review while application is still open.
+     * today >= start_date AND today <= end_date
+     */
+    public function getIsWithinApplicationPeriodProperty()
+    {
+        $today = now()->toDateString();
+        $position = $this->application->position;
+
+        if (!$position->start_date || !$position->end_date) {
+            return false;
+        }
+
+        return $today >= $position->start_date && $today <= $position->end_date;
+    }
+
     public function submitReview()
     {
+        // Backend protection
+        if ($this->isWithinApplicationPeriod) {
+            session()->flash('error', 'You cannot review the application while the application period is still ongoing.');
+            return;
+        }
+
         $this->validate([
             'status' => 'required|in:approve,decline',
             'interview_date' => $this->status === 'approve' ? 'required|date' : 'nullable',
@@ -71,6 +97,7 @@ class ApplicantShow extends Component
         return view('livewire.admin.applicant-show', [
             'application' => $this->application,
             'canReview' => $this->canReview,
+            'isWithinApplicationPeriod' => $this->isWithinApplicationPeriod,
         ])->layout('layouts.app');
     }
 }

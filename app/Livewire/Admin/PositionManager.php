@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\College;
+use App\Models\Department;
 use App\Models\Position;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +16,9 @@ class PositionManager extends Component
     use WithPagination;
 
     public string $name = "";
+    public string $college = "";
+    public $colleges = [];
+    public $departments = [];
     public string $department = "";
     public $start_date;
     public $end_date;
@@ -25,6 +30,10 @@ class PositionManager extends Component
 
     public string $search = '';
     public string $filter = 'all';
+
+    public string $filterCollege = ''; // ✅ NEW
+    public string $filterDepartment = ''; // ✅ NEW
+
     public int $perPage = 5;
 
     protected $paginationTheme = 'tailwind';
@@ -41,6 +50,22 @@ class PositionManager extends Component
     }
 
     public function updatingFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterCollege() // ✅ reset dep filter & page
+    {
+        $this->filterDepartment = '';
+        $this->resetPage();
+    }
+
+    public function updatingFilterDepartment()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage() // ✅ Fix pagination not updating
     {
         $this->resetPage();
     }
@@ -63,11 +88,17 @@ class PositionManager extends Component
     public function openEditModal($id)
     {
         $position = Position::findOrFail($id);
+
         $this->position_id = $position->id;
         $this->name = $position->name;
+        $this->college = trim($position->college);
         $this->department = $position->department;
+        $this->status = $position->status;
         $this->start_date = $position->start_date;
         $this->end_date = $position->end_date;
+
+        $this->departments = Department::where('college', $this->college)->get();
+
         $this->showEditModal = true;
     }
 
@@ -81,8 +112,9 @@ class PositionManager extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
-            'status' => 'required|string|max:255',
+            'college' => 'required|string',
+            'department' => 'required|string',
+            'status' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
@@ -91,6 +123,7 @@ class PositionManager extends Component
         try {
             $position = new Position();
             $position->name = $this->name;
+            $position->college = $this->college;
             $position->department = $this->department;
             $position->status = $this->status ?: 'vacant';
             $position->start_date = $this->start_date;
@@ -114,7 +147,9 @@ class PositionManager extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'department' => 'required|string|max:255',
+            'college' => 'required|string',
+            'department' => 'required|string',
+            'status' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
         ]);
@@ -123,6 +158,7 @@ class PositionManager extends Component
         try {
             $position = Position::findOrFail($this->position_id);
             $position->name = $this->name;
+            $position->college = $this->college;
             $position->department = $this->department;
             $position->status = $this->status;
             $position->start_date = $this->start_date;
@@ -138,6 +174,16 @@ class PositionManager extends Component
         } catch (Exception $e) {
             DB::rollBack();
             $this->dispatch('alert', type: 'error', title: 'Position', text: 'Failed to update position', position: 'center');
+        }
+    }
+
+    public function updatedCollege($value)
+    {
+        if ($value) {
+            $this->departments = Department::where('college', $value)->orderBy('name')->get();
+        } else {
+            $this->departments = [];
+            $this->department = "";
         }
     }
 
@@ -191,6 +237,12 @@ class PositionManager extends Component
                     $q->where('status', 'none');
                 }
             })
+            ->when($this->filterCollege, fn($q) =>
+                $q->where('college', $this->filterCollege)
+            )
+            ->when($this->filterDepartment, fn($q) =>
+                $q->where('department', $this->filterDepartment)
+            )
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage);
     }
@@ -211,12 +263,20 @@ class PositionManager extends Component
             ->count();
     }
 
+    public function mount()
+    {
+        $this->colleges = College::orderBy('name')->get();
+    }
+
     public function render()
     {
         return view('livewire.admin.position-manager', [
             'positions' => $this->filteredPositions,
             'vacant' => $this->vacantCount,
             'promotion' => $this->promotionCount,
+            'filterDepartments' => $this->filterCollege
+                ? Department::where('college', $this->filterCollege)->orderBy('name')->get()
+                : []
         ])->layout('layouts.app');
     }
 }

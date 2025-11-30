@@ -66,4 +66,20 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the panel associated with this user.
+     */
+    public function panel()
+    {
+        return $this->hasOne(Panel::class);
+    }
+
+    /**
+     * Get the applicant associated with this user.
+     */
+    public function applicant()
+    {
+        return $this->hasOne(Applicant::class);
+    }
 }

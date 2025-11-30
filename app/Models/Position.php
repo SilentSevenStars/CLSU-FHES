@@ -8,6 +8,7 @@ class Position extends Model
 {
     protected $fillable = [
         'name',
+        'college',
         'department',
         'status',
         'start_date',

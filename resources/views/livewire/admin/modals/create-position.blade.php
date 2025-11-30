@@ -16,15 +16,43 @@
                     @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                 </div>
                 <div class="mb-6">
-                    <label for="department"
-                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Department Name</label>
-                    <input type="text" wire:model="department" id="department"
-                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="Department Name" required />
+                    <label class="block mb-2 text-sm font-medium text-gray-900">College</label>
+                    <select wire:model.live="college"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5 w-full">
+                        <option value="">Select a College</option>
+                        @foreach($colleges as $c)
+                        <option value="{{ $c->name }}">{{ $c->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('college') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="mb-6">
+                    <label class="block mb-2 text-sm font-medium text-gray-900">Department</label>
+
+                    <select wire:model="department"
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg p-2.5 w-full"
+                        @if(!$college) disabled @endif>
+
+                        <option value="">
+                            @if(!$college)
+                            Select a college first
+                            @else
+                            Select a department
+                            @endif
+                        </option>
+
+                        @if($college)
+                        @foreach($departments as $d)
+                        <option value="{{ $d->name }}">{{ $d->name }}</option>
+                        @endforeach
+                        @endif
+                    </select>
+
                     @error('department') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                 </div>
                 <div>
-                    <label for="countries" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select
+                    <label for="status" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Select
                         Status</label>
                     <select id="status" wire:model='status' class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
                focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 

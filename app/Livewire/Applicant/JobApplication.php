@@ -4,6 +4,8 @@ namespace App\Livewire\Applicant;
 
 use App\Models\Applicant;
 use App\Models\JobApplication as ModelsJobApplication;
+use App\Models\Position;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -25,6 +27,9 @@ class JobApplication extends Component
     public string $other_involvement = "";
     public $requirements_file;
     public $position_id;
+
+    public $deadlineTimestamp; 
+    public $isSubmitting = false; 
 
     protected $rules = [
         'first_name' => 'required|string|max:255',
@@ -53,6 +58,18 @@ class JobApplication extends Component
             $this->phone_number = $applicant->phone_number ?? '';
             $this->address = $applicant->address ?? '';
         }
+
+        $position = Position::find($position_id);
+
+        if ($position) {
+            $deadline = Carbon::parse($position->end_date)->addDay()->startOfDay();
+            $this->deadlineTimestamp = $deadline->timestamp;
+        }
+    }
+
+    public function updated($field)
+    {
+        $this->validateOnly($field);
     }
 
     public function confirmSubmission()
@@ -62,7 +79,14 @@ class JobApplication extends Component
 
     public function save()
     {
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('scroll-to-error');
+            throw $e;
+        }
+
+        $this->isSubmitting = true;
 
         $pdfPath = $this->requirements_file->store('requirements', 'public');
 
@@ -89,12 +113,13 @@ class JobApplication extends Component
             'position_id' => $this->position_id,
         ]);
 
-        $this->dispatch('swal:success', [
-            'message' => 'Application successfully submitted!',
-        ]);
+        // Dispatch event to notify other components
+        $this->dispatch('job-application-submitted');
 
-        return $this->redirectRoute('apply-job');
+        return redirect()->route('apply-job')
+            ->with('success', 'Application successfully submitted! Please wait for the admin to review your application.');
     }
+
     public function render()
     {
         return view('livewire.applicant.job-application')
