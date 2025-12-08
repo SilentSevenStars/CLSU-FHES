@@ -53,7 +53,7 @@
                         </div>
                     </div>
 
-            <form wire:submit.prevent="saveInterview">
+            <form wire:submit.prevent="confirmSubmission">
                 @if ($currentPage == 1)
                     <!-- Page 1: General Appearance through Alertness -->
                     <div class="space-y-8">
@@ -315,9 +315,16 @@
                                     class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
                                 ← Return
                             </button>
+                            @php
+                                $applicantPosition = $evaluation->jobApplication->position->name ?? null;
+                            @endphp
                             <button type="submit"
                                     class="bg-[#0A6025] hover:bg-[#0B712C] text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
-                                Next →
+                                @if($applicantPosition === 'Instructor I')
+                                    Next →
+                                @else
+                                    Submit ✓
+                                @endif
                             </button>
                         </div>
                     </div>
@@ -326,5 +333,41 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- SweetAlert2 Integration - FIXED to match Performance page -->
+    <div x-data="{ 
+        init() {
+            window.addEventListener('show-swal-confirm', () => {
+                Swal.fire({
+                    title: 'Submit Interview Evaluation?',
+                    text: 'Please confirm that all ratings are correct before submitting.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0A6025',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Submit'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        @this.call('saveInterview');
+                    }
+                });
+            });
+
+            window.addEventListener('interview-saved', () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Interview evaluation saved successfully.',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#0A6025'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '{{ route('panel.dashboard') }}';
+                    }
+                });
+            });
+        }
+    }">
     </div>
 </div>

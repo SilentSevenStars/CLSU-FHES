@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Applicant extends Model
 {
@@ -12,16 +14,51 @@ class Applicant extends Model
         'last_name',
         'phone_number',
         'address',
+        'hired',
         'user_id',
     ];
 
-    public function user()
+    protected $casts = [
+        'hired' => 'boolean',
+    ];
+
+    /**
+     * Get the user that owns the applicant.
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function jobApplications()
+    /**
+     * Get all job applications for the applicant.
+     */
+    public function jobApplications(): HasMany
     {
         return $this->hasMany(JobApplication::class);
+    }
+
+    /**
+     * Get all notifications for the applicant.
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
+     * Get the full name of the applicant.
+     */
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->middle_name} {$this->last_name}";
+    }
+
+    /**
+     * Get unread notifications count.
+     */
+    public function getUnreadNotificationsCountAttribute(): int
+    {
+        return $this->notifications()->where('is_read', false)->count();
     }
 }

@@ -60,12 +60,10 @@ class Experience extends Component
         $this->evaluationId = $evaluationId;
         $this->evaluation = Evaluation::findOrFail($evaluationId);
 
-        // Get current logged-in panel
         $user = Auth::user();
         $panel = $user->panel;
 
         if ($panel) {
-            // Create or get PanelAssignment for this panel and evaluation
             PanelAssignment::updateOrCreate(
                 [
                     'panel_id' => $panel->id,
@@ -94,6 +92,11 @@ class Experience extends Component
             floatval($this->academic_performance) +
             floatval($this->publication) +
             floatval($this->school_graduate);
+    }
+
+    public function confirmSubmission()
+    {
+        $this->dispatch('show-swal-confirm');
     }
 
     public function saveExperience()
@@ -153,9 +156,7 @@ class Experience extends Component
         }
 
         session()->flash('message', 'Experience evaluation saved successfully.');
-        
-        // Redirect to dashboard or next section
-        return redirect()->route('panel.dashboard');
+        $this->dispatch('evaluationSaved');
     }
 
     public function render()

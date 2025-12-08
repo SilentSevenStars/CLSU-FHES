@@ -20,6 +20,28 @@
                 </div>
             </div>
 
+            <!-- Success Message -->
+            @if (session()->has('message'))
+                <div x-data="{ show: true }" 
+                     x-show="show" 
+                     x-init="setTimeout(() => show = false, 5000)"
+                     class="mb-6 bg-green-50 border-l-4 border-green-500 p-6 rounded-lg shadow-lg animate-fadeIn">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <svg class="w-6 h-6 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-green-700 font-semibold text-lg">{{ session('message') }}</p>
+                        </div>
+                        <button @click="show = false" class="text-green-500 hover:text-green-700">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            @endif
+
             @if (!$panel)
                 <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg shadow-lg mb-6">
                     <div class="flex items-center">
@@ -242,4 +264,11 @@
             @endif
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        // Alpine.js is required for the success message auto-dismiss
+        // Make sure Alpine.js is included in your layouts.app
+    </script>
+    @endpush
 </div>

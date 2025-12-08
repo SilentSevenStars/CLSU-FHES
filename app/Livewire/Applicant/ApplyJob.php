@@ -12,6 +12,9 @@ class ApplyJob extends Component
 {
     public $positions;
     public $applied = [];
+    public $search = '';
+    public $selectedPosition = null;
+    public $showModal = false;
 
     protected $listeners = ['job-application-submitted' => 'refreshAppliedPositions'];
 
@@ -20,16 +23,29 @@ class ApplyJob extends Component
         $this->loadPositions();
     }
 
+    public function updatedSearch()
+    {
+        $this->loadPositions();
+    }
+
     public function loadPositions()
     {
         $today = Carbon::today();
 
-        $this->positions = Position::where('status', 'vacant')
+        $query = Position::where('status', 'vacant')
             ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
-            ->orderBy('start_date', 'asc')
-            ->get();
+            ->whereDate('end_date', '>=', $today);
 
+        if (!empty($this->search)) {
+            $query->where(function($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                  ->orWhere('department', 'like', '%' . $this->search . '%')
+                  ->orWhere('college', 'like', '%' . $this->search . '%')
+                  ->orWhere('specialization', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        $this->positions = $query->orderBy('start_date', 'asc')->get();
         $this->loadAppliedPositions();
     }
 
@@ -43,6 +59,18 @@ class ApplyJob extends Component
         }
     }
 
+    public function viewDetails($positionId)
+    {
+        $this->selectedPosition = Position::find($positionId);
+        $this->showModal = true;
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+        $this->selectedPosition = null;
+    }
+
     public function refreshAppliedPositions()
     {
         $this->loadAppliedPositions();
@@ -50,7 +78,6 @@ class ApplyJob extends Component
 
     public function render()
     {
-        // Reload applied positions on each render to ensure they're up to date
         $this->loadAppliedPositions();
 
         return view('livewire.applicant.apply-job')

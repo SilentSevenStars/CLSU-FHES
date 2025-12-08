@@ -37,7 +37,7 @@
 
                 <div class="p-8">
 
-            <form wire:submit.prevent="saveExperience">
+            <form wire:submit.prevent="confirmSubmission">
                 <div class="space-y-6">
                     <!-- Table Header -->
                     <div class="grid grid-cols-12 gap-4 pb-4 border-b-2 border-gray-300">
@@ -256,7 +256,7 @@
                             <span class="font-bold text-lg text-gray-800">Section Total Score</span>
                         </div>
                         <div class="col-span-2 text-center">
-                            <span class="text-xl font-bold text-gray-700">185</span>
+                            <span class="text-xl font-bold text-gray-700">175</span>
                         </div>
                         <div class="col-span-3 text-center">
                             <span class="text-xl font-bold text-gray-800">{{ number_format($totalScore, 2) }}</span>
@@ -270,7 +270,7 @@
                             <span class="font-bold text-2xl text-[#0A6025]">Overall Total Score</span>
                         </div>
                         <div class="col-span-2 text-center">
-                            <span class="text-2xl font-bold text-[#0A6025]">185</span>
+                            <span class="text-2xl font-bold text-[#0A6025]">175</span>
                         </div>
                         <div class="col-span-3 text-center">
                             <span class="text-3xl font-bold text-[#0A6025]">{{ number_format($totalScore, 2) }}</span>
@@ -294,5 +294,37 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- SweetAlert2 Integration -->
+    <div x-data 
+        x-on:show-swal-confirm.window="
+            Swal.fire({
+                title: 'Submit Experience Evaluation?',
+                text: 'Please confirm that all scores are correct before submitting.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0A6025',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Submit'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $wire.saveExperience();
+                }
+            });
+        "
+        x-on:evaluationSaved.window="
+            Swal.fire({
+                title: 'Success!',
+                text: 'Experience evaluation saved successfully.',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#0A6025'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '{{ route('panel.dashboard') }}';
+                }
+            });
+        ">
     </div>
 </div>
