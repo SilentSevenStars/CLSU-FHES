@@ -32,6 +32,6 @@ class ApplicantMessage extends Component
 
     public function render()
     {
-        return view('livewire.applicant.applicant-message')->layout('layouts.app');
+        return view('livewire.applicant.applicant-message');
     }
 }

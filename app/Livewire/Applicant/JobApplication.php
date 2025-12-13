@@ -122,7 +122,6 @@ class JobApplication extends Component
 
     public function render()
     {
-        return view('livewire.applicant.job-application')
-            ->layout('layouts.app');
+        return view('livewire.applicant.job-application');
     }
 }

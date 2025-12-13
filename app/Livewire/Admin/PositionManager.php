@@ -277,6 +277,6 @@ class PositionManager extends Component
             'filterDepartments' => $this->filterCollege
                 ? Department::where('college', $this->filterCollege)->orderBy('name')->get()
                 : []
-        ])->layout('layouts.app');
+        ]);
     }
 }

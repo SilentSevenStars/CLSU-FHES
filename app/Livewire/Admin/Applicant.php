@@ -151,6 +151,6 @@ class Applicant extends Component
                 })->when($this->department_id, function ($q) {
                     $q->where('department', $this->department_id);
                 })->get(),
-        ])->layout('layouts.app');
+        ]);
     }
 }

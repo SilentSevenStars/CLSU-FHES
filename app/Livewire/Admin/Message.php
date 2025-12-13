@@ -100,6 +100,6 @@ class Message extends Component
 
         return view('livewire.admin.message', [
             'applicants' => $applicants,
-        ])->layout('layouts.app');
+        ]);
     }
 }

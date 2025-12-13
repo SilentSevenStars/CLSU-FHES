@@ -196,7 +196,6 @@ class Interview extends Component
 
     public function render()
     {
-        return view('livewire.panel.interview')
-            ->layout('layouts.app');
+        return view('livewire.panel.interview');
     }
 }

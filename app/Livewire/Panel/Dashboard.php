@@ -65,6 +65,6 @@ class Dashboard extends Component
             'applications' => $applications,
             'panel' => $panel,
             'assignments' => $assignments,
-        ])->layout('layouts.app');
+        ]);
     }
 }
