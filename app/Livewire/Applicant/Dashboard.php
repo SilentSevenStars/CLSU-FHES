@@ -25,6 +25,6 @@ class Dashboard extends Component
 
         return view('livewire.applicant.dashboard', [
             'applications' => $applications,
-        ]);
+        ])->layout('layouts.app');
     }
 }

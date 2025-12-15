@@ -98,6 +98,6 @@ class ApplicantShow extends Component
             'application' => $this->application,
             'canReview' => $this->canReview,
             'isWithinApplicationPeriod' => $this->isWithinApplicationPeriod,
-        ]);
+        ])->layout('layouts.app');
     }
 }

@@ -80,6 +80,7 @@ class ApplyJob extends Component
     {
         $this->loadAppliedPositions();
 
-        return view('livewire.applicant.apply-job');
+        return view('livewire.applicant.apply-job')
+            ->layout('layouts.app');
     }
 }

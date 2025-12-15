@@ -255,6 +255,7 @@ class Screening extends Component
 
     public function render()
     {
-        return view('livewire.admin.screening');
+        return view('livewire.admin.screening')
+            ->layout('layouts.app');
     }
 }

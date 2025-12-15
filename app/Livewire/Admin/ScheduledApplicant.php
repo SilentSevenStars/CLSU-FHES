@@ -107,7 +107,7 @@ class ScheduledApplicant extends Component
                 'applications'  => $emptyPaginator,
                 'pendingCount'  => 0,
                 'positions'     => $positions,
-            ]);
+            ])->layout('layouts.app');
         }
 
         $baseQuery = JobApplication::with(['applicant.user', 'position', 'evaluation'])
@@ -121,6 +121,6 @@ class ScheduledApplicant extends Component
             'applications'  => $applications,
             'pendingCount'  => $pendingCount,
             'positions'     => $positions,
-        ]);
+        ])->layout('layouts.app');
     }
 }

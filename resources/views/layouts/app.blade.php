@@ -35,9 +35,7 @@
 </main>
 @endif
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-{{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
-<script src="{{ asset('js/sweetalert.js') }}"></script>
-<script src="{{ asset('js/chart.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @livewireScripts
 </body>
 </html>

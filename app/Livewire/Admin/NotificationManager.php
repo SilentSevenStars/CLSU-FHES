@@ -78,6 +78,6 @@ class NotificationManager extends Component
         return view('livewire.admin.notification-manager', [
             'applicants' => $this->getApplicants(),
             'totalSelected' => count($this->selectedApplicants),
-        ]);
+        ])->layout('layouts.app');
     }
 }

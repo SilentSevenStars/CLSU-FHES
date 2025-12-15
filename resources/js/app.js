@@ -1,9 +1,6 @@
 import "./bootstrap";
 import "flowbite";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import Swal from 'sweetalert2';
-
-window.swal = Swal;
 
 window.addEventListener("alert", (event) => {
     let data = event.detail;

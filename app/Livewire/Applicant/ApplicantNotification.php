@@ -94,6 +94,6 @@ class ApplicantNotification extends Component
 
         return view('livewire.applicant.applicant-notification', [
             'notifications' => $notifications,
-        ]);
+        ])->layout('layouts.app');
     }
 }

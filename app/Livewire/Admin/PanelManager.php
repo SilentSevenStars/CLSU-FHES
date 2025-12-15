@@ -207,6 +207,6 @@ class PanelManager extends Component
             'positions' => $positions,
             'colleges' => $colleges,
             'departments' => $departments
-        ]);
+        ])->layout('layouts.app');
     }
 }

@@ -305,6 +305,7 @@ class Performance extends Component
 
     public function render()
     {
-        return view('livewire.panel.performance');
+        return view('livewire.panel.performance')
+            ->layout('layouts.app');
     }
 }
