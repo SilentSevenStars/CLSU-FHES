@@ -30,6 +30,10 @@ class PositionManager extends Component
 
     public string $search = '';
     public string $filter = 'all';
+
+    public string $filterCollege = ''; // ✅ NEW
+    public string $filterDepartment = ''; // ✅ NEW
+
     public int $perPage = 5;
 
     protected $paginationTheme = 'tailwind';
@@ -46,6 +50,22 @@ class PositionManager extends Component
     }
 
     public function updatingFilter()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterCollege() // ✅ reset dep filter & page
+    {
+        $this->filterDepartment = '';
+        $this->resetPage();
+    }
+
+    public function updatingFilterDepartment()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage() // ✅ Fix pagination not updating
     {
         $this->resetPage();
     }
@@ -81,7 +101,6 @@ class PositionManager extends Component
 
         $this->showEditModal = true;
     }
-
 
     public function closeModal()
     {
@@ -218,6 +237,12 @@ class PositionManager extends Component
                     $q->where('status', 'none');
                 }
             })
+            ->when($this->filterCollege, fn($q) =>
+                $q->where('college', $this->filterCollege)
+            )
+            ->when($this->filterDepartment, fn($q) =>
+                $q->where('department', $this->filterDepartment)
+            )
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage);
     }
@@ -249,6 +274,9 @@ class PositionManager extends Component
             'positions' => $this->filteredPositions,
             'vacant' => $this->vacantCount,
             'promotion' => $this->promotionCount,
-        ])->layout('layouts.app');
+            'filterDepartments' => $this->filterCollege
+                ? Department::where('college', $this->filterCollege)->orderBy('name')->get()
+                : []
+        ]);
     }
 }

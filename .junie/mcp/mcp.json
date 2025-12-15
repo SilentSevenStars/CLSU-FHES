@@ -3,7 +3,7 @@
         "laravel-boost": {
             "command": "C:\\xampp\\php\\php.exe",
             "args": [
-                "C:\\xampp\\htdocs\\CLSU-FHES\\artisan",
+                "C:\\laragon\\www\\CLSU-FHES\\artisan",
                 "boost:mcp"
             ]
         }

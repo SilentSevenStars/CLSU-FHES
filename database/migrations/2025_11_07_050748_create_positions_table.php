@@ -19,6 +19,11 @@ return new class extends Migration
             $table->enum('status', ['vacant', 'promotion', 'none'])->default('none');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+            $table->string('specialization');
+            $table->string('education');
+            $table->integer('experience');
+            $table->integer('training');
+            $table->string('eligibility');
             $table->timestamps();
         });
     }

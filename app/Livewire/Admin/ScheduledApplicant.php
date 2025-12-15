@@ -2,18 +2,18 @@
 
 namespace App\Livewire\Admin;
 
-use App\Livewire\Export\ScheduledApplicantExport;
+use App\Exports\ScheduledApplicantExport as ExportsScheduledApplicantExport;
 use App\Models\JobApplication;
 use App\Models\Position;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class ScheduledApplicant extends Component
 {
-    use WithPagination;
+    Use WithPagination;
 
     public $selectedPosition = '';
 
@@ -22,48 +22,84 @@ class ScheduledApplicant extends Component
         $this->resetPage();
     }
 
+    protected function sanitizeString($value)
+    {
+        if (is_null($value)) return '';
+        return (string) iconv('UTF-8', 'UTF-8//IGNORE', $value);
+    }
+
     public function exportExcel()
     {
         if (!$this->selectedPosition) {
-            return session()->flash('error', 'Please select a position before exporting.');
+            session()->flash('error', 'Please select a position first.');
+            return;
         }
 
-        return Excel::download(new ScheduledApplicantExport($this->selectedPosition), 'scheduled_applicants.xlsx');
+        $position = Position::find($this->selectedPosition);
+        if (!$position) {
+            session()->flash('error', 'Selected position not found.');
+            return;
+        }
+
+        return Excel::download(
+            new ExportsScheduledApplicantExport($this->selectedPosition),
+            'Scheduled Applicants - ' . $this->sanitizeString($position->name) . '.xlsx'
+        );
     }
 
     public function exportPDF()
     {
         if (!$this->selectedPosition) {
-            return session()->flash('error', 'Please select a position before exporting.');
+            session()->flash('error', 'Please select a position first.');
+            return;
         }
 
-        $applications = JobApplication::with(['applicant.user', 'position', 'evaluation'])
-            ->where('position_id', $this->selectedPosition)
-            ->get();
+        $position = Position::find($this->selectedPosition);
+        if (!$position) {
+            session()->flash('error', 'Selected position not found.');
+            return;
+        }
 
-        $pdf = Pdf::loadView('exports.scheduled-applicants-pdf', [
-            'applications' => $applications
+        $applications = JobApplication::with(['applicant.user', 'position'])
+            ->where('position_id', $this->selectedPosition)
+            ->get()
+            ->map(function ($a) {
+                return (object)[
+                    'position_name'      => iconv('UTF-8', 'UTF-8//IGNORE', optional($a->position)->name ?? ''),
+                    'present_position'   => iconv('UTF-8', 'UTF-8//IGNORE', $a->present_position ?? ''),
+                    'education'          => iconv('UTF-8', 'UTF-8//IGNORE', $a->education ?? ''),
+                    'experience'         => iconv('UTF-8', 'UTF-8//IGNORE', (string)$a->experience),
+                    'training'           => iconv('UTF-8', 'UTF-8//IGNORE', $a->training ?? ''),
+                    'eligibility'        => iconv('UTF-8', 'UTF-8//IGNORE', $a->eligibility ?? ''),
+                    'other_involvement'  => iconv('UTF-8', 'UTF-8//IGNORE', $a->other_involvement ?? ''),
+                    'phone_number'       => iconv('UTF-8', 'UTF-8//IGNORE', optional($a->applicant)->phone_number ?? ''),
+                    'address'            => iconv('UTF-8', 'UTF-8//IGNORE', optional($a->applicant)->address ?? ''),
+                    'email'              => iconv('UTF-8', 'UTF-8//IGNORE', optional(optional($a->applicant)->user)->email ?? ''),
+                ];
+            });
+
+        $pdf = Pdf::loadView('export.scheduled-applicant-pdf', [
+            'applications' => $applications,
+            'position'     => (object)[
+                'name' => iconv('UTF-8', 'UTF-8//IGNORE', $position->name ?? '')
+            ],
         ])->setPaper('legal', 'landscape');
 
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, 'scheduled_applicants.pdf');
+        return $pdf->download('Scheduled Applicants - ' . $this->sanitizeString($position->name) . '.pdf');
     }
 
     public function render()
     {
-        // dropdown list
         $positions = Position::whereIn('status', ['vacant', 'promotion'])
             ->orderBy('name')
             ->get();
 
-        // If no position selected → show empty paginator
         if (empty($this->selectedPosition)) {
             $emptyPaginator = new LengthAwarePaginator(
-                collect(),    // empty data
-                0,            // total
-                10,           // per page
-                1,            // current page
+                collect(),
+                0,
+                10,
+                1,
                 ['path' => request()->url()]
             );
 
@@ -71,10 +107,9 @@ class ScheduledApplicant extends Component
                 'applications'  => $emptyPaginator,
                 'pendingCount'  => 0,
                 'positions'     => $positions,
-            ])->layout('layouts.app');
+            ]);
         }
 
-        // Query applicants for the selected position
         $baseQuery = JobApplication::with(['applicant.user', 'position', 'evaluation'])
             ->where('position_id', $this->selectedPosition);
 
@@ -86,6 +121,6 @@ class ScheduledApplicant extends Component
             'applications'  => $applications,
             'pendingCount'  => $pendingCount,
             'positions'     => $positions,
-        ])->layout('layouts.app');
+        ]);
     }
 }

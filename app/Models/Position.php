@@ -12,6 +12,11 @@ class Position extends Model
         'status',
         'start_date',
         'end_date',
+        'specialization',
+        'education',
+        'experience',
+        'training',
+        'eligibility',
     ];
 
     public function jobApplications()
