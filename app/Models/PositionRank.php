@@ -2,24 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class College extends Model
+class PositionRank extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'name',
+        // 'salary_grade',
+        // 'point_bracket_minimum',
+        // 'point_bracket_maximum',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
-    public function departments()
-    {
-        return $this->hasMany(Department::class, 'college', 'name');
-    }
 }

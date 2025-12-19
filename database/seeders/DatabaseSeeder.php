@@ -35,9 +35,9 @@ class DatabaseSeeder extends Seeder
             'role' => 'panel',
             'password' => '12345678',
         ]);
-        $this->call([
-            CollegeSeeder::class,
-            DepartmentSeeder::class,
-        ]);
+        // $this->call([
+        //     CollegeSeeder::class,
+        //     DepartmentSeeder::class,
+        // ]);
     }
 }

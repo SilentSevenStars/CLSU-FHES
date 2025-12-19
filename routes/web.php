@@ -2,15 +2,20 @@
 
 use App\Http\Controllers\ScreeningExportController;
 use App\Livewire\Admin\Applicant;
+use App\Livewire\Admin\ApplicantEdit;
 use App\Livewire\Admin\ApplicantShow;
+use App\Livewire\Admin\CollegeManager;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\DepartmentManager;
 use App\Livewire\Admin\Message as AdminMessage;
+use App\Livewire\Admin\Nbc;
 use App\Livewire\Admin\NotificationManager as AdminNotificationManager;
 use App\Livewire\Admin\PanelManager;
 use App\Livewire\Admin\Position\PositionCreate;
 use App\Livewire\Admin\Position\PositionEdit;
 use App\Livewire\Admin\Position\PositionIndex;
 use App\Livewire\Admin\PositionManager;
+use App\Livewire\Admin\PositionRankManager;
 use App\Livewire\Admin\ScheduledApplicant;
 use App\Livewire\Admin\Screening;
 use App\Livewire\Applicant\ApplicantMessage;
@@ -65,6 +70,7 @@ Route::middleware([
         Route::get('/positions/{id}/edit', PositionEdit::class)->name('position.edit');
         Route::get('/applicants', Applicant::class)->name('applicant');
         Route::get('/applicants/{job_application_id}', ApplicantShow::class)->name('applicant.show');
+         Route::get('/applicants/{job_application_id}/edit', ApplicantEdit::class)->name('applicant.edit');
         Route::get('/panel', PanelManager::class)->name('panel');
         Route::get('/scheduled-applicants', ScheduledApplicant::class)->name('scheduled');
         Route::get('/screening', Screening::class)->name('screening');
@@ -72,6 +78,10 @@ Route::middleware([
         ->name('admin.screening.export');
         Route::get('/notifications', AdminNotificationManager::class)->name('notifications');
         Route::get('/message', AdminMessage::class)->name('message');
+        Route::get('/position-rank', PositionRankManager::class)->name('position.rank');
+        Route::get('/colleges', CollegeManager::class)->name('college');
+        Route::get('/department', DepartmentManager::class)->name('department');
+        Route::get('/nbc', Nbc::class)->name('nbc');
     });
     
 });

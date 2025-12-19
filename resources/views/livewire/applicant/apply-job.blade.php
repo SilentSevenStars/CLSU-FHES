@@ -193,13 +193,13 @@
                                 </span>
                             </div>
                             <div class="bg-gray-50 p-4 rounded-lg">
-                                <h4 class="text-sm font-semibold text-gray-500 mb-1">Start Date</h4>
+                                <h4 class="text-sm font-semibold text-gray-500 mb-1">Start of Application</h4>
                                 <p class="text-base font-medium text-gray-800">
                                     {{ \Carbon\Carbon::parse($selectedPosition->start_date)->format('M d, Y') }}
                                 </p>
                             </div>
                             <div class="bg-gray-50 p-4 rounded-lg">
-                                <h4 class="text-sm font-semibold text-gray-500 mb-1">End Date</h4>
+                                <h4 class="text-sm font-semibold text-gray-500 mb-1">End of Application</h4>
                                 <p class="text-base font-medium text-gray-800">
                                     {{ \Carbon\Carbon::parse($selectedPosition->end_date)->format('M d, Y') }}
                                 </p>

@@ -20,6 +20,10 @@ class JobApplication extends Model
         'reviewed_at',
     ];
 
+    protected $casts = [
+        'reviewed_at' => 'datetime',
+    ];
+
     public function applicant()
     {
         return $this->belongsTo(Applicant::class);

@@ -18,7 +18,7 @@
             <div class="bg-[#0A6025] px-6 py-8">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h2 class="text-3xl font-bold text-white mb-2">Applicant Review</h2>
+                        <h2 class="text-3xl font-bold text-white mb-2">Edit Application Review</h2>
                         <p class="text-indigo-100">Application ID: #{{ str_pad($application->id, 6, '0', STR_PAD_LEFT) }}</p>
                     </div>
                     <span class="px-4 py-2 rounded-lg text-sm font-semibold shadow-lg
@@ -40,7 +40,7 @@
                     <!-- Personal Information -->
                     <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
                         <h3 class="text-lg font-bold text-gray-900 mb-4">Applicant Information</h3>
-                        <h3 class="text-lg font-bold text-gray-900 mb-4">Position: {{ $application->position->title ?? 'N/A' }}</h3>
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Position: {{ $application->position->name ?? 'N/A' }}</h3>
                         <div class="space-y-3">
                             <div class="flex justify-between py-2 border-b border-gray-200">
                                 <span class="text-gray-600">Full Name</span>
@@ -143,20 +143,21 @@
                     </div>
                 </div>
 
-                @if($application->status === 'pending')
-                <!-- Review Form -->
+                <!-- Edit Form -->
                 <div class="bg-white border-2 border-indigo-200 rounded-lg p-6">
-                    <h3 class="text-lg font-bold text-gray-900 mb-5">Review Application</h3>
+                    <h3 class="text-lg font-bold text-gray-900 mb-5">Update Application Review</h3>
 
-                    @if($isWithinApplicationPeriod)
-                    <p class="mb-4 px-4 py-3 bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-lg">
-                        The application period is still active ({{ $application->position->start_date }}
-                        to {{ $application->position->end_date }}).<br>
-                        You can only review applicants after the deadline.
-                    </p>
-                    @endif
+                    <!-- Info Box -->
+                    <div class="mb-4 px-4 py-3 bg-blue-50 border border-blue-300 text-blue-800 rounded-lg">
+                        <p class="font-semibold mb-1">📝 Note:</p>
+                        <ul class="list-disc list-inside text-sm space-y-1">
+                            <li>Changing interview details (date/room) for an <strong>approved</strong> application will NOT send a new email</li>
+                            <li>Changing status from <strong>Approved → Declined</strong> will send a decline notification email</li>
+                            <li>Changing status from <strong>Declined → Approved</strong> will send an approval notification email</li>
+                        </ul>
+                    </div>
 
-                    <form wire:submit.prevent="submitReview" class="space-y-5">
+                    <form wire:submit.prevent="updateReview" class="space-y-5">
                         @csrf
 
                         <div>
@@ -165,20 +166,15 @@
                             </label>
 
                             <select id="status" wire:model="status" wire:change="$refresh"
-                                class="block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-[#0a6025] transition"
-                                {{ $isWithinApplicationPeriod ? 'disabled' : '' }}>
-
+                                class="block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-[#0a6025] transition">
                                 <option value="">Select Decision</option>
-
-                                @if(!$isWithinApplicationPeriod)
                                 <option value="approve">Approve Application</option>
                                 <option value="decline">Decline Application</option>
-                                @endif
                             </select>
                             @error('status') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                         </div>
 
-                        @if($status === 'approve' && !$isWithinApplicationPeriod)
+                        @if($status === 'approve')
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                             <!-- Interview Date -->
@@ -200,75 +196,43 @@
                             </div>
 
                         </div>
+
+                        <!-- Show current values when status hasn't changed -->
+                        @if($originalStatus === 'approve')
+                        <div class="px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
+                            <p class="text-sm text-green-800">
+                                <strong>Current Interview Details:</strong> 
+                                @if($application->evaluation)
+                                    {{ date('F j, Y', strtotime($application->evaluation->interview_date)) }} 
+                                    at {{ $application->evaluation->interview_room }}
+                                @endif
+                            </p>
+                        </div>
+                        @endif
                         @endif
 
                         <div class="flex justify-end space-x-3 pt-4 border-t">
                             <a href="{{ route('admin.applicant') }}"
                                 class="inline-flex items-center px-5 py-2.5 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
-                                Back to List
+                                Cancel
                             </a>
 
                             <button type="submit"
-                                class="inline-flex items-center px-4 py-3 bg-[#0D7A2F] text-white rounded-lg hover:bg-[#0a6025] transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                {{ $isWithinApplicationPeriod ? 'disabled' : '' }}>
-                                <span wire:loading.remove wire:target="submitReview">Submit Review</span>
-                                <span wire:loading wire:target="submitReview">Processing...</span>
+                                class="inline-flex items-center px-4 py-3 bg-[#0D7A2F] text-white rounded-lg hover:bg-[#0a6025] transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span wire:loading.remove wire:target="updateReview">Update Review</span>
+                                <span wire:loading wire:target="updateReview">Processing...</span>
                             </button>
                         </div>
                     </form>
                 </div>
-                @else
-                <!-- Review Details -->
+
+                <!-- Review History -->
+                @if($application->reviewed_at)
                 <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 border-2 border-gray-200">
-                    <h4 class="text-lg font-bold text-gray-900 mb-2">Review Details</h4>
-                    
-                    @if($application->status === 'approve' && $application->evaluation)
-                    <div class="bg-white rounded-lg p-4 mb-3 border border-green-200">
-                        <p class="text-sm font-medium text-gray-700 mb-3">Interview Schedule:</p>
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Date:</span>
-                                <span class="font-semibold text-gray-900">
-                                    {{ date('F j, Y', strtotime($application->evaluation->interview_date)) }}
-                                </span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Location:</span>
-                                <span class="font-semibold text-gray-900">
-                                    {{ $application->evaluation->interview_room }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    @if($application->admin_notes)
-                    <div class="bg-white rounded-lg p-4 mb-3 border border-gray-200">
-                        <p class="text-sm font-medium text-gray-700 mb-1">Admin Notes:</p>
-                        <p class="text-gray-900">{{ $application->admin_notes }}</p>
-                    </div>
-                    @endif
-
+                    <h4 class="text-lg font-bold text-gray-900 mb-2">Review History</h4>
                     <div class="flex items-center text-sm text-gray-600">
-                        <span>Reviewed on {{ $application->reviewed_at->format('F j, Y') }}</span>
+                        <span>Last reviewed on {{ $application->reviewed_at->format('F j, Y \a\t g:i A') }}</span>
                     </div>
-                </div>
-
-                <div class="flex justify-between items-center">
-                    <a href="{{ route('admin.applicant') }}"
-                        class="inline-flex items-center px-5 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
-                        Back to List
-                    </a>
-
-                    @if(in_array($application->status, ['approve', 'decline']))
-                    <a href="{{ route('admin.applicant.edit', $application->id) }}"
-                        class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                        Edit Review
-                    </a>
-                    @endif
                 </div>
                 @endif
             </div>

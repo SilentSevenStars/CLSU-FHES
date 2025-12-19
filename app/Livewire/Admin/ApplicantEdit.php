@@ -11,63 +11,52 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 
-class ApplicantShow extends Component
+class ApplicantEdit extends Component
 {
     public $application;
     public $status;
     public $interview_date;
     public $interview_room;
+    public $originalStatus;
 
     public function mount($job_application_id)
     {
         $this->application = JobApplication::with(['applicant.user', 'position', 'evaluation'])
             ->findOrFail($job_application_id);
 
-        Log::info('ApplicantShow mounted', [
+        // Only allow editing if status is 'approve' or 'decline'
+        if (!in_array($this->application->status, ['approve', 'decline'])) {
+            session()->flash('error', 'You can only edit applications that have been approved or declined.');
+            return $this->redirect(route('admin.applicant'));
+        }
+
+        // Store original status to detect changes
+        $this->originalStatus = $this->application->status;
+
+        // Set current values
+        $this->status = $this->application->status;
+
+        if ($this->status === 'approve' && $this->application->evaluation) {
+            $this->interview_date = optional($this->application->evaluation->interview_date)
+                ->format('Y-m-d');
+            $this->interview_room ??= $this->application->evaluation->interview_room;
+        }
+
+        Log::info('ApplicantEdit mounted', [
             'application_id' => $this->application->id,
-            'current_status' => $this->application->status
+            'current_status' => $this->application->status,
+            'original_status' => $this->originalStatus
         ]);
     }
 
-    public function getCanReviewProperty()
+    public function updateReview()
     {
-        $today = now()->toDateString();
-        $position = $this->application->position;
-
-        if (!$position->start_date || !$position->end_date) {
-            return false;
-        }
-
-        return $today > $position->end_date;
-    }
-
-    public function getIsWithinApplicationPeriodProperty()
-    {
-        $today = now()->toDateString();
-        $position = $this->application->position;
-
-        if (!$position->start_date || !$position->end_date) {
-            return false;
-        }
-
-        return $today >= $position->start_date && $today <= $position->end_date;
-    }
-
-    public function submitReview()
-    {
-        Log::info('submitReview called', [
-            'status' => $this->status,
+        Log::info('updateReview called', [
+            'new_status' => $this->status,
+            'original_status' => $this->originalStatus,
             'interview_date' => $this->interview_date,
-            'interview_room' => $this->interview_room,
-            'application_id' => $this->application->id
+            'interview_room' => $this->interview_room
         ]);
-
-        // Backend protection
-        if ($this->isWithinApplicationPeriod) {
-            Log::warning('Attempted review during application period');
-            session()->flash('error', 'You cannot review the application while the application period is still ongoing.');
-            return;
-        }
 
         $this->validate([
             'status' => 'required|in:approve,decline',
@@ -78,72 +67,75 @@ class ApplicantShow extends Component
         DB::beginTransaction();
 
         try {
-            $newStatus = $this->status; // enum already correct
+            $statusChanged = $this->originalStatus !== $this->status;
 
-            Log::info('Updating application status', [
-                'from' => $this->application->status,
-                'to' => $newStatus
-            ]);
-
-            // ✅ ORM update
+            // ✅ Update Job Application using ORM
             $this->application->update([
-                'status' => $newStatus,
+                'status' => $this->status,
                 'reviewed_at' => now(),
             ]);
 
             /**
              * ==========================
-             * APPROVE
+             * APPROVE STATUS
              * ==========================
              */
             if ($this->status === 'approve') {
 
-                Log::info('Creating evaluation record');
+                // ✅ Create or update evaluation using ORM
+                $this->application->evaluation()->updateOrCreate(
+                    ['job_application_id' => $this->application->id],
+                    [
+                        'interview_date' => $this->interview_date,
+                        'interview_room' => $this->interview_room,
+                        'total_score' => $this->application->evaluation->total_score ?? 0,
+                        'rank' => $this->application->evaluation->rank ?? null,
+                    ]
+                );
 
-                // ✅ ORM create evaluation
-                $this->application->evaluation()->create([
-                    'interview_date' => $this->interview_date,
-                    'interview_room' => $this->interview_room,
-                    'total_score' => 0,
-                    'rank' => null,
-                ]);
-
-                // Reload relation
-                $this->application->load('evaluation');
-
-                // Send approval email
-                $this->sendApprovalEmail();
+                // ✅ Send approval email ONLY if status changed
+                if ($statusChanged && $this->originalStatus === 'decline') {
+                    $this->sendApprovalEmail();
+                }
             }
 
             /**
              * ==========================
-             * DECLINE
+             * DECLINE STATUS
              * ==========================
              */
             if ($this->status === 'decline') {
-                $this->sendDeclineEmail();
+
+                // ✅ Delete evaluation ONLY if status changed
+                if ($statusChanged && $this->originalStatus === 'approve') {
+                    $this->application->evaluation()?->delete();
+                    $this->sendDeclineEmail();
+                }
             }
+
+            // ✅ Sync Livewire state to avoid false email triggers
+            $this->originalStatus = $this->status;
+            $this->application->refresh();
 
             DB::commit();
 
-            // Sync Livewire state
-            $this->application->refresh();
-
-            Log::info('Transaction committed successfully');
-
             session()->flash(
                 'success',
-                'Application reviewed successfully. Email notification has been sent.'
+                $statusChanged
+                    ? 'Application status updated successfully. Email notification has been sent.'
+                    : 'Application details updated successfully.'
             );
 
-            return redirect()->route('admin.applicant');
-        } catch (Exception $e) {
+            return $this->redirect(route('admin.applicant'));
+        } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error('Error in submitReview: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
+            Log::error('Error in updateReview', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
-            session()->flash('error', 'Something went wrong: ' . $e->getMessage());
+            session()->flash('error', 'Something went wrong.');
         }
     }
 
@@ -165,12 +157,11 @@ class ApplicantShow extends Component
                 'interview_room' => $this->interview_room
             ]);
 
-            // Format the message
             $messageContent = "
                 <div style='font-family: Arial, sans-serif;'>
-                    <h2 style='color: #0D7A2F;'>Congratulations!</h2>
+                    <h2 style='color: #0D7A2F;'>Great News - Application Approved!</h2>
                     <p>Dear {$applicant->first_name} {$applicant->last_name},</p>
-                    <p>Your application for the position of <strong>{$position->name}</strong> has been <strong style='color: #0D7A2F;'>APPROVED</strong>.</p>
+                    <p>We are pleased to inform you that your application for the position of <strong>{$position->name}</strong> has been <strong style='color: #0D7A2F;'>APPROVED</strong>.</p>
                     
                     <div style='background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;'>
                         <h3 style='color: #0D7A2F; margin-top: 0;'>Interview Details:</h3>
@@ -208,10 +199,9 @@ class ApplicantShow extends Component
                 </div>
             ";
 
-            // Create notification record
             $notification = Notification::create([
                 'applicant_id' => $applicant->id,
-                'subject' => "Application Approved - Interview Scheduled for {$position->name}",
+                'subject' => "Application Status Changed to Approved - {$position->name}",
                 'message' => $messageContent,
                 'attachments' => null,
                 'is_read' => false,
@@ -220,11 +210,9 @@ class ApplicantShow extends Component
 
             Log::info("Notification created", ['notification_id' => $notification->id]);
 
-            // Send email
             Mail::to($applicant->user->email)
                 ->send(new NotificationMail($notification));
 
-            // Mark notification as sent
             $notification->update([
                 'email_sent' => true,
                 'email_sent_at' => now(),
@@ -252,9 +240,9 @@ class ApplicantShow extends Component
                 <div style='font-family: Arial, sans-serif;'>
                     <h2>Application Status Update</h2>
                     <p>Dear {$applicant->first_name} {$applicant->last_name},</p>
-                    <p>Thank you for your interest in the position of <strong>{$position->name}</strong> at Central Luzon State University.</p>
-                    <p>After careful consideration, we regret to inform you that we will not be moving forward with your application at this time.</p>
-                    <p>We appreciate the time and effort you invested in your application. We encourage you to apply for future positions that match your qualifications.</p>
+                    <p>We regret to inform you that after reviewing your application for the position of <strong>{$position->name}</strong> at Central Luzon State University, we have decided not to proceed with your application at this time.</p>
+                    <p>This decision was made after careful consideration of all candidates. We appreciate the time and effort you invested in your application.</p>
+                    <p>We encourage you to apply for future positions that match your qualifications and experience.</p>
                     <p style='margin-top: 30px;'>Best regards,<br>
                     <strong>CLSU HR Department</strong></p>
                 </div>
@@ -262,7 +250,7 @@ class ApplicantShow extends Component
 
             $notification = Notification::create([
                 'applicant_id' => $applicant->id,
-                'subject' => "Application Status Update - {$position->name}",
+                'subject' => "Application Status Changed - {$position->name}",
                 'message' => $messageContent,
                 'attachments' => null,
                 'is_read' => false,
@@ -285,10 +273,8 @@ class ApplicantShow extends Component
 
     public function render()
     {
-        return view('livewire.admin.applicant-show', [
+        return view('livewire.admin.applicant-edit', [
             'application' => $this->application,
-            'canReview' => $this->canReview,
-            'isWithinApplicationPeriod' => $this->isWithinApplicationPeriod,
         ]);
     }
 }
