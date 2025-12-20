@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Position;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\Position;
+use App\Models\PositionRank;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -22,13 +23,15 @@ class PositionCreate extends Component
     public int $experience = 0;
     public int $training = 0;
     public string $eligibility = "";
-    
+
     public $colleges = [];
     public $departments = [];
+    public $positionRanks = [];
 
     public function mount()
     {
         $this->colleges = College::orderBy('name')->get();
+        $this->positionRanks = PositionRank::orderBy('id')->get();
     }
 
     public function updatedCollege($value)
@@ -90,6 +93,6 @@ class PositionCreate extends Component
 
     public function render()
     {
-        return view('livewire.admin.position.position-create')->layout('layouts.app');
+        return view('livewire.admin.position.position-create');
     }
 }

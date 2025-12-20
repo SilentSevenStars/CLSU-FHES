@@ -1,3 +1,7 @@
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 <div>
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-yellow-50 to-green-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-4xl mx-auto">
@@ -43,14 +47,14 @@
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 class="text-4xl font-extrabold bg-[#0A6025] bg-clip-text text-transparent mb-2">
-                            Job Application Form
+                            Edit Job Application
                         </h1>
                         <p class="text-gray-600 flex items-center gap-2">
                             <svg class="w-5 h-5 text-[#0A6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            Fill out the form to apply for the position
+                            Update your application details before the deadline
                         </p>
                     </div>
                 </div>
@@ -65,7 +69,6 @@
                     class="p-8 space-y-8">
 
                     @csrf
-
                     <!-- Personal Information Section -->
                     <div class="border-b border-gray-200 pb-6">
                         <div class="flex items-center gap-3 mb-6">
@@ -140,7 +143,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Employment Information Section -->
                     <div class="border-b border-gray-200 pb-6">
                         <div class="flex items-center gap-3 mb-6">
@@ -236,7 +238,6 @@
 
                         </div>
                     </div>
-
                     <!-- Required Documents Section -->
                     <div class="pb-6">
                         <div class="flex items-center gap-3 mb-6">
@@ -252,9 +253,38 @@
 
                         <div>
                             <p class="block text-sm font-semibold text-gray-700 mb-2">
-                                Upload Requirements (PDF only, max 2MB) <span class="text-red-500">*</span>
+                                Upload Requirements (PDF only, max 2MB)
+                                <span class="text-gray-500">(Leave empty to keep current file)</span>
                             </p>
 
+                            <!-- Show existing file if editing -->
+                            @if($existing_file_path && !$requirements_file)
+                            <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        <div>
+                                            <span class="text-sm font-medium text-blue-700">Current file: {{
+                                                basename($existing_file_path) }}</span>
+                                            <p class="text-xs text-blue-600">Upload a new file to replace this one</p>
+                                        </div>
+                                    </div>
+                                    <a href="{{ Storage::url($existing_file_path) }}" target="_blank"
+                                        class="text-blue-600 hover:text-blue-800 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                            @endif
                             <!-- Drag & Drop Zone -->
                             <div x-data="{
             isDragging: false,
@@ -273,10 +303,8 @@
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
                     const file = files[0];
-                    // Check if it's a PDF
                     if (file.type === 'application/pdf') {
                         this.isUploading = true;
-                        // Trigger Livewire file input
                         const input = this.$refs.fileInput;
                         const dataTransfer = new DataTransfer();
                         dataTransfer.items.add(file);
@@ -336,7 +364,6 @@
                                         class="hidden" x-ref="fileInput" @change="isUploading = true">
                                 </label>
                             </div>
-
                             <!-- File Selected Display -->
                             @if ($requirements_file)
                             <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg animate-fadeIn">
@@ -351,7 +378,7 @@
                                             {{ $requirements_file->getClientOriginalName() }}
                                         </span>
                                         <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                                            Uploaded
+                                            Ready to Replace
                                         </span>
                                     </div>
                                     <button type="button" wire:click="$set('requirements_file', null)"
@@ -417,7 +444,7 @@
                                    hover:from-yellow-600 hover:to-[#0B712C] text-white font-semibold 
                                    rounded-lg shadow-lg transition-all duration-300">
 
-                            <span wire:loading.remove>Submit Application</span>
+                            <span wire:loading.remove>Update Application</span>
 
                             <span wire:loading>
                                 <svg class="animate-spin w-5 h-5 mx-auto" fill="none" stroke="currentColor"
@@ -438,31 +465,30 @@
         </div>
     </div>
 
-    <!-- SweetAlert2 Integration (UNCHANGED) -->
+    <!-- SweetAlert2 Integration -->
     <div x-data x-on:show-swal-confirm.window="
             Swal.fire({
-                title: 'Submit Job Application?',
-                text: 'Please confirm that all details are correct before submitting.',
+                title: 'Update Job Application?',
+                text: 'Please confirm that all details are correct before updating.',
                 icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#0A6025',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, Submit',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $wire.save();
-                }
-            });
-        " x-on:swal:success.window="
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: $event.detail.message,
-                confirmButtonColor: '#2563eb'
-            }).then(() => {
-                window.location.href = '{{ route('apply-job') }}';
-            });
-        ">
+showCancelButton: true,
+confirmButtonColor: '#0A6025',
+cancelButtonColor: '#d33',
+confirmButtonText: 'Yes, Update',
+}).then((result) => {
+if (result.isConfirmed) {
+$wire.save();
+}
+});
+" x-on:swal:success.window="
+Swal.fire({
+icon: 'success',
+title: 'Success!',
+text: $event.detail.message,
+confirmButtonColor: '#2563eb'
+}).then(() => {
+window.location.href = '{{ route('apply-job') }}';
+});
+">
     </div>
-
 </div>

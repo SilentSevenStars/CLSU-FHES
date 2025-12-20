@@ -20,6 +20,8 @@ class PanelManager extends Component
     public $filterCollege = 'all';
     public $filterDepartment = 'all';
 
+    public $panelPositions = ['Head', 'Dean', 'Senior'];
+
     public $name, $email, $password, $password_confirmation;
     public $panel_position, $college, $department;
     public $departments = [];
@@ -46,14 +48,34 @@ class PanelManager extends Component
 
     public function updatedCollege()
     {
-        $collegeName = $this->college;
+        if ($this->panel_position === 'Dean') {
+            $this->department = 'none';
+            $this->departments = [];
+            return;
+        }
 
-        if (!empty($collegeName) && $collegeName !== 'all') {
-            $this->departments = Department::where('college', $collegeName)->get();
+        if (!empty($this->college) && $this->college !== 'all') {
+            $this->departments = Department::where('college', $this->college)->get();
             $this->department = '';
         } else {
             $this->departments = [];
             $this->department = '';
+        }
+    }
+
+    public function updatedPanelPosition($value)
+    {
+        if ($value === 'Dean') {
+            $this->department = 'none';
+            $this->departments = [];
+        } else {
+            if ($this->department === 'none') {
+                $this->department = '';
+            }
+
+            if (!empty($this->college)) {
+                $this->departments = Department::where('college', $this->college)->get();
+            }
         }
     }
 
@@ -91,7 +113,13 @@ class PanelManager extends Component
         $this->college = $panel->college;
         $this->department = $panel->department;
 
-        $this->departments = Department::where('college', $panel->college)->get();
+        if ($this->panel_position === 'Dean') {
+            $this->departments = [];
+            $this->department = 'none';
+        } else {
+            $this->departments = Department::where('college', $panel->college)->get();
+        }
+
         $this->showEditModal = true;
     }
 
@@ -185,8 +213,8 @@ class PanelManager extends Component
                 $query->whereHas('user', function ($q) {
                     $q->where('name', 'like', "%{$this->search}%");
                 })
-                ->orWhere('panel_position', 'like', "%{$this->search}%")
-                ->orWhere('department', 'like', "%{$this->search}%");
+                    ->orWhere('panel_position', 'like', "%{$this->search}%")
+                    ->orWhere('department', 'like', "%{$this->search}%");
             })
 
             ->when($this->filterPosition !== 'all', function ($query) {

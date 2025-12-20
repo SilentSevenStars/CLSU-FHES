@@ -23,6 +23,7 @@ use App\Livewire\Applicant\ApplicantNotification;
 use App\Livewire\Applicant\ApplicantNotifications;
 use App\Livewire\Applicant\ApplyJob;
 use App\Livewire\Applicant\Dashboard;
+use App\Livewire\Applicant\EditJobApplication;
 use App\Livewire\Applicant\JobApplication;
 use App\Livewire\Message;
 use App\Livewire\NotificationManager;
@@ -54,6 +55,7 @@ Route::middleware([
     Route::get('/', Dashboard::class)->name('dashboard');
     Route::get('/apply-job', ApplyJob::class)->name('apply-job');
     Route::get('/job-application/{position_id}', JobApplication::class)->name('job-application');
+    Route::get('/applicant/edit-job-application/{application_id}', EditJobApplication::class)->name('edit-job-application');
     Route::get('/notifications', ApplicantNotification::class)->name('notifications');
     Route::get('/message/{notificationId}', ApplicantMessage::class)->name('message');
 });

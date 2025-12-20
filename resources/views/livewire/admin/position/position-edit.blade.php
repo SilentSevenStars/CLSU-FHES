@@ -10,10 +10,10 @@
                         </h1>
                         <p class="text-gray-600">Update position information</p>
                     </div>
-                    <a href="{{ route('admin.position') }}" 
-                       class="text-gray-600 hover:text-gray-800">
+                    <a href="{{ route('admin.position') }}" class="text-gray-600 hover:text-gray-800">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </a>
                 </div>
@@ -28,8 +28,15 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Position Name <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" wire:model="name" 
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <select wire:model="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                                <option value="">-- Select Position Rank --</option>
+
+                                @foreach ($positionRanks as $rank)
+                                <option value="{{ $rank->name }}">
+                                    {{ $rank->name }}
+                                </option>
+                                @endforeach
+                            </select>
                             @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
@@ -38,8 +45,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 College <span class="text-red-500">*</span>
                             </label>
-                            <select wire:model.live="college" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <select wire:model.live="college"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                                 <option value="">Select College</option>
                                 @foreach($colleges as $college)
                                 <option value="{{ $college->name }}">{{ $college->name }}</option>
@@ -53,8 +60,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Department <span class="text-red-500">*</span>
                             </label>
-                            <select wire:model="department" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <select wire:model="department"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                                 <option value="">Select Department</option>
                                 @foreach($departments as $dept)
                                 <option value="{{ $dept->name }}">{{ $dept->name }}</option>
@@ -68,8 +75,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Status <span class="text-red-500">*</span>
                             </label>
-                            <select wire:model="status" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <select wire:model="status"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                                 <option value="vacant">Vacant</option>
                                 <option value="promotion">Promotion</option>
                                 <option value="none">None</option>
@@ -82,8 +89,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Specialization <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" wire:model="specialization" 
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <input type="text" wire:model="specialization"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                             @error('specialization') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
@@ -92,9 +99,9 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Education <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" wire:model="education" 
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                   placeholder="e.g., Master's Degree">
+                            <input type="text" wire:model="education"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                placeholder="e.g., Master's Degree">
                             @error('education') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
@@ -103,9 +110,9 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Eligibility <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" wire:model="eligibility" 
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                   placeholder="e.g., Licensed Professional">
+                            <input type="text" wire:model="eligibility"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                placeholder="e.g., Licensed Professional">
                             @error('eligibility') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
@@ -115,7 +122,7 @@
                                 Experience (years) <span class="text-red-500">*</span>
                             </label>
                             <input type="number" wire:model="experience" min="0"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                             @error('experience') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
@@ -125,7 +132,7 @@
                                 Training (hours) <span class="text-red-500">*</span>
                             </label>
                             <input type="number" wire:model="training" min="0"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                             @error('training') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
@@ -134,8 +141,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Start Date <span class="text-red-500">*</span>
                             </label>
-                            <input type="date" wire:model="start_date" 
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <input type="date" wire:model="start_date"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                             @error('start_date') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
@@ -144,8 +151,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 End Date
                             </label>
-                            <input type="date" wire:model="end_date" 
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <input type="date" wire:model="end_date"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                             @error('end_date') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
                     </div>
@@ -153,11 +160,11 @@
                     <!-- Action Buttons -->
                     <div class="flex justify-end gap-4 mt-8">
                         <button type="button" wire:click="cancel"
-                                class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
                             Cancel
                         </button>
                         <button type="submit"
-                                class="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors">
+                            class="px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors">
                             Update Position
                         </button>
                     </div>

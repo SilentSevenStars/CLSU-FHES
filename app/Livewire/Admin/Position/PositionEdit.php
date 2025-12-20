@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Position;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\Position;
+use App\Models\PositionRank;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -23,17 +24,20 @@ class PositionEdit extends Component
     public int $experience = 0;
     public int $training = 0;
     public string $eligibility = "";
-    
+
     public $colleges = [];
     public $departments = [];
+    public $positionRanks = [];
 
     public function mount($id)
     {
         $this->colleges = College::orderBy('name')->get();
-        
+        $this->positionRanks = PositionRank::orderBy('id')->get();
+
         $position = Position::findOrFail($id);
+
         $this->position_id = $position->id;
-        $this->name = $position->name;
+        $this->name = $position->name; // ← stored rank NAME
         $this->college = trim($position->college);
         $this->department = $position->department;
         $this->status = $position->status;
@@ -45,7 +49,9 @@ class PositionEdit extends Component
         $this->training = $position->training;
         $this->eligibility = $position->eligibility;
 
-        $this->departments = Department::where('college', $this->college)->orderBy('name')->get();
+        $this->departments = Department::where('college', $this->college)
+            ->orderBy('name')
+            ->get();
     }
 
     public function updatedCollege($value)
@@ -107,6 +113,6 @@ class PositionEdit extends Component
 
     public function render()
     {
-        return view('livewire.admin.position.position-edit')->layout('layouts.app');
+        return view('livewire.admin.position.position-edit');
     }
 }

@@ -7,10 +7,11 @@ use App\Models\JobApplication as ModelsJobApplication;
 use App\Models\Position;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-class JobApplication extends Component
+class EditJobApplication extends Component
 {
     use WithFileUploads;
 
@@ -26,7 +27,9 @@ class JobApplication extends Component
     public string $eligibility = "";
     public string $other_involvement = "";
     public $requirements_file;
+    public $application_id;
     public $position_id;
+    public $existing_file_path = null;
 
     public $deadlineTimestamp; 
     public $isSubmitting = false; 
@@ -43,14 +46,32 @@ class JobApplication extends Component
         'training' => 'required|string|max:255',
         'eligibility' => 'required|string|max:255',
         'other_involvement' => 'required|string|max:255',
-        'requirements_file' => 'required|mimes:pdf|max:2048',
+        'requirements_file' => 'nullable|mimes:pdf|max:2048',
     ];
 
-    public function mount($position_id)
+    public function mount($application_id)
     {
-        $this->position_id = $position_id;
+        $this->application_id = $application_id;
 
-        $position = Position::find($position_id);
+        $applicant = Applicant::where('user_id', Auth::id())->first();
+
+        if (!$applicant) {
+            session()->flash('error', 'Applicant profile not found.');
+            return redirect()->route('apply-job');
+        }
+
+        // Load the application
+        $application = ModelsJobApplication::where('id', $application_id)
+            ->where('applicant_id', $applicant->id)
+            ->first();
+
+        if (!$application) {
+            session()->flash('error', 'Application not found or you do not have permission to edit it.');
+            return redirect()->route('apply-job');
+        }
+
+        $this->position_id = $application->position_id;
+        $position = Position::find($this->position_id);
 
         // Check if position exists and is within date range
         if (!$position) {
@@ -65,29 +86,25 @@ class JobApplication extends Component
         );
 
         if (!$isWithinDateRange) {
-            session()->flash('error', 'This position is no longer accepting applications.');
+            session()->flash('error', 'This position is no longer accepting edits. The application deadline has passed.');
             return redirect()->route('apply-job');
         }
 
-        // Check if user already applied
-        $applicant = Applicant::where('user_id', Auth::id())->first();
-        if ($applicant) {
-            $existingApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
-                ->where('position_id', $position_id)
-                ->first();
+        // Load applicant personal info
+        $this->first_name = $applicant->first_name;
+        $this->middle_name = $applicant->middle_name;
+        $this->last_name = $applicant->last_name;
+        $this->phone_number = $applicant->phone_number ?? '';
+        $this->address = $applicant->address ?? '';
 
-            if ($existingApplication) {
-                session()->flash('error', 'You have already applied for this position.');
-                return redirect()->route('apply-job');
-            }
-
-            // Load applicant data
-            $this->first_name = $applicant->first_name;
-            $this->middle_name = $applicant->middle_name;
-            $this->last_name = $applicant->last_name;
-            $this->phone_number = $applicant->phone_number ?? '';
-            $this->address = $applicant->address ?? '';
-        }
+        // Load application data
+        $this->present_position = $application->present_position;
+        $this->education = $application->education;
+        $this->experience = $application->experience;
+        $this->training = $application->training;
+        $this->eligibility = $application->eligibility;
+        $this->other_involvement = $application->other_involvement;
+        $this->existing_file_path = $application->requirements_file;
 
         // Set deadline
         $deadline = Carbon::parse($position->end_date)->addDay()->startOfDay();
@@ -115,8 +132,17 @@ class JobApplication extends Component
 
         $this->isSubmitting = true;
 
-        $pdfPath = $this->requirements_file->store('requirements', 'public');
+        // Handle file upload
+        $pdfPath = $this->existing_file_path;
+        if ($this->requirements_file) {
+            // Delete old file
+            if ($this->existing_file_path) {
+                Storage::disk('public')->delete($this->existing_file_path);
+            }
+            $pdfPath = $this->requirements_file->store('requirements', 'public');
+        }
 
+        // Update applicant
         $applicant = Applicant::updateOrCreate(
             ['user_id' => Auth::id()],
             [
@@ -128,7 +154,8 @@ class JobApplication extends Component
             ]
         );
 
-        ModelsJobApplication::create([
+        // Update application
+        ModelsJobApplication::where('id', $this->application_id)->update([
             'present_position' => $this->present_position,
             'education' => $this->education,
             'experience' => $this->experience,
@@ -136,19 +163,16 @@ class JobApplication extends Component
             'eligibility' => $this->eligibility,
             'other_involvement' => $this->other_involvement,
             'requirements_file' => $pdfPath,
-            'applicant_id' => $applicant->id,
-            'position_id' => $this->position_id,
         ]);
 
         // Dispatch event to notify other components
         $this->dispatch('job-application-submitted');
 
-        return redirect()->route('apply-job')
-            ->with('success', 'Application successfully submitted! Please wait for the admin to review your application.');
+        return redirect()->route('apply-job')->with('success', 'Application successfully updated!');
     }
 
     public function render()
     {
-        return view('livewire.applicant.job-application');
+        return view('livewire.applicant.edit-job-application');
     }
 }

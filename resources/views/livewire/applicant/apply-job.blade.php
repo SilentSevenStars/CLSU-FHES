@@ -12,6 +12,10 @@
             <!-- Header Section -->
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
+                    @php
+                    use Illuminate\Support\Facades\Storage;
+                    @endphp
+
                     <div>
                         <h1 class="text-4xl font-extrabold bg-[#0A6025] bg-clip-text text-transparent mb-2">
                             Available Positions
@@ -285,11 +289,21 @@
                         </button>
 
                         @if(in_array($selectedPosition->id, $applied))
+                        @if($this->canEditApplication($selectedPosition->id))
+                        <!-- Edit Application Button -->
+                        <a href="{{ route('edit-job-application', ['application_id' => $this->getApplicationId($selectedPosition->id)]) }}"
+                            class="px-6 py-2.5 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-600 transition-all duration-200 shadow-md hover:shadow-lg">
+                            Edit Application
+                        </a>
+                        @else
+                        <!-- Already Applied (Can't Edit) -->
                         <button disabled
                             class="px-6 py-2.5 text-sm font-semibold text-gray-500 bg-gray-300 rounded-lg cursor-not-allowed">
-                            Already Applied
+                            Application Submitted
                         </button>
+                        @endif
                         @else
+                        <!-- Apply Now Button -->
                         <a href="{{ route('job-application', ['position_id' => $selectedPosition->id]) }}"
                             class="px-6 py-2.5 text-sm font-semibold text-white bg-[#0A6025] rounded-lg hover:bg-[#0B712C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A6025] transition-all duration-200 shadow-md hover:shadow-lg">
                             Apply Now
