@@ -2,9 +2,7 @@
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-yellow-50 to-green-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-4xl mx-auto">
 
-            <!-- ========================= -->
-            <!--   COUNTDOWN TIMER BLOCK   -->
-            <!-- ========================= -->
+            <!-- COUNTDOWN TIMER -->
             <div class="mb-8 p-4 bg-white shadow-md rounded-xl border-l-4 border-[#0A6025]" x-data="{
                     deadline: {{ $deadlineTimestamp }} * 1000,
                     now: Date.now(),
@@ -38,13 +36,12 @@
                     x-text="remaining > 0 ? format(remaining) : 'Closed'"></p>
             </div>
 
-            <!-- Header Section -->
+            <!-- HEADER -->
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <h1 class="text-4xl font-extrabold bg-[#0A6025] bg-clip-text text-transparent mb-2">
-                            Job Application Form
-                        </h1>
+                        <h1 class="text-4xl font-extrabold bg-[#0A6025] bg-clip-text text-transparent mb-2">Job
+                            Application Form</h1>
                         <p class="text-gray-600 flex items-center gap-2">
                             <svg class="w-5 h-5 text-[#0A6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -56,17 +53,14 @@
                 </div>
             </div>
 
-            <!-- Form Card -->
+            <!-- FORM CARD -->
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn">
-
-                <!-- AUTO-SCROLL TO FIRST ERROR -->
                 <form wire:submit.prevent="confirmSubmission" x-data
                     x-on:scroll-to-error.window="document.querySelector('.input-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });"
                     class="p-8 space-y-8">
-
                     @csrf
 
-                    <!-- Personal Information Section -->
+                    <!-- PERSONAL INFORMATION SECTION -->
                     <div class="border-b border-gray-200 pb-6">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="bg-gradient-to-br from-yellow-500 to-[#0A6025] rounded-lg p-2">
@@ -79,20 +73,15 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- First Name -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    First Name <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model="first_name" class="block w-full px-4 py-3 bg-gray-50 border 
-                                           @error('first_name') input-error border-red-500 @else border-gray-300 @enderror 
-                                           rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('first_name')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">First Name <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" wire:model="first_name"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('first_name') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('first_name')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
 
-                            <!-- Middle Name -->
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Middle Name
                                     (Optional)</label>
@@ -100,48 +89,118 @@
                                     class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg">
                             </div>
 
-                            <!-- Last Name -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Last Name <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model="last_name" class="block w-full px-4 py-3 bg-gray-50 border 
-                                        @error('last_name') input-error border-red-500 @else border-gray-300 @enderror 
-                                        rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('last_name')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Last Name <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" wire:model="last_name"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('last_name') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('last_name')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
 
-                            <!-- Phone Number -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Contact Number <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model="phone_number" class="block w-full px-4 py-3 bg-gray-50 border
-                                         @error('phone_number') input-error border-red-500 @else border-gray-300 @enderror
-                                         rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('phone_number')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
-
-                            <!-- Address -->
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Address <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model="address" class="block w-full px-4 py-3 bg-gray-50 border
-                                         @error('address') input-error border-red-500 @else border-gray-300 @enderror
-                                         rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('address')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Number <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" wire:model="phone_number"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('phone_number') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('phone_number')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
                         </div>
                     </div>
 
-                    <!-- Employment Information Section -->
+                    <!-- ADDRESS INFORMATION SECTION -->
+                    <div class="border-b border-gray-200 pb-6">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg p-2">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                    </path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800">Address Information</h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Region <span
+                                        class="text-red-500">*</span></label>
+                                <select wire:model.live="region"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('region') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                    <option value="">Select Region</option>
+                                    @foreach($regions as $reg)
+                                    <option value="{{ $reg['name'] }}">{{ $reg['regionName'] ?? $reg['name'] }}</option>
+                                    @endforeach
+                                </select>
+                                @error('region')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Province <span
+                                        class="text-red-500">*</span></label>
+                                <select wire:model.live="province"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('province') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]"
+                                    @if(!$region) disabled @endif>
+                                    <option value="">Select Province</option>
+                                    @foreach($provinces as $prov)
+                                    <option value="{{ $prov['name'] }}">{{ $prov['name'] }}</option>
+                                    @endforeach
+                                </select>
+                                @error('province')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">City/Municipality <span
+                                        class="text-red-500">*</span></label>
+                                <select wire:model.live="city"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('city') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]"
+                                    @if(!$province) disabled @endif>
+                                    <option value="">Select City/Municipality</option>
+                                    @foreach($cities as $ct)
+                                    <option value="{{ $ct['name'] }}">{{ $ct['name'] }}</option>
+                                    @endforeach
+                                </select>
+                                @error('city')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Barangay <span
+                                        class="text-red-500">*</span></label>
+                                <select wire:model="barangay"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('barangay') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]"
+                                    @if(!$city) disabled @endif>
+                                    <option value="">Select Barangay</option>
+                                    @foreach($barangays as $brgy)
+                                    <option value="{{ $brgy['name'] }}">{{ $brgy['name'] }}</option>
+                                    @endforeach
+                                </select>
+                                @error('barangay')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Street/Building
+                                    (Optional)</label>
+                                <input type="text" wire:model="street" placeholder="House No., Street Name, Building"
+                                    class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Postal Code
+                                    (Optional)</label>
+                                <input type="text" wire:model="postal_code" placeholder="e.g., 1234"
+                                    class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EMPLOYMENT INFORMATION SECTION -->
                     <div class="border-b border-gray-200 pb-6">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg p-2">
@@ -155,89 +214,63 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                            <!-- Present Position -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Present Position <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model="present_position" class="block w-full px-4 py-3 bg-gray-50 border
-                                          @error('present_position') input-error border-red-500 @else border-gray-300 @enderror
-                                          rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('present_position')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Present Position <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" wire:model="present_position"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('present_position') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('present_position')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
 
-                            <!-- Experience -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Years of Experience <span class="text-red-500">*</span>
-                                </label>
-                                <input type="number" wire:model="experience" min="0" class="block w-full px-4 py-3 bg-gray-50 border
-                                          @error('experience') input-error border-red-500 @else border-gray-300 @enderror
-                                          rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('experience')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Years of Experience <span
+                                        class="text-red-500">*</span></label>
+                                <input type="number" wire:model="experience" min="0"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('experience') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('experience')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
 
-                            <!-- Education -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Education <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model="education" class="block w-full px-4 py-3 bg-gray-50 border
-                                          @error('education') input-error border-red-500 @else border-gray-300 @enderror
-                                          rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('education')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Education <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" wire:model="education"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('education') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('education')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
 
-                            <!-- Training -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Training <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model="training" class="block w-full px-4 py-3 bg-gray-50 border
-                                          @error('training') input-error border-red-500 @else border-gray-300 @enderror
-                                          rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('training')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Training <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" wire:model="training"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('training') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('training')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
 
-                            <!-- Eligibility -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Eligibility <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model="eligibility" class="block w-full px-4 py-3 bg-gray-50 border
-                                          @error('eligibility') input-error border-red-500 @else border-gray-300 @enderror
-                                          rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('eligibility')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Eligibility <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" wire:model="eligibility"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('eligibility') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('eligibility')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
 
-                            <!-- Other Involvement -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Other Involvement <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" wire:model="other_involvement" class="block w-full px-4 py-3 bg-gray-50 border
-                                          @error('other_involvement') input-error border-red-500 @else border-gray-300 @enderror
-                                          rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('other_involvement')
-                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
-                                @enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Other Involvement <span
+                                        class="text-red-500">*</span></label>
+                                <input type="text" wire:model="other_involvement"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('other_involvement') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('other_involvement')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
-
                         </div>
                     </div>
 
-                    <!-- Required Documents Section -->
+                    <!-- REQUIRED DOCUMENTS SECTION -->
                     <div class="pb-6">
                         <div class="flex items-center gap-3 mb-6">
                             <div class="bg-gradient-to-br from-amber-500 to-yellow-600 rounded-lg p-2">
@@ -252,67 +285,45 @@
 
                         <div>
                             <p class="block text-sm font-semibold text-gray-700 mb-2">
-                                Upload Requirements (PDF only, max 2MB) <span class="text-red-500">*</span>
+                                Upload Requirements (PDF only, max 2MB)
                             </p>
 
-                            <!-- Drag & Drop Zone -->
+                            <!-- DRAG & DROP ZONE -->
                             <div x-data="{
-            isDragging: false,
-            isUploading: false,
-            handleDragOver(e) {
-                e.preventDefault();
-                this.isDragging = true;
-            },
-            handleDragLeave(e) {
-                e.preventDefault();
-                this.isDragging = false;
-            },
-            handleDrop(e) {
-                e.preventDefault();
-                this.isDragging = false;
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    const file = files[0];
-                    // Check if it's a PDF
-                    if (file.type === 'application/pdf') {
-                        this.isUploading = true;
-                        // Trigger Livewire file input
-                        const input = this.$refs.fileInput;
-                        const dataTransfer = new DataTransfer();
-                        dataTransfer.items.add(file);
-                        input.files = dataTransfer.files;
-                        input.dispatchEvent(new Event('change', { bubbles: true }));
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Invalid File Type',
-                            text: 'Please upload a PDF file only.',
-                            confirmButtonColor: '#0A6025'
-                        });
-                    }
-                }
-            }
-        }" x-init="
-            $watch('$wire.requirements_file', value => {
-                if (value) {
-                    isUploading = false;
-                }
-            })
-        ">
+                                isDragging: false,
+                                isUploading: false,
+                                handleDragOver(e) { e.preventDefault(); this.isDragging = true; },
+                                handleDragLeave(e) { e.preventDefault(); this.isDragging = false; },
+                                handleDrop(e) {
+                                    e.preventDefault();
+                                    this.isDragging = false;
+                                    const files = e.dataTransfer.files;
+                                    if (files.length > 0) {
+                                        const file = files[0];
+                                        if (file.type === 'application/pdf') {
+                                            this.isUploading = true;
+                                            const input = this.$refs.fileInput;
+                                            const dataTransfer = new DataTransfer();
+                                            dataTransfer.items.add(file);
+                                            input.files = dataTransfer.files;
+                                            input.dispatchEvent(new Event('change', { bubbles: true }));
+                                        } else {
+                                            Swal.fire({ icon: 'error', title: 'Invalid File Type', text: 'Please upload a PDF file only.', confirmButtonColor: '#0A6025' });
+                                        }
+                                    }
+                                }
+                            }"
+                                x-init="$watch('$wire.requirements_file', value => { if (value) { isUploading = false; }})">
                                 <label @dragover="handleDragOver" @dragleave="handleDragLeave" @drop="handleDrop"
                                     :class="{ 'border-[#0A6025] bg-green-50': isDragging }"
                                     class="flex items-center justify-center w-full px-4 py-6 bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#0A6025] cursor-pointer transition-all duration-200">
-
                                     <div class="text-center">
-                                        <!-- Default Upload Icon -->
                                         <svg x-show="!isUploading" class="mx-auto h-12 w-12 text-gray-400" fill="none"
                                             stroke="currentColor" viewBox="0 0 48 48">
                                             <path stroke-linecap="round"
                                                 d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
                                                 stroke-width="2" />
                                         </svg>
-
-                                        <!-- Loading Spinner -->
                                         <div x-show="isUploading" class="mx-auto">
                                             <svg class="animate-spin h-12 w-12 text-[#0A6025] mx-auto" fill="none"
                                                 viewBox="0 0 24 24">
@@ -322,22 +333,17 @@
                                                     d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
                                             </svg>
                                         </div>
-
-                                        <p class="mt-2 text-sm text-gray-600" x-show="!isUploading">
-                                            <span class="font-semibold">Click to upload</span> or drag and drop
-                                        </p>
+                                        <p class="mt-2 text-sm text-gray-600" x-show="!isUploading"><span
+                                                class="font-semibold">Click to upload</span> or drag and drop</p>
                                         <p class="mt-2 text-sm font-semibold text-[#0A6025]" x-show="isUploading">
-                                            Uploading file...
-                                        </p>
+                                            Uploading file...</p>
                                         <p class="text-xs text-gray-500" x-show="!isUploading">PDF (MAX. 2MB)</p>
                                     </div>
-
                                     <input type="file" wire:model="requirements_file" accept="application/pdf"
                                         class="hidden" x-ref="fileInput" @change="isUploading = true">
                                 </label>
                             </div>
 
-                            <!-- File Selected Display -->
                             @if ($requirements_file)
                             <div class="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg animate-fadeIn">
                                 <div class="flex items-center justify-between">
@@ -347,12 +353,10 @@
                                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                                 clip-rule="evenodd" />
                                         </svg>
-                                        <span class="text-sm font-medium text-green-700">
-                                            {{ $requirements_file->getClientOriginalName() }}
-                                        </span>
-                                        <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
-                                            Uploaded
-                                        </span>
+                                        <span class="text-sm font-medium text-green-700">{{
+                                            $requirements_file->getClientOriginalName() }}</span>
+                                        <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">Ready to
+                                            Replace</span>
                                     </div>
                                     <button type="button" wire:click="$set('requirements_file', null)"
                                         class="text-red-600 hover:text-red-800 transition-colors">
@@ -366,7 +370,6 @@
                             </div>
                             @endif
 
-                            <!-- Loading State Display -->
                             <div wire:loading wire:target="requirements_file"
                                 class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                 <div class="flex items-center gap-3">
@@ -386,7 +389,6 @@
                                 </div>
                             </div>
 
-                            <!-- Error Display -->
                             @error('requirements_file')
                             <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                                 <span class="text-red-600 text-sm flex items-center gap-2">
@@ -399,26 +401,20 @@
                                 </span>
                             </div>
                             @enderror
-
                         </div>
                     </div>
-                    <!-- Action Buttons -->
-                    <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
 
-                        <!-- Cancel -->
+                    <!-- ACTION BUTTONS -->
+                    <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
                         <button type="button" onclick="history.back()"
                             class="px-6 py-3 border-2 border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-50">
                             Cancel
                         </button>
 
-                        <!-- Submit Button WITH LOADING -->
                         <button type="submit" wire:loading.attr="disabled"
-                            wire:loading.class="opacity-50 cursor-not-allowed" class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-[#0A6025] 
-                                   hover:from-yellow-600 hover:to-[#0B712C] text-white font-semibold 
-                                   rounded-lg shadow-lg transition-all duration-300">
-
+                            wire:loading.class="opacity-50 cursor-not-allowed"
+                            class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-[#0A6025] hover:from-yellow-600 hover:to-[#0B712C] text-white font-semibold rounded-lg shadow-lg transition-all duration-300">
                             <span wire:loading.remove>Submit Application</span>
-
                             <span wire:loading>
                                 <svg class="animate-spin w-5 h-5 mx-auto" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -427,18 +423,15 @@
                                         d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                                 </svg>
                             </span>
-
                         </button>
-
                     </div>
 
                 </form>
-
             </div>
         </div>
     </div>
 
-    <!-- SweetAlert2 Integration (UNCHANGED) -->
+    <!-- SWEETALERT2 INTEGRATION -->
     <div x-data x-on:show-swal-confirm.window="
             Swal.fire({
                 title: 'Submit Job Application?',

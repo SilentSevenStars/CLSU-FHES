@@ -17,7 +17,13 @@ return new class extends Migration
             $table->string('middle_name');
             $table->string('last_name');
             $table->string('phone_number', 13)->nullable();
-            $table->string('address')->nullable();
+            $table->string('region')->nullable();
+            $table->string('province')->nullable();
+            $table->string('city')->nullable();
+            $table->string('barangay')->nullable();
+            $table->string('street')->nullable();
+            $table->string('postal_code', 10)->nullable();
+            $table->string('position')->nullable();
             $table->boolean('hired')->default(false);
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();

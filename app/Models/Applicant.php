@@ -14,6 +14,13 @@ class Applicant extends Model
         'last_name',
         'phone_number',
         'address',
+        'region',
+        'province',
+        'city',
+        'barangay',
+        'street',
+        'postal_code',
+        'position',
         'hired',
         'user_id',
     ];
