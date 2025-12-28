@@ -82,4 +82,12 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Applicant::class);
     }
+
+    /**
+     * Get the NBC committee associated with this user.
+     */
+    public function nbcCommittee()
+    {
+        return $this->hasOne(NbcCommittee::class);
+    }
 }

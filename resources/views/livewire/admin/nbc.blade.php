@@ -7,187 +7,395 @@
 
         <!-- Flash Messages -->
         @if(session()->has('error'))
-            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                {{ session('error') }}
-            </div>
+        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            {{ session('error') }}
+        </div>
         @endif
 
-        <!-- Filters -->
+        <!-- Action Buttons -->
         <div class="flex items-center gap-4 mb-6">
 
-            <!-- Search by Name -->
-            <div class="flex-1 relative">
-                <input 
-                    type="text"
-                    wire:model.live.debounce.300ms="searchTerm"
-                    class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Search applicant name"
-                />
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                </div>
-            </div>
+            <!-- Search Button -->
+            <button wire:click="openSearchModal"
+                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Search Applicant
+            </button>
 
-            <!-- Position Filter -->
-            <div class="w-80">
-                <select 
-                    wire:model.live="selectedPosition"
-                    class="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    @if(empty($positions)) disabled @endif
-                >
-                    <option value="">Select Position</option>
-                    @foreach($positions as $position)
-                        <option value="{{ $position['id'] }}">
-                            {{ $position['name'] }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            <!-- Clear Search Button -->
+            @if(!empty($searchTerm) || !empty($selectedPosition))
+            <button wire:click="clearSearch"
+                class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear Search
+            </button>
+            @endif
 
-            <!-- Export -->
-            <button 
-                wire:click="export"
-                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
-                @if(empty($nbcData)) disabled @endif
-            >
-                Export
+            <!-- Export Button -->
+            <button wire:click="export"
+                class="ml-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                @if(empty($nbcData)) disabled @endif>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export PDF
             </button>
         </div>
 
-        <!-- Display Data Only When Both Name and Position Are Selected -->
+        <!-- Active Search Display -->
+        @if(!empty($searchTerm) || !empty($selectedPosition))
+        <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex items-center gap-2 text-sm text-blue-800">
+                <span class="font-medium">Active Search:</span>
+                @if(!empty($searchTerm))
+                <span class="px-2 py-1 bg-blue-100 rounded">Name: {{ $searchTerm }}</span>
+                @endif
+                @if(!empty($selectedPosition))
+                <span class="px-2 py-1 bg-blue-100 rounded">
+                    Position: {{ collect($positions)->firstWhere('id', $selectedPosition)['name'] ?? 'Selected' }}
+                </span>
+                @endif
+            </div>
+        </div>
+        @endif
+
+        <!-- Display Data -->
         @if(!empty($searchTerm) && !empty($selectedPosition))
-            
-            @if(count($nbcData) > 0)
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 border border-gray-300">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase border-r border-gray-300">
-                                    Major Components
-                                </th>
-                                <th rowspan="2" class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase border-r border-gray-300">
-                                    Maximum Points
-                                </th>
-                                <th colspan="2" class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase border-r border-gray-300">
-                                    Previous Points<br>as of
-                                </th>
-                                <th colspan="2" class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase border-r border-gray-300">
-                                    Additional Points<br>as of
-                                </th>
-                                <th colspan="2" class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase">
-                                    Total
-                                </th>
-                            </tr>
-                        </thead>
 
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($nbcData as $data)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-3 text-sm font-medium border-r border-gray-300">
-                                        1.0 Educational Qualification
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
-                                        85
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300" colspan="2">
-                                        {{ $data['previous_education'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300" colspan="2">
-                                        {{ $data['additional_education'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center font-semibold" colspan="2">
-                                        {{ $data['total_education'] }}
-                                    </td>
-                                </tr>
+        @if(count($nbcData) > 0)
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 border border-gray-300">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th rowspan="2"
+                            class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase border-r border-gray-300">
+                            Major Components
+                        </th>
+                        <th rowspan="2"
+                            class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase border-r border-gray-300">
+                            Maximum Points
+                        </th>
+                        <th
+                            class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase border-r border-gray-300">
+                            Previous Points<br>as of
+                        </th>
+                        <th
+                            class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase border-r border-gray-300">
+                            Additional Points<br>as of
+                        </th>
+                        <th rowspan="2"
+                            class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase border-r border-gray-300">
+                            EP Subtotal
+                        </th>
+                        <th rowspan="2" class="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase">
+                            Total Points
+                        </th>
+                    </tr>
+                </thead>
 
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-3 text-sm font-medium border-r border-gray-300">
-                                        2.0 Experience and Length of Service
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
-                                        25
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300" colspan="2">
-                                        {{ $data['previous_experience'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300" colspan="2">
-                                        {{ $data['additional_experience'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center font-semibold" colspan="2">
-                                        {{ $data['total_experience'] }}
-                                    </td>
-                                </tr>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach($nbcData as $data)
+                    <!-- Educational Qualification -->
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 text-sm font-medium border-r border-gray-300">
+                            1.0 Educational Qualification
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            90
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            {{ $data['previous_education'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            {{ $data['additional_education'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center font-semibold border-r border-gray-300 bg-blue-50">
+                            {{ $data['ep_education_subtotal'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center font-bold">
+                            {{ $data['total_education'] }}
+                        </td>
+                    </tr>
 
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-6 py-3 text-sm font-medium border-r border-gray-300">
-                                        3.0 Professional Development, Achievement and Honors
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
-                                        90
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300" colspan="2">
-                                        {{ $data['previous_professional'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300" colspan="2">
-                                        {{ $data['additional_professional'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center font-semibold" colspan="2">
-                                        {{ $data['total_professional'] }}
-                                    </td>
-                                </tr>
+                    <!-- Experience and Length of Service -->
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 text-sm font-medium border-r border-gray-300">
+                            2.0 Experience and Length of Service
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            25
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            {{ $data['previous_experience'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            {{ $data['additional_experience'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center font-semibold border-r border-gray-300 bg-blue-50">
+                            {{ $data['ep_experience_subtotal'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center font-bold">
+                            {{ $data['total_experience'] }}
+                        </td>
+                    </tr>
 
-                                <tr class="bg-gray-100 font-bold">
-                                    <td class="px-6 py-3 text-sm border-r border-gray-300">
-                                        TOTAL
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
-                                        200
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300" colspan="2">
-                                        {{ $data['previous_total'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-300" colspan="2">
-                                        {{ $data['additional_total'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center" colspan="2">
-                                        {{ $data['grand_total'] }}
-                                    </td>
-                                </tr>
+                    <!-- Professional Development -->
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-3 text-sm font-medium border-r border-gray-300">
+                            3.0 Professional Development, Achievement and Honors
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            90
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            {{ $data['previous_professional'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            {{ $data['additional_professional'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center font-semibold border-r border-gray-300 bg-blue-50">
+                            {{ $data['ep_professional_subtotal'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center font-bold">
+                            {{ $data['total_professional'] }}
+                        </td>
+                    </tr>
 
-                                <tr class="bg-green-50">
-                                    <td colspan="6" class="px-6 py-3 text-sm text-right font-semibold border-r border-gray-300">
-                                        Projected Points:
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center font-bold text-green-700" colspan="2">
-                                        {{ $data['projected_points'] }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    <!-- Total Row -->
+                    <tr class="bg-gray-100 font-bold">
+                        <td class="px-6 py-3 text-sm border-r border-gray-300">
+                            TOTAL
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            205
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            {{ $data['previous_total'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300">
+                            {{ $data['additional_total'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center border-r border-gray-300 bg-blue-100">
+                            {{ $data['ep_total_subtotal'] }}
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center">
+                            {{ $data['grand_total'] }}
+                        </td>
+                    </tr>
+
+                    <!-- Projected Points Row -->
+                    <tr class="bg-green-50">
+                        <td colspan="5" class="px-6 py-3 text-sm text-right font-semibold border-r border-gray-300">
+                            Projected Points:
+                        </td>
+                        <td class="px-6 py-3 text-sm text-center font-bold text-green-700">
+                            {{ $data['projected_points'] }}
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Applicant Information -->
+        <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700">
+                <div>
+                    <span class="font-medium text-gray-900">Applicant:</span>
+                    <span class="ml-2">{{ $nbcData[0]['name'] }}</span>
                 </div>
-
-                <div class="mt-4 text-sm text-gray-600">
-                    <div>Applicant: <span class="font-semibold">{{ $nbcData[0]['name'] }}</span></div>
-                    <div>Position: <span class="font-semibold">{{ $nbcData[0]['position'] }}</span></div>
-                    <div>College: <span class="font-semibold">{{ $nbcData[0]['college'] }}</span></div>
+                <div>
+                    <span class="font-medium text-gray-900">Position:</span>
+                    <span class="ml-2">{{ $nbcData[0]['position'] }}</span>
                 </div>
-            @else
-                <div class="py-12 text-center text-gray-500">
-                    <p class="text-lg font-medium">No applicant found</p>
-                    <p class="text-sm mt-1">Please check the name and position filter</p>
+                <div>
+                    <span class="font-medium text-gray-900">College:</span>
+                    <span class="ml-2">{{ $nbcData[0]['college'] }}</span>
                 </div>
-            @endif
+            </div>
+        </div>
+        @else
+        <div class="py-12 text-center text-gray-500">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-lg font-medium">No evaluation data found</p>
+            <p class="text-sm mt-1">The applicant may not have been evaluated yet for this position</p>
+        </div>
+        @endif
 
         @else
-            <div class="py-12 text-center text-gray-500">
-                <p class="text-lg font-medium">Please enter applicant name and select position</p>
-                <p class="text-sm mt-1">Data will appear when both fields are filled</p>
-            </div>
+        <div class="py-12 text-center text-gray-500">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <p class="text-lg font-medium">Click "Search Applicant" to begin</p>
+            <p class="text-sm mt-1">Enter applicant name and select position to view evaluation data</p>
+        </div>
         @endif
     </div>
+
+    <!-- Search Modal -->
+    @if($showSearchModal)
+    <div x-data="{ show: @entangle('showSearchModal') }" x-show="show"
+        x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="search-modal-title" role="dialog" aria-modal="true">
+
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div @click="$wire.closeSearchModal()" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                aria-hidden="true"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="show" x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+
+                <!-- Modal Header -->
+                <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-semibold text-white" id="search-modal-title">
+                            Search NBC Evaluation
+                        </h3>
+                        <button wire:click="closeSearchModal"
+                            class="text-white hover:text-gray-200 transition duration-150">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <form wire:submit.prevent="performSearch">
+                    <div class="px-6 py-5 space-y-5">
+
+                        <!-- Flash Messages in Modal -->
+                        @if(session()->has('error'))
+                        <div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                            {{ session('error') }}
+                        </div>
+                        @endif
+
+                        <!-- Applicant Name Search -->
+                        <div>
+                            <label for="tempSearchTerm" class="block text-sm font-medium text-gray-700 mb-2">
+                                Applicant Name <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <input type="text" wire:model.live.debounce.300ms="tempSearchTerm" id="tempSearchTerm"
+                                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    placeholder="Type applicant name..." autocomplete="off" required />
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+
+                                <!-- Dropdown Results -->
+                                @if($showDropdown && count($searchResults) > 0 && !$selectedApplicantId)
+                                <div
+                                    class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                                    @foreach($searchResults as $result)
+                                    <div wire:click="selectApplicant({{ $result['id'] }}, '{{ $result['full_name'] }}')"
+                                        class="px-4 py-2 hover:bg-green-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition duration-150">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                            <span class="text-sm text-gray-700">{{ $result['full_name'] }}</span>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                @endif
+
+                                @if(strlen($tempSearchTerm) >= 2 && count($searchResults) == 0 && !$showDropdown &&
+                                !$selectedApplicantId)
+                                <div
+                                    class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4">
+                                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>No applicants found</span>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">Type at least 2 characters to search</p>
+                        </div>
+
+                        <!-- Position Selection -->
+                        <div>
+                            <label for="tempSelectedPosition" class="block text-sm font-medium text-gray-700 mb-2">
+                                Position Applied For <span class="text-red-500">*</span>
+                            </label>
+                            <select wire:model="tempSelectedPosition" id="tempSelectedPosition"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                @if(empty($positions)) disabled @endif required>
+                                <option value="">-- Select Position --</option>
+                                @foreach($positions as $position)
+                                <option value="{{ $position['id'] }}">
+                                    {{ $position['name'] }}
+                                </option>
+                                @endforeach
+                            </select>
+                            @if(empty($positions) && !empty($tempSearchTerm) && $selectedApplicantId)
+                            <p class="mt-2 text-sm text-amber-600">
+                                No approved positions found for this applicant
+                            </p>
+                            @endif
+                        </div>
+
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="bg-gray-50 px-6 py-4 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                        <button type="button" wire:click="closeSearchModal"
+                            class="w-full sm:w-auto px-6 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 font-medium transition duration-200">
+                            Cancel
+                        </button>
+                        <button type="submit" x-data="{
+                                name: @entangle('tempSearchTerm'),
+                                position: @entangle('tempSelectedPosition')
+                            }" :class="(name && position)
+                                ? 'bg-green-600 hover:bg-green-700 cursor-pointer'
+                                : 'bg-gray-400 cursor-not-allowed'" :disabled="!(name && position)"
+                            class="w-full sm:w-auto px-6 py-2 text-white font-semibold rounded-lg transition duration-200 flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            Search
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+    @endif
+
 </div>

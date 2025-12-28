@@ -78,7 +78,6 @@ class ApplyJob extends Component
         $this->loadPositions();
     }
 
-    // Check if user can edit application for this position
     public function canEditApplication($positionId)
     {
         $user = Auth::user();
@@ -97,7 +96,6 @@ class ApplyJob extends Component
         $position = Position::find($positionId);
         $today = Carbon::today();
 
-        // Can edit if today is between start_date and end_date
         return $position && 
                $today->between(
                    Carbon::parse($position->start_date), 
@@ -105,7 +103,6 @@ class ApplyJob extends Component
                );
     }
 
-    // Get the application ID for editing
     public function getApplicationId($positionId)
     {
         $user = Auth::user();

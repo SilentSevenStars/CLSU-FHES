@@ -23,18 +23,18 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
             'password' => '12345678',
         ]);
-        User::factory()->create([
-            'name' => 'Applicant User',
-            'email' => 'applicant@example.com',
-            'role' => 'applicant',
-            'password' => '12345678',
-        ]);
-        User::factory()->create([
-            'name' => 'Panel User',
-            'email' => 'panel@example.com',
-            'role' => 'panel',
-            'password' => '12345678',
-        ]);
+        // User::factory()->create([
+        //     'name' => 'Applicant User',
+        //     'email' => 'applicant@example.com',
+        //     'role' => 'applicant',
+        //     'password' => '12345678',
+        // ]);
+        // User::factory()->create([
+        //     'name' => 'Nbc User',
+        //     'email' => 'nbc@example.com',
+        //     'role' => 'nbc',
+        //     'password' => '12345678',
+        // ]);
         // $this->call([
         //     CollegeSeeder::class,
         //     DepartmentSeeder::class,

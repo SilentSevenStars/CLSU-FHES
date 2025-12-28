@@ -4,17 +4,18 @@ use App\Http\Controllers\ScreeningExportController;
 use App\Livewire\Admin\Applicant;
 use App\Livewire\Admin\ApplicantEdit;
 use App\Livewire\Admin\ApplicantShow;
+use App\Livewire\Admin\AssignPosition;
 use App\Livewire\Admin\CollegeManager;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\DepartmentManager;
 use App\Livewire\Admin\Message as AdminMessage;
 use App\Livewire\Admin\Nbc;
+use App\Livewire\Admin\NbcCommitteeManager;
 use App\Livewire\Admin\NotificationManager as AdminNotificationManager;
 use App\Livewire\Admin\PanelManager;
 use App\Livewire\Admin\Position\PositionCreate;
 use App\Livewire\Admin\Position\PositionEdit;
 use App\Livewire\Admin\Position\PositionIndex;
-use App\Livewire\Admin\PositionManager;
 use App\Livewire\Admin\PositionRankManager;
 use App\Livewire\Admin\ScheduledApplicant;
 use App\Livewire\Admin\Screening;
@@ -26,6 +27,10 @@ use App\Livewire\Applicant\Dashboard;
 use App\Livewire\Applicant\EditJobApplication;
 use App\Livewire\Applicant\JobApplication;
 use App\Livewire\Message;
+use App\Livewire\Nbc\Dashboard as NbcDashboard;
+use App\Livewire\Nbc\EducationalQualificationForm;
+use App\Livewire\Nbc\ExperienceServiceForm;
+use App\Livewire\Nbc\ProfessionalDevelopmentForm;
 use App\Livewire\NotificationManager;
 use App\Livewire\Panel\Dashboard as PanelDashboard;
 use App\Livewire\Panel\Experience;
@@ -72,17 +77,18 @@ Route::middleware([
         Route::get('/positions/{id}/edit', PositionEdit::class)->name('position.edit');
         Route::get('/applicants', Applicant::class)->name('applicant');
         Route::get('/applicants/{job_application_id}', ApplicantShow::class)->name('applicant.show');
-         Route::get('/applicants/{job_application_id}/edit', ApplicantEdit::class)->name('applicant.edit');
+        Route::get('/applicants/{job_application_id}/edit', ApplicantEdit::class)->name('applicant.edit');
         Route::get('/panel', PanelManager::class)->name('panel');
         Route::get('/scheduled-applicants', ScheduledApplicant::class)->name('scheduled');
         Route::get('/screening', Screening::class)->name('screening');
-        Route::post('/screening/export', [ScreeningExportController::class, 'export'])
-        ->name('admin.screening.export');
+        Route::post('/screening/export', [ScreeningExportController::class, 'export'])->name('admin.screening.export');
         Route::get('/notifications', AdminNotificationManager::class)->name('notifications');
         Route::get('/message', AdminMessage::class)->name('message');
         Route::get('/position-rank', PositionRankManager::class)->name('position.rank');
         Route::get('/colleges', CollegeManager::class)->name('college');
         Route::get('/department', DepartmentManager::class)->name('department');
+        Route::get('/assign-position', AssignPosition::class)->name('assign.position');
+        Route::get('/nbc-comittee', NbcCommitteeManager::class)->name('nbc.comittee');
         Route::get('/nbc', Nbc::class)->name('nbc');
     });
     
@@ -97,6 +103,20 @@ Route::middleware([
     Route::get('/panel/interview/{evaluationId}', Interview::class)->name('panel.interview');
     Route::get('/panel/performance/{evaluationId}/{interviewId}', Performance::class)->name('panel.performance');
     Route::get('/panel/experience/{evaluationId}', Experience::class)->name('panel.experience');
+});
+
+Route::middleware([
+    'auth',
+    // 'verified',
+    'role:nbc'
+])->group(function () {
+    Route::prefix('/nbc')->name('nbc.')->group(function(){
+        Route::get('/', NbcDashboard::class)->name('dashboard');
+        Route::get('/educational-qualification/{evaluationId}', EducationalQualificationForm::class)->name('educational-qualification');
+        Route::get('/experience-service/{evaluationId}', ExperienceServiceForm::class)->name('experience-service');
+        Route::get('/nbc/professional-development/{evaluationId}', ProfessionalDevelopmentForm::class)
+    ->name('professional-development');
+    });
 });
 
 

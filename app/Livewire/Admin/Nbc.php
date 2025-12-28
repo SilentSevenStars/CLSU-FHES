@@ -5,6 +5,10 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use App\Models\Evaluation;
 use App\Models\Applicant;
+use App\Models\NbcAssignment;
+use App\Models\EducationalQualification;
+use App\Models\ExperienceService;
+use App\Models\ProfessionalDevelopment;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class Nbc extends Component
@@ -14,48 +18,114 @@ class Nbc extends Component
     public $positions = [];
     public $nbcData = [];
     public $applicantId = null;
+    public $showSearchModal = false;
+    public $tempSearchTerm = '';
+    public $tempSelectedPosition = null;
+    public $searchResults = [];
+    public $showDropdown = false;
+    public $selectedApplicantId = null;
 
-    public function updatedSearchTerm()
+    /**
+     * Open search modal
+     */
+    public function openSearchModal()
     {
-        $this->loadPositionsForApplicant();
-        $this->loadNbcData();
-    }
-
-    public function updatedSelectedPosition()
-    {
-        $this->loadNbcData();
+        $this->showSearchModal = true;
+        $this->tempSearchTerm = '';
+        $this->tempSelectedPosition = null;
+        $this->searchResults = [];
+        $this->showDropdown = false;
+        $this->selectedApplicantId = null;
+        $this->positions = [];
     }
 
     /**
-     * Load positions for the searched applicant
+     * Close search modal
      */
-    public function loadPositionsForApplicant()
+    public function closeSearchModal()
     {
-        $this->positions = [];
-        $this->selectedPosition = null;
-        $this->applicantId = null;
+        $this->showSearchModal = false;
+    }
 
-        if (empty($this->searchTerm)) {
+    /**
+     * Load positions based on temporary search term
+     */
+    public function updatedTempSearchTerm()
+    {
+        $this->searchForApplicants();
+    }
+
+    /**
+     * Search for applicants based on input
+     */
+    public function searchForApplicants()
+    {
+        $this->searchResults = [];
+        $this->showDropdown = false;
+        $this->positions = [];
+        $this->tempSelectedPosition = null;
+        $this->selectedApplicantId = null;
+
+        if (strlen($this->tempSearchTerm) < 2) {
             return;
         }
 
-        $search = strtolower($this->searchTerm);
+        $search = strtolower($this->tempSearchTerm);
 
-        // Find applicant by name
-        $applicant = Applicant::whereRaw("LOWER(CONCAT(first_name, ' ', middle_name, ' ', last_name)) LIKE ?", ["%{$search}%"])
-            ->first();
+        // Find applicants by user name
+        $this->searchResults = Applicant::with('user')
+            ->whereHas('user', function ($q) use ($search) {
+                $q->whereRaw("LOWER(name) LIKE ?", ["%{$search}%"]);
+            })
+            ->limit(10)
+            ->get()
+            ->map(function ($applicant) {
+                return [
+                    'id' => $applicant->id,
+                    'full_name' => $applicant->user->name,
+                ];
+            })
+            ->toArray();
+
+        $this->showDropdown = count($this->searchResults) > 0;
+    }
+
+    /**
+     * Select an applicant from dropdown
+     */
+    public function selectApplicant($applicantId, $applicantName)
+    {
+        $this->selectedApplicantId = $applicantId;
+        $this->tempSearchTerm = $applicantName;
+        $this->showDropdown = false;
+        $this->searchResults = [];
+
+        $this->loadPositionsForSelectedApplicant();
+    }
+
+    /**
+     * Load positions for the selected applicant
+     */
+    public function loadPositionsForSelectedApplicant()
+    {
+        $this->positions = [];
+        $this->tempSelectedPosition = null;
+
+        if (!$this->selectedApplicantId) {
+            return;
+        }
+
+        $applicant = Applicant::find($this->selectedApplicantId);
 
         if (!$applicant) {
             return;
         }
 
-        $this->applicantId = $applicant->id;
-
         // Get all positions this applicant has applied for (excluding Instructor I)
         $this->positions = $applicant->jobApplications()
             ->with('position')
             ->where('status', 'approve')
-            ->whereHas('position', function($q) {
+            ->whereHas('position', function ($q) {
                 $q->where('name', '!=', 'Instructor I');
             })
             ->get()
@@ -72,22 +142,65 @@ class Nbc extends Component
     }
 
     /**
+     * Perform search from modal
+     */
+    public function performSearch()
+    {
+        // Validate that both fields are filled
+        if (empty($this->tempSearchTerm) || empty($this->tempSelectedPosition)) {
+            session()->flash('error', 'Please fill in both applicant name and position.');
+            return;
+        }
+
+        // Validate that an applicant was actually selected from dropdown
+        if (!$this->selectedApplicantId) {
+            session()->flash('error', 'Please select a valid applicant from the dropdown list.');
+            return;
+        }
+
+        $this->searchTerm = $this->tempSearchTerm;
+        $this->selectedPosition = $this->tempSelectedPosition;
+        $this->applicantId = $this->selectedApplicantId;
+
+        $this->loadNbcData();
+
+        // Check if data was loaded successfully
+        if (empty($this->nbcData)) {
+            session()->flash('error', 'No evaluation data found for this applicant and position.');
+            return;
+        }
+
+        $this->closeSearchModal();
+    }
+
+    /**
+     * Clear search
+     */
+    public function clearSearch()
+    {
+        $this->searchTerm = '';
+        $this->selectedPosition = null;
+        $this->positions = [];
+        $this->nbcData = [];
+        $this->applicantId = null;
+        $this->tempSearchTerm = '';
+        $this->tempSelectedPosition = null;
+        $this->searchResults = [];
+        $this->showDropdown = false;
+        $this->selectedApplicantId = null;
+    }
+
+    /**
      * Load NBC data and compute scores
      */
     public function loadNbcData()
     {
-        // Only load if both search term and position are provided
-        if (empty($this->searchTerm) || empty($this->selectedPosition)) {
+        if (!$this->applicantId || empty($this->selectedPosition)) {
             $this->nbcData = [];
             return;
         }
 
-        if (!$this->applicantId) {
-            $this->nbcData = [];
-            return;
-        }
-
-        $applicant = Applicant::with(['experiences', 'jobApplications.position'])
+        $applicant = Applicant::with(['jobApplications.position'])
             ->find($this->applicantId);
 
         if (!$applicant) {
@@ -95,11 +208,10 @@ class Nbc extends Component
             return;
         }
 
-        // Get evaluation for this position
-        $evaluation = Evaluation::whereHas('jobApplication', function($q) use ($applicant) {
+        $evaluation = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
             $q->where('applicant_id', $applicant->id)
-              ->where('position_id', $this->selectedPosition)
-              ->where('status', 'approve');
+                ->where('position_id', $this->selectedPosition)
+                ->where('status', 'approve');
         })->first();
 
         if (!$evaluation) {
@@ -107,73 +219,155 @@ class Nbc extends Component
             return;
         }
 
-        $experiences = $applicant->experiences;
+        $nbcAssignment = NbcAssignment::where('evaluation_id', $evaluation->id)
+            ->where('type', 'evaluate')
+            ->first();
 
-        // 1.0 Educational Qualification (Max 85) - ONLY education_qualification field
-        $educationQualification = $experiences->sum('education_qualification');
+        if (!$nbcAssignment) {
+            $this->nbcData = [];
+            return;
+        }
 
-        // 2.0 Experience and Length of Service (Max 25) - ONLY experience_type field
-        $experienceService = $experiences->sum('experience_type');
+        $educationalQualification = EducationalQualification::find($nbcAssignment->educational_qualification_id);
+        $experienceService = ExperienceService::find($nbcAssignment->experience_service_id);
+        $professionalDevelopment = ProfessionalDevelopment::find($nbcAssignment->professional_development_id);
 
-        // 3.0 Professional Development, Achievement and Honors (Max 90)
-        // Sum of ALL OTHER fields except education_qualification and experience_type
-        $professionalDevelopment = $experiences->sum(function($exp) {
-            return $exp->licensure_examination 
-                + $exp->passing_licensure_examination 
-                + $exp->place_board_exam
-                + $exp->professional_activities 
-                + $exp->academic_performance 
-                + $exp->publication 
-                + $exp->school_graduate;
-        });
-        
-        // Cap at 90
-        $professionalDevelopment = min($professionalDevelopment, 90);
+        /* ===============================
+       1. EDUCATIONAL QUALIFICATION
+       =============================== */
+        $rsEducation =
+            ($educationalQualification->rs_1_1 ?? 0) +
+            ($educationalQualification->rs_1_2 ?? 0) +
+            ($educationalQualification->rs_1_3 ?? 0);
 
-        // Previous points (empty for now)
-        $previousEducation = 0;
-        $previousExperience = 0;
-        $previousProfessional = 0;
-        $previousTotal = 0;
+        $totalEducation = min($educationalQualification->subtotal ?? $rsEducation, 90);
 
-        // Additional points (current period)
-        $additionalEducation = $educationQualification;
-        $additionalExperience = $experienceService;
-        $additionalProfessional = $professionalDevelopment;
-        $additionalTotal = $additionalEducation + $additionalExperience + $additionalProfessional;
+        /* ===============================
+       2. EXPERIENCE & SERVICE
+       =============================== */
+        $rsExperience =
+            ($experienceService->rs_2_1_1 ?? 0) +
+            ($experienceService->rs_2_1_2 ?? 0) +
+            ($experienceService->rs_2_2_1 ?? 0) +
+            ($experienceService->rs_2_3_1 ?? 0) +
+            ($experienceService->rs_2_3_2 ?? 0);
 
-        // Total points
-        $totalEducation = $previousEducation + $additionalEducation;
-        $totalExperience = $previousExperience + $additionalExperience;
-        $totalProfessional = $previousProfessional + $additionalProfessional;
-        $grandTotal = $previousTotal + $additionalTotal;
+        $totalExperience = min($experienceService->subtotal ?? $rsExperience, 25);
+
+        /* ===============================
+       3. PROFESSIONAL DEVELOPMENT
+       (RS ONLY — MAX 90)
+       =============================== */
+        $rsFields = [
+            'rs_3_1_1',
+            'rs_3_1_2_a',
+            'rs_3_1_2_c',
+            'rs_3_1_2_d',
+            'rs_3_1_2_e',
+            'rs_3_1_2_f',
+            'rs_3_1_3_a',
+            'rs_3_1_3_b',
+            'rs_3_1_3_c',
+            'rs_3_1_4',
+            'rs_3_2_1_1_a',
+            'rs_3_2_1_1_b',
+            'rs_3_2_1_1_c',
+            'rs_3_2_1_2',
+            'rs_3_2_1_3_a',
+            'rs_3_2_1_3_b',
+            'rs_3_2_1_3_c',
+            'rs_3_2_2_1_a',
+            'rs_3_2_2_1_b',
+            'rs_3_2_2_1_c',
+            'rs_3_2_2_2',
+            'rs_3_2_2_3',
+            'rs_3_2_2_4',
+            'rs_3_2_2_5',
+            'rs_3_2_2_6',
+            'rs_3_2_2_7',
+            'rs_3_3_1_a',
+            'rs_3_3_1_b',
+            'rs_3_3_1_c',
+            'rs_3_3_2',
+            'rs_3_3_3_a_doctorate',
+            'rs_3_3_3_a_masters',
+            'rs_3_3_3_a_nondegree',
+            'rs_3_3_3_b_doctorate',
+            'rs_3_3_3_b_masters',
+            'rs_3_3_3_b_nondegree',
+            'rs_3_3_3_c_doctorate',
+            'rs_3_3_3_c_masters',
+            'rs_3_3_3_c_nondegree',
+            'rs_3_3_3_d_doctorate',
+            'rs_3_3_3_d_masters',
+            'rs_3_3_3_e',
+            'rs_3_4_a',
+            'rs_3_4_b',
+            'rs_3_4_c',
+            'rs_3_5_1',
+            'rs_3_6_1_a',
+            'rs_3_6_1_b',
+            'rs_3_6_1_c',
+            'rs_3_6_1_d'
+        ];
+
+        $rsProfessional = 0;
+        if ($professionalDevelopment) {
+            foreach ($rsFields as $field) {
+                $rsProfessional += (float) ($professionalDevelopment->$field ?? 0);
+            }
+        }
+
+        $totalProfessional = min($rsProfessional, 90);
+
+        /* ===============================
+       TOTALS
+       =============================== */
+        $additionalTotal = $rsEducation + $rsExperience + $rsProfessional;
+        $grandTotal = $totalEducation + $totalExperience + $totalProfessional;
 
         $position = $applicant->jobApplications()
             ->where('position_id', $this->selectedPosition)
             ->first()
             ->position;
 
+        /* ===============================
+       FINAL DATA (ALL KEYS DEFINED)
+       =============================== */
         $this->nbcData = [[
             'evaluation_id' => $evaluation->id,
-            'name' => "$applicant->first_name $applicant->middle_name $applicant->last_name",
+            'name' => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
             'position' => $position->name,
             'college' => $position->college,
             'interview_date' => $evaluation->interview_date,
-            'previous_education' => round($previousEducation, 2),
-            'previous_experience' => round($previousExperience, 2),
-            'previous_professional' => round($previousProfessional, 2),
-            'previous_total' => round($previousTotal, 3),
-            'additional_education' => round($additionalEducation, 2),
-            'additional_experience' => round($additionalExperience, 2),
-            'additional_professional' => round($additionalProfessional, 2),
-            'additional_total' => round($additionalTotal, 3),
+
+            // Previous (no data yet, MUST exist)
+            'previous_education' => 0,
+            'previous_experience' => 0,
+            'previous_professional' => 0,
+            'previous_total' => 0,
+
+            // Additional (RS)
+            'additional_education' => round($rsEducation, 2),
+            'additional_experience' => round($rsExperience, 2),
+            'additional_professional' => round($rsProfessional, 2),
+            'additional_total' => round($additionalTotal, 2),
+
+            // EP (NOT USED — ZEROED BUT REQUIRED BY VIEW)
+            'ep_education_subtotal' => 0,
+            'ep_experience_subtotal' => 0,
+            'ep_professional_subtotal' => 0,
+            'ep_total_subtotal' => 0,
+
+            // Final totals
             'total_education' => round($totalEducation, 2),
             'total_experience' => round($totalExperience, 2),
             'total_professional' => round($totalProfessional, 2),
-            'grand_total' => round($grandTotal, 3),
-            'projected_points' => round($grandTotal, 3),
+            'grand_total' => round($grandTotal, 2),
+            'projected_points' => round($grandTotal, 2),
         ]];
     }
+
 
     public function export()
     {
@@ -191,7 +385,7 @@ class Nbc extends Component
 
         $pdf->setPaper('legal', 'portrait');
 
-        return response()->streamDownload(function() use ($pdf) {
+        return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'nbc-report-' . now()->format('Y-m-d') . '.pdf');
     }

@@ -76,6 +76,8 @@ class FortifyServiceProvider extends ServiceProvider
                         return redirect(route('admin.dashboard'));
                     } elseif ($role === 'panel') {
                         return redirect(route('panel.dashboard'));
+                    } elseif ($role === 'nbc') {
+                        return redirect(route('nbc.dashboard'));
                     }
 
                     return redirect(route('dashboard'));

@@ -119,11 +119,12 @@
     <table>
         <thead>
             <tr>
-                <th rowspan="2" style="width: 30%;">MAJOR<br>COMPONENTS</th>
-                <th rowspan="2" style="width: 12%;">MAXIMUM<br>POINTS</th>
-                <th colspan="1" style="width: 15%;">PREVIOUS<br>POINTS<br>AS OF</th>
-                <th colspan="1" style="width: 18%;">ADDITIONAL POINTS<br>POINTS<br>AS OF</th>
-                <th rowspan="2" style="width: 15%;">TOTAL</th>
+                <th rowspan="2" style="width: 25%;">MAJOR<br>COMPONENTS</th>
+                <th rowspan="2" style="width: 10%;">MAXIMUM<br>POINTS</th>
+                <th style="width: 13%;">PREVIOUS<br>POINTS<br>AS OF</th>
+                <th style="width: 13%;">ADDITIONAL<br>POINTS<br>AS OF</th>
+                <th rowspan="2" style="width: 13%;">EP<br>SUBTOTAL</th>
+                <th rowspan="2" style="width: 13%;">TOTAL<br>POINTS</th>
             </tr>
             <tr>
                 <th></th>
@@ -132,40 +133,49 @@
         </thead>
 
         <tbody>
+            <!-- Educational Qualification -->
             <tr>
                 <td><strong>1.0</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Educational<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Qualification</td>
-                <td class="text-center">85</td>
-                <td class="text-center"></td>
+                <td class="text-center">90</td>
+                <td class="text-center">{{ $data['previous_education'] }}</td>
                 <td class="text-center">{{ $data['additional_education'] }}</td>
+                <td class="text-center font-bold">{{ $data['ep_education_subtotal'] }}</td>
                 <td class="text-center font-bold">{{ $data['total_education'] }}</td>
             </tr>
 
+            <!-- Experience and Length of Service -->
             <tr>
                 <td><strong>2.0</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Experience and<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Length of Service</td>
                 <td class="text-center">25</td>
-                <td class="text-center"></td>
+                <td class="text-center">{{ $data['previous_experience'] }}</td>
                 <td class="text-center">{{ $data['additional_experience'] }}</td>
+                <td class="text-center font-bold">{{ $data['ep_experience_subtotal'] }}</td>
                 <td class="text-center font-bold">{{ $data['total_experience'] }}</td>
             </tr>
 
+            <!-- Professional Development -->
             <tr>
                 <td><strong>3.0</strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Professional<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Development,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Achievement<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and Honors</td>
                 <td class="text-center">90</td>
-                <td class="text-center"></td>
+                <td class="text-center">{{ $data['previous_professional'] }}</td>
                 <td class="text-center">{{ $data['additional_professional'] }}</td>
+                <td class="text-center font-bold">{{ $data['ep_professional_subtotal'] }}</td>
                 <td class="text-center font-bold">{{ $data['total_professional'] }}</td>
             </tr>
 
+            <!-- Total Row -->
             <tr style="background: #e8e8e8;">
                 <td class="font-bold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL</td>
-                <td class="text-center font-bold">200</td>
-                <td class="text-center"></td>
+                <td class="text-center font-bold">205</td>
+                <td class="text-center font-bold">{{ $data['previous_total'] }}</td>
                 <td class="text-center font-bold">{{ $data['additional_total'] }}</td>
+                <td class="text-center font-bold">{{ $data['ep_total_subtotal'] }}</td>
                 <td class="text-center font-bold">{{ $data['grand_total'] }}</td>
             </tr>
 
+            <!-- Projected Points Row -->
             <tr>
-                <td colspan="4" class="text-right font-bold" style="border-right: none;">Projected&nbsp;&nbsp;Points</td>
+                <td colspan="5" class="text-right font-bold" style="border-right: none;">Projected&nbsp;&nbsp;Points</td>
                 <td class="text-center font-bold" style="border-left: none;">{{ $data['projected_points'] }}</td>
             </tr>
         </tbody>
