@@ -6,7 +6,7 @@
     <style>
         @page {
             margin: 15mm 15mm 15mm 15mm;
-            size: letter portrait;
+            size: legal landscape; /* Changed to legal landscape */
         }
         
         body {
@@ -235,89 +235,121 @@
         <div class="signature-section">
             <div class="signature-row">
                 <div class="signature-cell" style="width: 25%;">
-                    <div class="signature-name">TBA</div>
+                    <div class="signature-name">{{ $panelMembers['supervising_admin'] ?? 'TBA' }}</div>
                     <div class="signature-line"></div>
                     <div class="signature-title">Member, Supervising Admin. Officer, HRMO</div>
                 </div>
                 <div class="signature-cell" style="width: 25%;">
-                    <div class="signature-name">TBA</div>
+                    <div class="signature-name">{{ $panelMembers['fai_president'] ?? 'TBA' }}</div>
                     <div class="signature-line"></div>
                     <div class="signature-title">Member, FAI President/Representative</div>
                 </div>
                 <div class="signature-cell" style="width: 25%;">
-                    <div class="signature-name">TBA</div>
+                    <div class="signature-name">{{ $panelMembers['glutches_preside'] ?? 'TBA' }}</div>
                     <div class="signature-line"></div>
                     <div class="signature-title">Member, GLUTCHES Preside</div>
                 </div>
                 <div class="signature-cell" style="width: 25%;">
-                    <div class="signature-name">TBA</div>
+                    <div class="signature-name">{{ $panelMembers['ranking_faculty'] ?? 'TBA' }}</div>
                     <div class="signature-line"></div>
                     <div class="signature-title">Member, Ranking Faculty</div>
                 </div>
             </div>
         </div>
 
-        <!-- 2nd Row - Deans -->
+        <!-- 2nd Row - Deans (Dynamic) -->
         <div class="signature-section" style="margin-top: 15px;">
             <div class="signature-row">
-                <div class="signature-cell" style="width: 16.66%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Dean, CASS</div>
-                </div>
-                <div class="signature-cell" style="width: 16.66%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Dean, CEN Representative</div>
-                </div>
-                <div class="signature-cell" style="width: 16.66%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Dean, COS</div>
-                </div>
-                <div class="signature-cell" style="width: 16.66%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Dean, CED</div>
-                </div>
-                <div class="signature-cell" style="width: 16.66%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Dean, CF</div>
-                </div>
-                <div class="signature-cell" style="width: 16.66%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Dean, CBA</div>
-                </div>
+                @if(isset($panelMembers['deans']) && count($panelMembers['deans']) > 0)
+                    @foreach($panelMembers['deans'] as $dean)
+                        <div class="signature-cell" style="width: {{ 100 / max(count($panelMembers['deans']), 6) }}%;">
+                            <div class="signature-name">{{ $dean['name'] }}</div>
+                            <div class="signature-line"></div>
+                            <div class="signature-title">{{ $dean['title'] }}</div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="signature-cell" style="width: 16.66%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Dean, CASS</div>
+                    </div>
+                    <div class="signature-cell" style="width: 16.66%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Dean, CEN Representative</div>
+                    </div>
+                    <div class="signature-cell" style="width: 16.66%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Dean, COS</div>
+                    </div>
+                    <div class="signature-cell" style="width: 16.66%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Dean, CED</div>
+                    </div>
+                    <div class="signature-cell" style="width: 16.66%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Dean, CF</div>
+                    </div>
+                    <div class="signature-cell" style="width: 16.66%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Dean, CBA</div>
+                    </div>
+                @endif
             </div>
         </div>
 
-        <!-- 3rd Row - Senior Faculty and Heads -->
+        <!-- 3rd Row - Senior Faculty and Heads (Dynamic) -->
         <div class="signature-section" style="margin-top: 15px;">
             <div class="signature-row">
+                @if(isset($panelMembers['seniors']) && count($panelMembers['seniors']) > 0)
+                    @foreach($panelMembers['seniors'] as $senior)
+                        <div class="signature-cell" style="width: 20%;">
+                            <div class="signature-name">{{ $senior['name'] }}</div>
+                            <div class="signature-line"></div>
+                            <div class="signature-title">{{ $senior['title'] }}</div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="signature-cell" style="width: 20%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Senior Faculty</div>
+                    </div>
+                @endif
+
+                @if(isset($panelMembers['heads']) && count($panelMembers['heads']) > 0)
+                    @foreach($panelMembers['heads'] as $head)
+                        <div class="signature-cell" style="width: 20%;">
+                            <div class="signature-name">{{ $head['name'] }}</div>
+                            <div class="signature-line"></div>
+                            <div class="signature-title">{{ $head['title'] }}</div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="signature-cell" style="width: 20%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Head, Dept DABE, Representative</div>
+                    </div>
+                    <div class="signature-cell" style="width: 20%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Head, Dept Business</div>
+                    </div>
+                    <div class="signature-cell" style="width: 20%;">
+                        <div class="signature-name">TBA</div>
+                        <div class="signature-line"></div>
+                        <div class="signature-title">Head, ISPELS</div>
+                    </div>
+                @endif
+
                 <div class="signature-cell" style="width: 20%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Senior Faculty</div>
-                </div>
-                <div class="signature-cell" style="width: 20%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Head, Dept DABE, Representative</div>
-                </div>
-                <div class="signature-cell" style="width: 20%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Head, Dept Business</div>
-                </div>
-                <div class="signature-cell" style="width: 20%;">
-                    <div class="signature-name">TBA</div>
-                    <div class="signature-line"></div>
-                    <div class="signature-title">Head, ISPELS</div>
-                </div>
-                <div class="signature-cell" style="width: 20%;">
-                    <div class="signature-name">TBA</div>
+                    <div class="signature-name">{{ $panelMembers['chairman_fsb'] ?? 'TBA' }}</div>
                     <div class="signature-line"></div>
                     <div class="signature-title">Chairman, Faculty Selection Board & VPAA</div>
                 </div>
@@ -326,7 +358,7 @@
 
         <!-- 4th Row - University President (Centered) -->
         <div class="center-text" style="margin-top: 15px;">
-            <div class="signature-name" style="font-weight: bold;">TBA</div>
+            <div class="signature-name" style="font-weight: bold;">{{ $panelMembers['university_president'] ?? 'TBA' }}</div>
             <div class="signature-line" style="width: 300px; margin: 5px auto;"></div>
             <div class="signature-title" style="font-size: 9pt;">University President</div>
         </div>

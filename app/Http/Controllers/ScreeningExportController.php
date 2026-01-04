@@ -24,6 +24,7 @@ class ScreeningExportController extends Controller
             'generatedDate' => now()->format('F d, Y'),
         ]);
 
+        // Set to legal size (long bond paper) in landscape orientation
         $pdf->setPaper('legal', 'landscape');
 
         return $pdf->download('screening-report-' . now()->format('Y-m-d') . '.pdf');

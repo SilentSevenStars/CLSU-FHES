@@ -21,11 +21,35 @@ class Screening extends Component
 
     /**
      * Load unique (Position + Interview Date) combinations
+     * Filtered to show only faculty positions
      */
     public function loadPositions()
     {
+        // Define allowed faculty positions
+        $allowedPositions = [
+            'Instructor I',
+            'Instructor II',
+            'Instructor III',
+            'Assistant Professor I',
+            'Assistant Professor II',
+            'Assistant Professor III',
+            'Assistant Professor IV',
+            'Associate Professor I',
+            'Associate Professor II',
+            'Associate Professor III',
+            'Associate Professor IV',
+            'Associate Professor V',
+            'Professor I',
+            'Professor II',
+        ];
+
         $this->positions = Evaluation::with(['jobApplication.position'])
-            ->whereHas('jobApplication', fn($q) => $q->where('status', 'approve'))
+            ->whereHas('jobApplication', function($q) use ($allowedPositions) {
+                $q->where('status', 'approve')
+                  ->whereHas('position', function($posQuery) use ($allowedPositions) {
+                      $posQuery->whereIn('name', $allowedPositions);
+                  });
+            })
             ->get()
             ->groupBy(fn($e) => $e->jobApplication->position->id . '_' . $e->interview_date)
             ->map(function ($group) {
@@ -178,6 +202,7 @@ class Screening extends Component
             'generatedDate' => now()->format('F d, Y'),
         ]);
 
+        // Set to legal size (long bond paper) in landscape orientation
         $pdf->setPaper('legal', 'landscape');
 
         return response()->streamDownload(function() use ($pdf) {
