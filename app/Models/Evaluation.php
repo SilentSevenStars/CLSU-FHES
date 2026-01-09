@@ -72,6 +72,14 @@ class Evaluation extends Model
     }
 
     /**
+     * Get the NBC assignments for the evaluation
+     */
+    public function nbcAssignments(): HasMany
+    {
+        return $this->hasMany(NbcAssignment::class);
+    }
+
+    /**
      * Calculate and update total score from all components
      * 
      * @return void

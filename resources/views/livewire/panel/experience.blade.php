@@ -281,7 +281,7 @@
 
                 <!-- Navigation Buttons -->
                 <div class="flex justify-center gap-4 mt-8">
-                    <a href="{{ route('panel.performance', ['evaluationId' => $evaluationId, 'interviewId' => request()->interviewId ?? 1]) }}"
+                    <a href="{{ route('panel.dashboard') }}"
                        class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
                         ← Return
                     </a>
@@ -297,34 +297,49 @@
     </div>
 
     <!-- SweetAlert2 Integration -->
-    <div x-data 
-        x-on:show-swal-confirm.window="
-            Swal.fire({
-                title: 'Submit Experience Evaluation?',
-                text: 'Please confirm that all scores are correct before submitting.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#0A6025',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, Submit'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $wire.saveExperience();
-                }
+    <script>
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('showSwalConfirm', () => {
+                Swal.fire({
+                    title: 'Submit Experience Evaluation?',
+                    text: 'Please confirm that all scores are correct before submitting.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#0A6025',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Submit'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        @this.saveExperience();
+                    }
+                });
             });
-        "
-        x-on:evaluationSaved.window="
-            Swal.fire({
-                title: 'Success!',
-                text: 'Experience evaluation saved successfully.',
-                icon: 'success',
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#0A6025'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '{{ route('panel.dashboard') }}';
-                }
+
+            Livewire.on('evaluationSaved', () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Experience evaluation saved successfully.',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#0A6025',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '{{ route('panel.dashboard') }}';
+                    }
+                });
             });
-        ">
-    </div>
+
+            Livewire.on('evaluationError', () => {
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Failed to save experience evaluation. Please try again.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#d33'
+                });
+            });
+        });
+    </script>
 </div>

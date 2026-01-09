@@ -6,6 +6,7 @@ use App\Models\Evaluation;
 use App\Models\Experience as ModelsExperience;
 use App\Models\PanelAssignment;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Experience extends Component
@@ -96,11 +97,12 @@ class Experience extends Component
 
     public function confirmSubmission()
     {
-        $this->dispatch('show-swal-confirm');
+        $this->dispatch('showSwalConfirm');
     }
 
     public function saveExperience()
     {
+        // Validate the inputs
         $this->validate([
             'education_qualification' => 'required|numeric|min:0|max:85',
             'experience_type' => 'required|numeric|min:0|max:25',
@@ -126,37 +128,58 @@ class Experience extends Component
             'school_graduate.required' => 'Please select School Graduated from',
         ]);
 
+        // Calculate total before saving
         $this->calculateTotal();
 
-        $experience = ModelsExperience::create([
-            'education_qualification' => $this->education_qualification,
-            'experience_type' => $this->experience_type,
-            'licensure_examination' => $this->licensure_examination,
-            'passing_licensure_examination' => 0,
-            'place_board_exam' => $this->place_board_exam,
-            'professional_activities' => $this->professional_activities,
-            'academic_performance' => $this->academic_performance,
-            'publication' => $this->publication,
-            'school_graduate' => $this->school_graduate,
-            'total_score' => $this->totalScore,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        $user = Auth::user();
-        $panel = $user->panel;
-        if ($panel) {
+            // Create the Experience record
+            $experience = ModelsExperience::create([
+                'education_qualification' => $this->education_qualification,
+                'experience_type' => $this->experience_type,
+                'licensure_examination' => $this->licensure_examination,
+                'passing_licensure_examination' => 0,
+                'place_board_exam' => $this->place_board_exam,
+                'professional_activities' => $this->professional_activities,
+                'academic_performance' => $this->academic_performance,
+                'publication' => $this->publication,
+                'school_graduate' => $this->school_graduate,
+                'total_score' => $this->totalScore,
+            ]);
+
+            // Update the PanelAssignment
+            $user = Auth::user();
+            $panel = $user->panel;
+            
+            if (!$panel) {
+                throw new \Exception('Panel not found for current user');
+            }
+
             $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
                 ->where('evaluation_id', $this->evaluationId)
                 ->first();
-            if ($panelAssignment) {
-                $panelAssignment->update([
-                    'status' => 'complete',
-                    'experience_id' => $experience->id,
-                ]);
-            }
-        }
 
-        session()->flash('message', 'Experience evaluation saved successfully.');
-        $this->dispatch('evaluationSaved');
+            if (!$panelAssignment) {
+                throw new \Exception('Panel assignment not found');
+            }
+
+            $panelAssignment->update([
+                'status' => 'complete',
+                'experience_id' => $experience->id,
+            ]);
+
+            DB::commit();
+
+            session()->flash('message', 'Experience evaluation saved successfully.');
+            $this->dispatch('evaluationSaved');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            session()->flash('error', 'Failed to save experience evaluation: ' . $e->getMessage());
+            $this->dispatch('evaluationError');
+        }
     }
 
     public function render()

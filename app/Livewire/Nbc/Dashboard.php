@@ -30,10 +30,25 @@ class Dashboard extends Component
 
     public function getEvaluationsProperty()
     {
+        // Define allowed positions
+        $allowedPositions = [
+            'Professor III',
+            'Professor IV',
+            'Professor V',
+            'Professor VI',
+            'College/University Professor'
+        ];
+
         $query = Evaluation::with([
             'jobApplication.applicant.user',
             'jobApplication.position',
-        ]);
+        ])
+        // Filter by today's interview date
+        ->whereDate('interview_date', today())
+        // Filter by allowed positions
+        ->whereHas('jobApplication.position', function ($positionQuery) use ($allowedPositions) {
+            $positionQuery->whereIn('name', $allowedPositions);
+        });
 
         // Search filter - name or position
         if ($this->search) {
@@ -50,23 +65,72 @@ class Dashboard extends Component
         }
 
         // Sort: pending first, complete last
-        // Use CASE statement to prioritize pending (null total_score)
-        $query->orderByRaw('CASE WHEN total_score IS NULL THEN 0 ELSE 1 END')
-              ->orderBy('created_at', 'desc');
+        // Check NBC assignment status for current user
+        $query->orderByRaw('
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1 FROM nbc_assignments 
+                    WHERE nbc_assignments.evaluation_id = evaluations.id 
+                    AND nbc_assignments.status = "complete"
+                    AND EXISTS (
+                        SELECT 1 FROM nbc_committees 
+                        WHERE nbc_committees.id = nbc_assignments.nbc_committee_id 
+                        AND nbc_committees.user_id = ?
+                    )
+                ) THEN 1 
+                ELSE 0 
+            END
+        ', [auth()->id()])
+        ->orderBy('created_at', 'desc');
 
         return $query->paginate($this->perPage);
     }
 
     public function getPendingTodayCountProperty()
     {
-        return Evaluation::whereNull('total_score')
-            ->whereDate('interview_date', today())
+        // Define allowed positions
+        $allowedPositions = [
+            'Professor III',
+            'Professor IV',
+            'Professor V',
+            'Professor VI',
+            'College/University Professor'
+        ];
+
+        return Evaluation::whereDate('interview_date', today())
+            ->whereHas('jobApplication.position', function ($positionQuery) use ($allowedPositions) {
+                $positionQuery->whereIn('name', $allowedPositions);
+            })
+            ->whereDoesntHave('nbcAssignments', function ($assignmentQuery) {
+                $assignmentQuery->where('status', 'complete')
+                    ->whereHas('nbcCommittee', function ($committeeQuery) {
+                        $committeeQuery->where('user_id', auth()->id());
+                    });
+            })
             ->count();
     }
 
     public function getCompleteTodayCountProperty()
     {
-        return Evaluation::whereNotNull('total_score')
+        // Define allowed positions
+        $allowedPositions = [
+            'Professor III',
+            'Professor IV',
+            'Professor V',
+            'Professor VI',
+            'College/University Professor'
+        ];
+
+        return Evaluation::whereDate('interview_date', today())
+            ->whereHas('jobApplication.position', function ($positionQuery) use ($allowedPositions) {
+                $positionQuery->whereIn('name', $allowedPositions);
+            })
+            ->whereHas('nbcAssignments', function ($assignmentQuery) {
+                $assignmentQuery->where('status', 'complete')
+                    ->whereHas('nbcCommittee', function ($committeeQuery) {
+                        $committeeQuery->where('user_id', auth()->id());
+                    });
+            })
             ->whereDate('updated_at', today())
             ->count();
     }
