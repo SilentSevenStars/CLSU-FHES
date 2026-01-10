@@ -13,6 +13,7 @@ class NbcAssignment extends Model
         'educational_qualification_id',
         'experience_service_id',
         'professional_development_id',
+        'nbc_id',
         'status',
         'type',
     ];
@@ -60,6 +61,11 @@ class NbcAssignment extends Model
     public function professionalDevelopment(): BelongsTo
     {
         return $this->belongsTo(ProfessionalDevelopment::class);
+    }
+
+    public function nbc(): BelongsTo
+    {
+        return $this->belongsTo(Nbc::class);
     }
 
     /**
