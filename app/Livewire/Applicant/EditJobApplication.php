@@ -19,6 +19,7 @@ class EditJobApplication extends Component
     public string $first_name = "";
     public string $middle_name = "";
     public string $last_name = "";
+    public string $suffix = "";
     public string $phone_number = "";
     
     // New address fields
@@ -53,7 +54,8 @@ class EditJobApplication extends Component
         'first_name' => 'required|string|max:255',
         'middle_name' => 'nullable|string|max:255',
         'last_name' => 'required|string|max:255',
-        'phone_number' => 'required|string|max:13',
+        'suffix' => 'nullable|string|max:5',
+        'phone_number' => 'required|regex:/^09[0-9]{9}$/|size:11',
         'region' => 'required|string|max:255',
         'province' => 'required|string|max:255',
         'city' => 'required|string|max:255',
@@ -67,6 +69,11 @@ class EditJobApplication extends Component
         'eligibility' => 'required|string|max:255',
         'other_involvement' => 'required|string|max:255',
         'requirements_file' => 'nullable|mimes:pdf|max:2048',
+    ];
+
+    protected $messages = [
+        'phone_number.regex' => 'Phone number must start with 09 and contain exactly 11 digits.',
+        'phone_number.size' => 'Phone number must be exactly 11 digits.',
     ];
 
     public function mount($application_id)
@@ -108,10 +115,11 @@ class EditJobApplication extends Component
             return redirect()->route('apply-job');
         }
 
-        // Load applicant personal info including new address fields
+        // Load applicant personal info including suffix
         $this->first_name = $applicant->first_name;
         $this->middle_name = $applicant->middle_name;
         $this->last_name = $applicant->last_name;
+        $this->suffix = $applicant->suffix ?? '';
         $this->phone_number = $applicant->phone_number ?? '';
         $this->region = $applicant->region ?? '';
         $this->province = $applicant->province ?? '';
@@ -267,6 +275,28 @@ class EditJobApplication extends Component
         }
     }
 
+    public function updatedPhoneNumber($value)
+    {
+        // Remove any non-numeric characters
+        $this->phone_number = preg_replace('/[^0-9]/', '', $value);
+        
+        // Ensure it starts with 09
+        if (strlen($this->phone_number) > 0 && !str_starts_with($this->phone_number, '09')) {
+            if (str_starts_with($this->phone_number, '9')) {
+                $this->phone_number = '0' . $this->phone_number;
+            } else if (strlen($this->phone_number) >= 2) {
+                $this->phone_number = '09' . substr($this->phone_number, 2);
+            } else {
+                $this->phone_number = '09';
+            }
+        }
+        
+        // Limit to 11 digits
+        if (strlen($this->phone_number) > 11) {
+            $this->phone_number = substr($this->phone_number, 0, 11);
+        }
+    }
+
     public function updated($field)
     {
         $this->validateOnly($field);
@@ -305,6 +335,7 @@ class EditJobApplication extends Component
                 'first_name' => $this->first_name,
                 'middle_name' => $this->middle_name,
                 'last_name' => $this->last_name,
+                'suffix' => $this->suffix,
                 'phone_number' => $this->phone_number,
                 'region' => $this->region,
                 'province' => $this->province,

@@ -296,6 +296,9 @@ class ProfessionalDevelopmentForm extends Component
             'rs_3_6_1_c' => $this->rs_3_6_1_c,
             'rs_3_6_1_d' => $this->rs_3_6_1_d,
         ]);
+
+        // Update NBC scores
+        $this->assignment->updateNbcScores();
     }
 
     public function updated($property)

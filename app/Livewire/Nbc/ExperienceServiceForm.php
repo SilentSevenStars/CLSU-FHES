@@ -7,6 +7,7 @@ use App\Models\NbcAssignment;
 use App\Models\ExperienceService;
 use App\Models\NbcCommittee;
 use App\Models\Evaluation;
+use Illuminate\Support\Facades\Auth;
 
 class ExperienceServiceForm extends Component
 {
@@ -57,7 +58,7 @@ class ExperienceServiceForm extends Component
         $this->position = $this->jobApplication->position;
         
         // Get or create NBC committee for current user
-        $nbcCommittee = NbcCommittee::where('user_id', auth()->id())->first();
+        $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
         
         if (!$nbcCommittee) {
             abort(403, 'You are not assigned as an NBC committee member.');
@@ -129,6 +130,9 @@ class ExperienceServiceForm extends Component
             'ep_2_3_1' => null,
             'ep_2_3_2' => null,
         ]);
+
+        // Update NBC scores
+        $this->assignment->updateNbcScores();
     }
 
     public function toggleApplicantModal()

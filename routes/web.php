@@ -30,6 +30,7 @@ use App\Livewire\Message;
 use App\Livewire\Nbc\Dashboard as NbcDashboard;
 use App\Livewire\Nbc\EducationalQualificationForm;
 use App\Livewire\Nbc\ExperienceServiceForm;
+use App\Livewire\Nbc\NbcForm;
 use App\Livewire\Nbc\ProfessionalDevelopmentForm;
 use App\Livewire\NotificationManager;
 use App\Livewire\Panel\Dashboard as PanelDashboard;
@@ -114,8 +115,8 @@ Route::middleware([
         Route::get('/', NbcDashboard::class)->name('dashboard');
         Route::get('/educational-qualification/{evaluationId}', EducationalQualificationForm::class)->name('educational-qualification');
         Route::get('/experience-service/{evaluationId}', ExperienceServiceForm::class)->name('experience-service');
-        Route::get('/nbc/professional-development/{evaluationId}', ProfessionalDevelopmentForm::class)
-    ->name('professional-development');
+        Route::get('/professional-development/{evaluationId}', ProfessionalDevelopmentForm::class)->name('professional-development');
+        Route::get('/evaluation/{evaluationId}', NbcForm::class)->name('evaluation');
     });
 });
 

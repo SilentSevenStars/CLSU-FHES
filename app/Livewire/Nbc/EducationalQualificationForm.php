@@ -118,6 +118,9 @@ class EducationalQualificationForm extends Component
             'ep_1_2' => null,
             'ep_1_3' => null,
         ]);
+
+        // Update NBC scores
+        $this->assignment->updateNbcScores();
     }
 
     public function toggleApplicantModal()

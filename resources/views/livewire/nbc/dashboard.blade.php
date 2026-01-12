@@ -1,4 +1,8 @@
-<div class="min-h-screen bg-gray-50 py-8">
+<div class="min-h-screen bg-gray-50 py-8"
+    x-data="{
+        showChoiceModal: false,
+        selectedEvaluationId: null
+    }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">
@@ -164,13 +168,14 @@
                                         </button>
                                     @else
                                         <!-- Active Button for Pending Evaluations -->
-                                        <a href="{{ route('nbc.educational-qualification', $evaluation->id) }}" 
-                                           class="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-150">
+                                        <button 
+                                            @click="selectedEvaluationId = {{ $evaluation->id }}; showChoiceModal = true"
+                                            class="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-150">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                             </svg>
                                             Evaluate
-                                        </a>
+                                        </button>
                                     @endif
                                 </td>
                             </tr>
@@ -207,4 +212,160 @@
             Showing {{ $evaluations->firstItem() ?? 0 }} to {{ $evaluations->lastItem() ?? 0 }} of {{ $evaluations->total() }} results
         </div>
     </div>
+
+    <!-- Evaluation Method Choice Modal -->
+    <div 
+        x-show="showChoiceModal"
+        x-cloak
+        class="fixed inset-0 z-50 overflow-y-auto"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+    >
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50" @click="showChoiceModal = false"></div>
+        
+        <!-- Modal -->
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div 
+                class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 transform scale-95"
+                x-transition:enter-end="opacity-100 transform scale-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 transform scale-100"
+                x-transition:leave-end="opacity-0 transform scale-95"
+                @click.away="showChoiceModal = false"
+            >
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-2xl font-bold text-gray-900">Choose Evaluation Method</h3>
+                        <button 
+                            @click="showChoiceModal = false"
+                            class="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-600">Select how you would like to complete this evaluation</p>
+                </div>
+                
+                <!-- Content -->
+                <div class="px-6 py-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Quick Input Option -->
+                        <div class="group cursor-pointer">
+                            <a 
+                                :href="`/nbc/evaluation/${selectedEvaluationId}`"
+                                class="block h-full"
+                            >
+                                <div class="h-full border-2 border-indigo-200 rounded-lg p-6 hover:border-indigo-500 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-indigo-50 to-white">
+                                    <div class="flex flex-col items-center text-center">
+                                        <div class="bg-indigo-100 rounded-full p-4 mb-4 group-hover:bg-indigo-200 transition-colors">
+                                            <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-lg font-bold text-gray-900 mb-2">Quick Input</h4>
+                                        <p class="text-sm text-gray-600 mb-4">
+                                            Directly enter scores for the three main categories
+                                        </p>
+                                        <ul class="text-xs text-gray-500 space-y-1 text-left w-full">
+                                            <li class="flex items-start">
+                                                <svg class="w-4 h-4 text-indigo-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                Fast and simple
+                                            </li>
+                                            <li class="flex items-start">
+                                                <svg class="w-4 h-4 text-indigo-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                Single page form
+                                            </li>
+                                            <li class="flex items-start">
+                                                <svg class="w-4 h-4 text-indigo-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                Ideal for straightforward evaluations
+                                            </li>
+                                        </ul>
+                                        <div class="mt-6 w-full">
+                                            <span class="block w-full px-4 py-2 bg-indigo-600 text-white rounded-lg text-center font-medium group-hover:bg-indigo-700 transition-colors">
+                                                Use Quick Input
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Detailed Form Option -->
+                        <div class="group cursor-pointer">
+                            <a 
+                                :href="`/nbc/educational-qualification/${selectedEvaluationId}`"
+                                class="block h-full"
+                            >
+                                <div class="h-full border-2 border-blue-200 rounded-lg p-6 hover:border-blue-500 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-blue-50 to-white">
+                                    <div class="flex flex-col items-center text-center">
+                                        <div class="bg-blue-100 rounded-full p-4 mb-4 group-hover:bg-blue-200 transition-colors">
+                                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <h4 class="text-lg font-bold text-gray-900 mb-2">Detailed Forms</h4>
+                                        <p class="text-sm text-gray-600 mb-4">
+                                            Complete comprehensive evaluation across three sections
+                                        </p>
+                                        <ul class="text-xs text-gray-500 space-y-1 text-left w-full">
+                                            <li class="flex items-start">
+                                                <svg class="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                Educational Qualification
+                                            </li>
+                                            <li class="flex items-start">
+                                                <svg class="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                Experience & Service
+                                            </li>
+                                            <li class="flex items-start">
+                                                <svg class="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                </svg>
+                                                Professional Development
+                                            </li>
+                                        </ul>
+                                        <div class="mt-6 w-full">
+                                            <span class="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-center font-medium group-hover:bg-blue-700 transition-colors">
+                                                Use Detailed Forms
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+                    <p class="text-xs text-gray-500 text-center">
+                        Both methods will save your evaluation to the same database. Choose the one that works best for you.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </div>

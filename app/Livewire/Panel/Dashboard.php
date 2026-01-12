@@ -26,9 +26,30 @@ class Dashboard extends Component
             ]);
         }
 
+        // Allowed position names (whitelist)
+        $allowedPositions = [
+            'Instructor I',
+            'Instructor II',
+            'Instructor III',
+            'Assistant Professor I',
+            'Assistant Professor II',
+            'Assistant Professor III',
+            'Assistant Professor IV',
+            'Associate Professor I',
+            'Associate Professor II',
+            'Associate Professor III',
+            'Associate Professor IV',
+            'Associate Professor V',
+            'Professor I',
+            'Professor II'
+        ];
+
         $query = JobApplication::query()
             ->whereHas('evaluation', function ($q) {
                 $q->whereDate('interview_date', today());
+            })
+            ->whereHas('position', function ($q) use ($allowedPositions) {
+                $q->whereIn('name', $allowedPositions);
             });
 
         $panelPos = strtolower($panel->panel_position);

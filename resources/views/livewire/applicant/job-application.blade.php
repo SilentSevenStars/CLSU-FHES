@@ -99,12 +99,47 @@
                             </div>
 
                             <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Suffix (Optional)</label>
+                                <select wire:model="suffix"
+                                    class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                    <option value="">Select Suffix</option>
+                                    <option value="Jr.">Jr.</option>
+                                    <option value="Sr.">Sr.</option>
+                                    <option value="II">II</option>
+                                    <option value="III">III</option>
+                                    <option value="IV">IV</option>
+                                    <option value="V">V</option>
+                                </select>
+                            </div>
+
+                            <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Number <span
                                         class="text-red-500">*</span></label>
-                                <input type="text" wire:model="phone_number"
-                                    class="block w-full px-4 py-3 bg-gray-50 border @error('phone_number') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('phone_number')<span class="text-red-500 text-sm mt-1 block">{{ $message
-                                    }}</span>@enderror
+                                <div class="relative">
+                                    <input type="text" wire:model.live="phone_number" placeholder="09XXXXXXXXX"
+                                        maxlength="11" pattern="[0-9]*" inputmode="numeric"
+                                        class="block w-full px-4 py-3 bg-gray-50 border @error('phone_number') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]"
+                                        x-data
+                                        x-on:keypress="if (!/[0-9]/.test(String.fromCharCode($event.keyCode))) $event.preventDefault()"
+                                        x-on:paste.prevent="
+                let paste = ($event.clipboardData || window.clipboardData).getData('text');
+                paste = paste.replace(/[^0-9]/g, '');
+                $event.target.value = paste.substring(0, 11);
+                $event.target.dispatchEvent(new Event('input'));
+            ">
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <p class="mt-1 text-xs text-gray-500">Format: 09XXXXXXXXX (11 digits starting with 09)
+                                </p>
+                                @error('phone_number')
+                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                                @enderror
                             </div>
                         </div>
                     </div>

@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('nbcs', function (Blueprint $table) {
             $table->id();
-            $table->decimal('educational_qualification', 5, 3);
-            $table->decimal('experience', 5, 3);            
-            $table->decimal('professional_development', 5,3);
+            $table->decimal('educational_qualification', 5, 3)->nullable();
+            $table->decimal('experience', 5, 3)->nullable();            
+            $table->decimal('professional_development', 5,3)->nullable();
+            $table->decimal('total_score', 8, 3)->default(0);
             $table->timestamps();
         });
     }

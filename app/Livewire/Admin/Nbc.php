@@ -9,6 +9,7 @@ use App\Models\NbcAssignment;
 use App\Models\EducationalQualification;
 use App\Models\ExperienceService;
 use App\Models\ProfessionalDevelopment;
+use App\Models\Nbc as NbcModel;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class Nbc extends Component
@@ -228,103 +229,53 @@ class Nbc extends Component
             return;
         }
 
+        // Get the NBC record from the assignment
+        $nbcRecord = $nbcAssignment->nbc;
+
+        // Get current evaluation data
         $educationalQualification = EducationalQualification::find($nbcAssignment->educational_qualification_id);
         $experienceService = ExperienceService::find($nbcAssignment->experience_service_id);
         $professionalDevelopment = ProfessionalDevelopment::find($nbcAssignment->professional_development_id);
 
         /* ===============================
-       1. EDUCATIONAL QUALIFICATION
-       =============================== */
-        $rsEducation =
-            ($educationalQualification->rs_1_1 ?? 0) +
-            ($educationalQualification->rs_1_2 ?? 0) +
-            ($educationalQualification->rs_1_3 ?? 0);
-
-        $totalEducation = min($educationalQualification->subtotal ?? $rsEducation, 90);
+           CURRENT (ADDITIONAL) POINTS - From NBC table
+           =============================== */
+        $currentEducation = $nbcRecord ? $nbcRecord->educational_qualification : 0;
+        $currentExperience = $nbcRecord ? $nbcRecord->experience : 0;
+        $currentProfessional = $nbcRecord ? $nbcRecord->professional_development : 0;
+        $currentTotal = $nbcRecord ? $nbcRecord->total_score : 0;
 
         /* ===============================
-       2. EXPERIENCE & SERVICE
-       =============================== */
-        $rsExperience =
-            ($experienceService->rs_2_1_1 ?? 0) +
-            ($experienceService->rs_2_1_2 ?? 0) +
-            ($experienceService->rs_2_2_1 ?? 0) +
-            ($experienceService->rs_2_3_1 ?? 0) +
-            ($experienceService->rs_2_3_2 ?? 0);
+           PREVIOUS POINTS - Check for previous NBC evaluations
+           =============================== */
+        // Find all previous NBC assignments for this applicant (same position, earlier evaluations)
+        $previousNbcAssignment = NbcAssignment::whereHas('evaluation', function ($q) use ($applicant) {
+                $q->whereHas('jobApplication', function ($jobQ) use ($applicant) {
+                    $jobQ->where('applicant_id', $applicant->id)
+                        ->where('position_id', $this->selectedPosition);
+                });
+            })
+            ->where('type', 'evaluate')
+            ->where('id', '!=', $nbcAssignment->id) // Exclude current assignment
+            ->whereNotNull('nbc_id')
+            ->orderBy('created_at', 'desc')
+            ->first();
 
-        $totalExperience = min($experienceService->subtotal ?? $rsExperience, 25);
+        $previousNbc = $previousNbcAssignment ? $previousNbcAssignment->nbc : null;
 
-        /* ===============================
-       3. PROFESSIONAL DEVELOPMENT
-       (RS ONLY — MAX 90)
-       =============================== */
-        $rsFields = [
-            'rs_3_1_1',
-            'rs_3_1_2_a',
-            'rs_3_1_2_c',
-            'rs_3_1_2_d',
-            'rs_3_1_2_e',
-            'rs_3_1_2_f',
-            'rs_3_1_3_a',
-            'rs_3_1_3_b',
-            'rs_3_1_3_c',
-            'rs_3_1_4',
-            'rs_3_2_1_1_a',
-            'rs_3_2_1_1_b',
-            'rs_3_2_1_1_c',
-            'rs_3_2_1_2',
-            'rs_3_2_1_3_a',
-            'rs_3_2_1_3_b',
-            'rs_3_2_1_3_c',
-            'rs_3_2_2_1_a',
-            'rs_3_2_2_1_b',
-            'rs_3_2_2_1_c',
-            'rs_3_2_2_2',
-            'rs_3_2_2_3',
-            'rs_3_2_2_4',
-            'rs_3_2_2_5',
-            'rs_3_2_2_6',
-            'rs_3_2_2_7',
-            'rs_3_3_1_a',
-            'rs_3_3_1_b',
-            'rs_3_3_1_c',
-            'rs_3_3_2',
-            'rs_3_3_3_a_doctorate',
-            'rs_3_3_3_a_masters',
-            'rs_3_3_3_a_nondegree',
-            'rs_3_3_3_b_doctorate',
-            'rs_3_3_3_b_masters',
-            'rs_3_3_3_b_nondegree',
-            'rs_3_3_3_c_doctorate',
-            'rs_3_3_3_c_masters',
-            'rs_3_3_3_c_nondegree',
-            'rs_3_3_3_d_doctorate',
-            'rs_3_3_3_d_masters',
-            'rs_3_3_3_e',
-            'rs_3_4_a',
-            'rs_3_4_b',
-            'rs_3_4_c',
-            'rs_3_5_1',
-            'rs_3_6_1_a',
-            'rs_3_6_1_b',
-            'rs_3_6_1_c',
-            'rs_3_6_1_d'
-        ];
-
-        $rsProfessional = 0;
-        if ($professionalDevelopment) {
-            foreach ($rsFields as $field) {
-                $rsProfessional += (float) ($professionalDevelopment->$field ?? 0);
-            }
-        }
-
-        $totalProfessional = min($rsProfessional, 90);
+        // Set previous values (blank if no previous evaluation)
+        $previousEducation = $previousNbc ? $previousNbc->educational_qualification : null;
+        $previousExperience = $previousNbc ? $previousNbc->experience : null;
+        $previousProfessional = $previousNbc ? $previousNbc->professional_development : null;
+        $previousTotal = $previousNbc ? $previousNbc->total_score : null;
 
         /* ===============================
-       TOTALS
-       =============================== */
-        $additionalTotal = $rsEducation + $rsExperience + $rsProfessional;
-        $grandTotal = $totalEducation + $totalExperience + $totalProfessional;
+           TOTAL POINTS (Current only, not cumulative)
+           =============================== */
+        $totalEducation = $currentEducation;
+        $totalExperience = $currentExperience;
+        $totalProfessional = $currentProfessional;
+        $grandTotal = $currentTotal;
 
         $position = $applicant->jobApplications()
             ->where('position_id', $this->selectedPosition)
@@ -332,8 +283,8 @@ class Nbc extends Component
             ->position;
 
         /* ===============================
-       FINAL DATA (ALL KEYS DEFINED)
-       =============================== */
+           FINAL DATA
+           =============================== */
         $this->nbcData = [[
             'evaluation_id' => $evaluation->id,
             'name' => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
@@ -341,17 +292,17 @@ class Nbc extends Component
             'college' => $position->college,
             'interview_date' => $evaluation->interview_date,
 
-            // Previous (no data yet, MUST exist)
-            'previous_education' => 0,
-            'previous_experience' => 0,
-            'previous_professional' => 0,
-            'previous_total' => 0,
+            // Previous (from previous NBC evaluation)
+            'previous_education' => $previousEducation !== null ? round($previousEducation, 2) : '',
+            'previous_experience' => $previousExperience !== null ? round($previousExperience, 2) : '',
+            'previous_professional' => $previousProfessional !== null ? round($previousProfessional, 2) : '',
+            'previous_total' => $previousTotal !== null ? round($previousTotal, 2) : '',
 
-            // Additional (RS)
-            'additional_education' => round($rsEducation, 2),
-            'additional_experience' => round($rsExperience, 2),
-            'additional_professional' => round($rsProfessional, 2),
-            'additional_total' => round($additionalTotal, 2),
+            // Additional (current NBC record values)
+            'additional_education' => round($currentEducation, 2),
+            'additional_experience' => round($currentExperience, 2),
+            'additional_professional' => round($currentProfessional, 2),
+            'additional_total' => round($currentTotal, 2),
 
             // EP (NOT USED — ZEROED BUT REQUIRED BY VIEW)
             'ep_education_subtotal' => 0,

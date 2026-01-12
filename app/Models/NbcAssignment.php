@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class NbcAssignment extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'nbc_committee_id',
         'evaluation_id',
@@ -24,15 +27,15 @@ class NbcAssignment extends Model
     ];
 
     /**
-     * Get the NBC committee member assigned
+     * Get the NBC committee that owns the assignment
      */
     public function nbcCommittee(): BelongsTo
     {
-        return $this->belongsTo(NbcCommittee::class, 'nbc_committee_id');
+        return $this->belongsTo(NbcCommittee::class);
     }
 
     /**
-     * Get the evaluation
+     * Get the evaluation that owns the assignment
      */
     public function evaluation(): BelongsTo
     {
@@ -63,13 +66,16 @@ class NbcAssignment extends Model
         return $this->belongsTo(ProfessionalDevelopment::class);
     }
 
+    /**
+     * Get the NBC record
+     */
     public function nbc(): BelongsTo
     {
         return $this->belongsTo(Nbc::class);
     }
 
     /**
-     * Check if assignment is for evaluator
+     * Check if this is an evaluator assignment
      */
     public function isEvaluator(): bool
     {
@@ -77,7 +83,7 @@ class NbcAssignment extends Model
     }
 
     /**
-     * Check if assignment is for verifier
+     * Check if this is a verifier assignment
      */
     public function isVerifier(): bool
     {
@@ -85,50 +91,32 @@ class NbcAssignment extends Model
     }
 
     /**
-     * Check if assignment is complete
+     * Create or update NBC record with current scores
      */
-    public function isComplete(): bool
+    public function updateNbcScores(): void
     {
-        return $this->status === 'complete';
+        if (!$this->nbc_id) {
+            $nbc = Nbc::create([]);
+            $this->update(['nbc_id' => $nbc->id]);
+            $this->load('nbc');
+        }
+
+        $this->nbc->updateScoresFromAssignment($this);
     }
 
     /**
-     * Mark assignment as complete
+     * Boot method to handle model events
      */
-    public function markAsComplete(): void
+    protected static function boot()
     {
-        $this->update(['status' => 'complete']);
-    }
+        parent::boot();
 
-    /**
-     * Scope for pending assignments
-     */
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
-
-    /**
-     * Scope for complete assignments
-     */
-    public function scopeComplete($query)
-    {
-        return $query->where('status', 'complete');
-    }
-
-    /**
-     * Scope for evaluator assignments
-     */
-    public function scopeEvaluator($query)
-    {
-        return $query->where('type', 'evaluate');
-    }
-
-    /**
-     * Scope for verifier assignments
-     */
-    public function scopeVerifier($query)
-    {
-        return $query->where('type', 'verify');
+        static::created(function ($assignment) {
+            // Create NBC record when assignment is created
+            if (!$assignment->nbc_id) {
+                $nbc = Nbc::create([]);
+                $assignment->update(['nbc_id' => $nbc->id]);
+            }
+        });
     }
 }

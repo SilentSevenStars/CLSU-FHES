@@ -5,6 +5,7 @@ namespace App\Livewire\Nbc;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Evaluation;
+use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends Component
 {
@@ -80,7 +81,7 @@ class Dashboard extends Component
                 ) THEN 1 
                 ELSE 0 
             END
-        ', [auth()->id()])
+        ', [Auth::id()])
         ->orderBy('created_at', 'desc');
 
         return $query->paginate($this->perPage);
@@ -104,7 +105,7 @@ class Dashboard extends Component
             ->whereDoesntHave('nbcAssignments', function ($assignmentQuery) {
                 $assignmentQuery->where('status', 'complete')
                     ->whereHas('nbcCommittee', function ($committeeQuery) {
-                        $committeeQuery->where('user_id', auth()->id());
+                        $committeeQuery->where('user_id', Auth::id());
                     });
             })
             ->count();
@@ -128,7 +129,7 @@ class Dashboard extends Component
             ->whereHas('nbcAssignments', function ($assignmentQuery) {
                 $assignmentQuery->where('status', 'complete')
                     ->whereHas('nbcCommittee', function ($committeeQuery) {
-                        $committeeQuery->where('user_id', auth()->id());
+                        $committeeQuery->where('user_id', Auth::id());
                     });
             })
             ->whereDate('updated_at', today())
