@@ -5,6 +5,7 @@ namespace App\Livewire\Nbc;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Evaluation;
+use App\Models\NbcCommittee;
 use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends Component
@@ -98,15 +99,20 @@ class Dashboard extends Component
             'College/University Professor'
         ];
 
+        // Get the NBC committee ID for the current user
+        $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
+        
+        if (!$nbcCommittee) {
+            return 0;
+        }
+
         return Evaluation::whereDate('interview_date', today())
             ->whereHas('jobApplication.position', function ($positionQuery) use ($allowedPositions) {
                 $positionQuery->whereIn('name', $allowedPositions);
             })
-            ->whereDoesntHave('nbcAssignments', function ($assignmentQuery) {
-                $assignmentQuery->where('status', 'complete')
-                    ->whereHas('nbcCommittee', function ($committeeQuery) {
-                        $committeeQuery->where('user_id', Auth::id());
-                    });
+            ->whereDoesntHave('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
+                $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
+                    ->where('status', 'complete');
             })
             ->count();
     }
@@ -122,17 +128,22 @@ class Dashboard extends Component
             'College/University Professor'
         ];
 
+        // Get the NBC committee ID for the current user
+        $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
+        
+        if (!$nbcCommittee) {
+            return 0;
+        }
+
         return Evaluation::whereDate('interview_date', today())
             ->whereHas('jobApplication.position', function ($positionQuery) use ($allowedPositions) {
                 $positionQuery->whereIn('name', $allowedPositions);
             })
-            ->whereHas('nbcAssignments', function ($assignmentQuery) {
-                $assignmentQuery->where('status', 'complete')
-                    ->whereHas('nbcCommittee', function ($committeeQuery) {
-                        $committeeQuery->where('user_id', Auth::id());
-                    });
+            ->whereHas('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
+                $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
+                    ->where('status', 'complete')
+                    ->whereDate('updated_at', today());
             })
-            ->whereDate('updated_at', today())
             ->count();
     }
 
