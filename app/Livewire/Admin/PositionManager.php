@@ -237,12 +237,23 @@ class PositionManager extends Component
                     $q->where('status', 'none');
                 }
             })
-            ->when($this->filterCollege, fn($q) =>
+            ->when(
+                $this->filterCollege,
+                fn($q) =>
                 $q->where('college', $this->filterCollege)
             )
-            ->when($this->filterDepartment, fn($q) =>
+            ->when(
+                $this->filterDepartment,
+                fn($q) =>
                 $q->where('department', $this->filterDepartment)
             )
+
+            // Ensure end_date is not in the past
+            ->where(function($query) {
+                $query->whereNull('end_date')
+                      ->orWhere('end_date', '>=', now()->toDateString());
+            })
+
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage);
     }

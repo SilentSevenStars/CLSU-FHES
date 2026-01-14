@@ -94,6 +94,21 @@
                 </div>
             </div>
 
+            {{-- Flash Messages --}}
+            @if(session()->has('success'))
+            <div class="mx-6 mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p class="text-sm text-green-800 leading-5 tracking-wide">{{ session('success')
+                    }}</p>
+            </div>
+            @endif
+
+            @if(session()->has('error'))
+            <div class="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p class="text-sm text-red-800 leading-5 tracking-wide">{{ session('error') }}
+                </p>
+            </div>
+            @endif
+
             <!-- Enhanced Table Card -->
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn" style="animation-delay: 0.4s;">
                 <!-- Table Header with Filter -->
@@ -121,9 +136,9 @@
                             <select wire:model.live="college_id"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700">
                                 <option value="">Select College</option>
-                                    @foreach ($colleges as $college)
-                                        <option value="{{ $college->name }}">{{ $college->name }}</option>
-                                    @endforeach
+                                @foreach ($colleges as $college)
+                                <option value="{{ $college->name }}">{{ $college->name }}</option>
+                                @endforeach
                             </select>
 
                             <!-- Department Filter -->
@@ -131,9 +146,9 @@
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" {{
                                 !$college_id ? 'disabled' : '' }}>
                                 <option value="">Select Department</option>
-                                    @foreach ($departments as $dept)
-                                        <option value="{{ $dept->name }}">{{ $dept->name }}</option>
-                                    @endforeach
+                                @foreach ($departments as $dept)
+                                <option value="{{ $dept->name }}">{{ $dept->name }}</option>
+                                @endforeach
                             </select>
 
                             <!-- Position Filter -->
@@ -141,9 +156,9 @@
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" {{
                                 !$department_id ? 'disabled' : '' }}>
                                 <option value="">Select Position</option>
-                                    @foreach ($positions as $pos)
-                                        <option value="{{ $pos->name }}">{{ $pos->name }}</option>
-                                    @endforeach
+                                @foreach ($positions as $pos)
+                                <option value="{{ $pos->name }}">{{ $pos->name }}</option>
+                                @endforeach
                             </select>
 
                             <!-- Per Page -->
@@ -190,28 +205,14 @@
                                     </div>
                                     <!-- End Header -->
 
-                                    {{-- Flash Messages --}}
-                                    @if(session()->has('success'))
-                                    <div class="mx-6 mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                                        <p class="text-sm text-green-800 leading-5 tracking-wide">{{ session('success')
-                                            }}</p>
-                                    </div>
-                                    @endif
-
-                                    @if(session()->has('error'))
-                                    <div class="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                                        <p class="text-sm text-red-800 leading-5 tracking-wide">{{ session('error') }}
-                                        </p>
-                                    </div>
-                                    @endif
-
                                     <!-- Table -->
                                     <table class="min-w-full divide-y divide-gray-300">
                                         <thead class="bg-gray-200">
                                             <tr>
                                                 <th scope="col" class="px-6 py-3 text-start">
                                                     <div class="flex items-center gap-x-2">
-                                                        <span class="text-xs font-semibold uppercase text-black">#</span>
+                                                        <span
+                                                            class="text-xs font-semibold uppercase text-black">#</span>
                                                     </div>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
@@ -269,7 +270,8 @@
                                             <tr class="bg-gray-50 hover:bg-gray-100">
                                                 <td class="size-px whitespace-nowrap align-top">
                                                     <div class="text-sm font-semibold text-black">
-                                                        {{ $applications->firstItem() ? $applications->firstItem() + $loop->index : $loop->iteration }}
+                                                        {{ $applications->firstItem() ? $applications->firstItem() +
+                                                        $loop->index : $loop->iteration }}
                                                     </div>
                                                 </td>
                                                 <td class="size-px whitespace-nowrap align-top">
@@ -277,7 +279,7 @@
                                                         {{ $application->applicant->user->name }}
                                                     </div>
                                                 </td>
-                                                
+
                                                 <td class="size-px whitespace-nowrap align-top">
                                                     <div class="text-sm font-medium text-black">
                                                         {{ $application->applicant->user->email }}

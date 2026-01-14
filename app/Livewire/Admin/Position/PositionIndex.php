@@ -115,6 +115,11 @@ class PositionIndex extends Component
                 fn($q) =>
                 $q->where('department', $this->filterDepartment)
             )
+            // Ensure end_date is not in the past
+            ->where(function($query) {
+                $query->whereNull('end_date')
+                      ->orWhere('end_date', '>=', now()->toDateString());
+            })
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage);
     }
@@ -146,6 +151,6 @@ class PositionIndex extends Component
             'filterDepartments' => $this->filterCollege
                 ? Department::where('college', $this->filterCollege)->orderBy('name')->get()
                 : []
-        ])->layout('layouts.app');
+        ]);
     }
 }

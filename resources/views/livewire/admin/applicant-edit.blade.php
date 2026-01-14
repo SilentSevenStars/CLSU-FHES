@@ -149,9 +149,9 @@
 
                     <!-- Info Box -->
                     <div class="mb-4 px-4 py-3 bg-blue-50 border border-blue-300 text-blue-800 rounded-lg">
-                        <p class="font-semibold mb-1">📝 Note:</p>
+                        <p class="font-semibold mb-1">📝 Email Notification Rules:</p>
                         <ul class="list-disc list-inside text-sm space-y-1">
-                            <li>Changing interview details (date/room) for an <strong>approved</strong> application will NOT send a new email</li>
+                            <li>Changing interview details (date/room) for an <strong>approved</strong> application <strong>WILL send</strong> an update notification email</li>
                             <li>Changing status from <strong>Approved → Declined</strong> will send a decline notification email</li>
                             <li>Changing status from <strong>Declined → Approved</strong> will send an approval notification email</li>
                         </ul>
@@ -181,7 +181,6 @@
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Interview Date *</label>
                                 <input type="date" wire:model="interview_date"
-                                    min="{{ date('Y-m-d') }}"
                                     class="block w-full px-4 py-3 rounded-lg border-gray-300 shadow-sm">
                                 @error('interview_date') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                             </div>
@@ -197,15 +196,13 @@
 
                         </div>
 
-                        <!-- Show current values when status hasn't changed -->
-                        @if($originalStatus === 'approve')
+                        <!-- Show current values when status is approved -->
+                        @if($originalStatus === 'approve' && $application->evaluation)
                         <div class="px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
                             <p class="text-sm text-green-800">
                                 <strong>Current Interview Details:</strong> 
-                                @if($application->evaluation)
-                                    {{ date('F j, Y', strtotime($application->evaluation->interview_date)) }} 
-                                    at {{ $application->evaluation->interview_room }}
-                                @endif
+                                {{ date('F j, Y', strtotime($application->evaluation->interview_date)) }} 
+                                at {{ $application->evaluation->interview_room }}
                             </p>
                         </div>
                         @endif
