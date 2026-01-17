@@ -4,7 +4,7 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use App\Models\Evaluation;
-use App\Models\Panel;
+use App\Models\Representative;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class Screening extends Component
@@ -189,8 +189,8 @@ class Screening extends Component
         $positionData = collect($this->positions)
             ->firstWhere('filter_key', $this->selectedPosition);
 
-        // Get panel members from database
-        $panelMembers = $this->getPanelMembersFromDatabase($positionData);
+        // Get panel members from Representative model
+        $panelMembers = $this->getPanelMembersFromRepresentatives();
 
         $pdf = Pdf::loadView('pdf.screening-report', [
             'screeningData' => $this->screeningData->toArray(),
@@ -210,72 +210,86 @@ class Screening extends Component
         }, 'screening-report-' . now()->format('Y-m-d') . '.pdf');
     }
 
-    private function getPanelMembersFromDatabase($positionData)
+    private function getPanelMembersFromRepresentatives()
     {
-        // Fetch panels based on college and department
-        $panels = Panel::with('user')
-            ->where('college', $positionData['college'])
-            ->where('department', $positionData['department'])
-            ->get();
+        // Fetch all representatives
+        $representatives = Representative::all();
 
-        // Organize panels by position
-        $organized = [
-            'deans' => [],
-            'heads' => [],
-            'seniors' => [],
+        // Initialize panel members array
+        $panelMembers = [
+            'supervising_admin' => 'TBA',
+            'fai_president' => 'TBA',
+            'glutches_preside' => 'TBA',
+            'ranking_faculty' => 'TBA',
+            'dean_cass' => 'TBA',
+            'dean_cen' => 'TBA',
+            'dean_cos' => 'TBA',
+            'dean_ced' => 'TBA',
+            'dean_cf' => 'TBA',
+            'dean_cba' => 'TBA',
+            'senior_faculty' => 'TBA',
+            'head_dabe' => 'TBA',
+            'head_business' => 'TBA',
+            'head_ispels' => 'TBA',
+            'chairman_fsb' => 'TBA',
+            'university_president' => 'TBA',
         ];
 
-        foreach ($panels as $panel) {
-            $position = strtolower($panel->panel_position);
-            $name = $panel->user->name ?? 'TBA';
-            
-            if (str_contains($position, 'dean')) {
-                $organized['deans'][] = [
-                    'name' => $name,
-                    'title' => 'Dean, ' . $this->getCollegeAcronym($panel->college)
-                ];
-            } elseif (str_contains($position, 'head')) {
-                $organized['heads'][] = [
-                    'name' => $name,
-                    'title' => 'Head, Dept ' . $panel->department
-                ];
-            } elseif (str_contains($position, 'senior')) {
-                $organized['seniors'][] = [
-                    'name' => $name,
-                    'title' => 'Senior Faculty, ' . $panel->department
-                ];
+        // Map representatives to their positions
+        foreach ($representatives as $rep) {
+            switch ($rep->position) {
+                case 'Member, Supervising Admin. Officer, HRMO':
+                    $panelMembers['supervising_admin'] = $rep->name;
+                    break;
+                case 'Member, FAI President/Representative':
+                    $panelMembers['fai_president'] = $rep->name;
+                    break;
+                case 'Member, GLUTCHES President':
+                    $panelMembers['glutches_preside'] = $rep->name;
+                    break;
+                case 'Member, Ranking Faculty':
+                    $panelMembers['ranking_faculty'] = $rep->name;
+                    break;
+                case 'Dean, CASS':
+                    $panelMembers['dean_cass'] = $rep->name;
+                    break;
+                case 'Dean, CEN Representative':
+                    $panelMembers['dean_cen'] = $rep->name;
+                    break;
+                case 'Dean, COS':
+                    $panelMembers['dean_cos'] = $rep->name;
+                    break;
+                case 'Dean, CED':
+                    $panelMembers['dean_ced'] = $rep->name;
+                    break;
+                case 'Dean, CF':
+                    $panelMembers['dean_cf'] = $rep->name;
+                    break;
+                case 'Dean, CBA':
+                    $panelMembers['dean_cba'] = $rep->name;
+                    break;
+                case 'Senior Faculty':
+                    $panelMembers['senior_faculty'] = $rep->name;
+                    break;
+                case 'Head, Dept DABE, Representative':
+                    $panelMembers['head_dabe'] = $rep->name;
+                    break;
+                case 'Head, Dept Business':
+                    $panelMembers['head_business'] = $rep->name;
+                    break;
+                case 'Head, ISPELS':
+                    $panelMembers['head_ispels'] = $rep->name;
+                    break;
+                case 'Chairman, Faculty Selection Board & VPAA':
+                    $panelMembers['chairman_fsb'] = $rep->name;
+                    break;
+                case 'University President':
+                    $panelMembers['university_president'] = $rep->name;
+                    break;
             }
         }
 
-        return [
-            'supervising_admin' => 'Member, Supervising Admin. Officer, HRMO',
-            'fai_president' => 'Member, FAI President/Representative',
-            'glutches_preside' => 'Member, GLUTCHES Preside',
-            'ranking_faculty' => 'Member, Ranking Faculty',
-            'deans' => $organized['deans'],
-            'heads' => $organized['heads'],
-            'seniors' => $organized['seniors'],
-            'chairman_fsb' => 'Chairman, Faculty Selection Board & VPAA',
-            'university_president' => 'University President',
-        ];
-    }
-
-    private function getCollegeAcronym($collegeName)
-    {
-        $acronyms = [
-            'College of Agriculture' => 'CA',
-            'College of Arts and Social Sciences' => 'CASS',
-            'College of Business and Accountancy' => 'CBA',
-            'College of Education' => 'CED',
-            'College of Engineering' => 'CEN',
-            'College of Fisheries' => 'CF',
-            'College of Home Science and Industry' => 'CHSI',
-            'College of Science' => 'COS',
-            'College of Veterinary Science and Medicine' => 'CVSM',
-            'Distance, Open, and Transnational University (DOT-Uni)' => 'DOT-Uni',
-        ];
-
-        return $acronyms[$collegeName] ?? $collegeName;
+        return $panelMembers;
     }
 
     public function render()

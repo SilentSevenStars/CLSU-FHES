@@ -108,6 +108,11 @@
                         Panel
                      </a>
                   </li>
+                  <li>
+                     <a href="{{ route('admin.representative') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                        Representative
+                     </a>
+                  </li>
                </ul>
             </li>
             <li>

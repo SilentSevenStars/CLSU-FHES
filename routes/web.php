@@ -17,6 +17,7 @@ use App\Livewire\Admin\Position\PositionCreate;
 use App\Livewire\Admin\Position\PositionEdit;
 use App\Livewire\Admin\Position\PositionIndex;
 use App\Livewire\Admin\PositionRankManager;
+use App\Livewire\Admin\RepresentativeManager;
 use App\Livewire\Admin\ScheduledApplicant;
 use App\Livewire\Admin\Screening;
 use App\Livewire\Applicant\ApplicantMessage;
@@ -91,6 +92,7 @@ Route::middleware([
         Route::get('/assign-position', AssignPosition::class)->name('assign.position');
         Route::get('/nbc-comittee', NbcCommitteeManager::class)->name('nbc.comittee');
         Route::get('/nbc', Nbc::class)->name('nbc');
+        Route::get('/representative', RepresentativeManager::class)->name('representative');
     });
     
 });
