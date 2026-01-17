@@ -6,10 +6,10 @@
     <div class="bg-white rounded-lg shadow-sm p-6">
 
         <!-- Filters -->
-        <div class="flex items-center gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
 
             <!-- Search -->
-            <div class="flex-1 relative">
+            <div class="relative">
                 <input 
                     type="text"
                     wire:model.live.debounce.300ms="searchTerm"
@@ -25,27 +25,49 @@
             </div>
 
             <!-- Position Filter -->
-            <div class="w-80">
+            <div>
                 <select 
                     wire:model.live="selectedPosition"
                     class="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 >
-                    <option value="">Position Filter</option>
+                    <option value="">Select Position</option>
                     @foreach($positions as $position)
-                        <option value="{{ $position['filter_key'] }}">
-                            {{ $position['display_name'] }}
+                        <option value="{{ $position['id'] }}">
+                            {{ $position['name'] }}
                         </option>
                     @endforeach
                 </select>
             </div>
 
+            <!-- Date Filter -->
+            <div>
+                <select 
+                    wire:model.live="selectedDate"
+                    class="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                    {{ !$selectedPosition ? 'disabled' : '' }}
+                >
+                    <option value="">Select Interview Date</option>
+                    @foreach($interviewDates as $date)
+                        <option value="{{ $date }}">
+                            {{ date('M d, Y', strtotime($date)) }}
+                        </option>
+                    @endforeach
+                </select>
+                @if(!$selectedPosition)
+                    <p class="text-xs text-gray-500 mt-1">Please select a position first</p>
+                @endif
+            </div>
+
             <!-- Export -->
-            <button 
-                wire:click="export"
-                class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-            >
-                Export
-            </button>
+            <div>
+                <button 
+                    wire:click="export"
+                    class="w-full px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    {{ !$selectedPosition || !$selectedDate ? 'disabled' : '' }}
+                >
+                    Export
+                </button>
+            </div>
         </div>
 
         <!-- Table -->
@@ -108,12 +130,15 @@
                     @empty
                         <tr>
                             <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                                @if($selectedPosition)
+                                @if(!$selectedPosition)
+                                    <p class="text-lg font-medium">Please select a position</p>
+                                    <p class="text-sm mt-1">Choose a position from the filter above</p>
+                                @elseif(!$selectedDate)
+                                    <p class="text-lg font-medium">Please select an interview date</p>
+                                    <p class="text-sm mt-1">Choose a date from the filter above</p>
+                                @else
                                     <p class="text-lg font-medium">No completed evaluations found</p>
                                     <p class="text-sm mt-1">All panel assignments must be completed</p>
-                                @else
-                                    <p class="text-lg font-medium">Please select a position</p>
-                                    <p class="text-sm mt-1">Use the position filter above</p>
                                 @endif
                             </td>
                         </tr>

@@ -20,12 +20,14 @@
     @include('components.nav-admin')
 @elseif(Auth::user()->role === 'panel')
     @include('components.nav-panel')
+@elseif(Auth::user()->role === 'nbc')
+    @include('components.nav-nbc')
 @else
     @include('components.nav-applicant')
 @endif
 
 <!-- Main content -->
-@if(in_array(Auth::user()->role, ['applicant', 'admin', 'panel']))
+@if(in_array(Auth::user()->role, ['applicant', 'admin', 'panel', 'nbc']))
 <main class="p-4 sm:ml-16 min-h-screen">
     {{ $slot }}
 </main>

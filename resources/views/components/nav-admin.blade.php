@@ -2,10 +2,12 @@
         applicantOpen: false,
         screeningOpen: false,
         nbcOpen: false,
+        managementOpen: false,
         closeAll() {
             this.applicantOpen = false;
             this.screeningOpen = false;
             this.nbcOpen = false;
+            this.managementOpen = false;
         }
     }" @mouseleave="closeAll()" class="group fixed top-0 left-0 z-50 h-screen transition-all duration-300 ease-in-out
            w-64 sm:w-16 sm:hover:w-64
@@ -133,6 +135,33 @@
                      <a href="{{ route('admin.nbc.comittee') }}"
                         class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         NBC Committee
+                     </a>
+                  </li>
+               </ul>
+            </li>
+
+            <li>
+               <button @click="managementOpen = !managementOpen"
+                  class="flex items-center w-full p-3 rounded-lg text-white hover:bg-[#0A6025]">
+                  <i class="fa-solid fa-gear text-xl w-5"></i>
+                  <span class="ml-4 flex-1 block sm:hidden sm:group-hover:block">Management</span>
+                  <i class="fa-solid fa-chevron-down text-xs transition-transform" :class="managementOpen ? 'rotate-180' : ''"></i>
+               </button>
+
+               <ul x-show="managementOpen" x-transition class="ml-8 mt-1 space-y-1 text-sm">
+                  <li>
+                     <a href="{{ route('admin.position.rank') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                        Position
+                     </a>
+                  </li>
+                  <li>
+                     <a href="{{ route('admin.college') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                        College
+                     </a>
+                  </li>
+                  <li>
+                     <a href="{{ route('admin.department') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                        Department
                      </a>
                   </li>
                </ul>

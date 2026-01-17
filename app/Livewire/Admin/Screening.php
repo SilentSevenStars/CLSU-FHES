@@ -10,9 +10,29 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class Screening extends Component
 {
     public $selectedPosition = null;
+    public $selectedDate = null;
     public $searchTerm = '';
     public $positions = [];
+    public $interviewDates = [];
     public $screeningData = [];
+
+    // Define allowed faculty positions
+    private $allowedPositions = [
+        'Instructor I',
+        'Instructor II',
+        'Instructor III',
+        'Assistant Professor I',
+        'Assistant Professor II',
+        'Assistant Professor III',
+        'Assistant Professor IV',
+        'Associate Professor I',
+        'Associate Professor II',
+        'Associate Professor III',
+        'Associate Professor IV',
+        'Associate Professor V',
+        'Professor I',
+        'Professor II',
+    ];
 
     public function mount()
     {
@@ -20,57 +40,51 @@ class Screening extends Component
     }
 
     /**
-     * Load unique (Position + Interview Date) combinations
-     * Filtered to show only faculty positions
+     * Load unique positions (faculty only)
      */
     public function loadPositions()
     {
-        // Define allowed faculty positions
-        $allowedPositions = [
-            'Instructor I',
-            'Instructor II',
-            'Instructor III',
-            'Assistant Professor I',
-            'Assistant Professor II',
-            'Assistant Professor III',
-            'Assistant Professor IV',
-            'Associate Professor I',
-            'Associate Professor II',
-            'Associate Professor III',
-            'Associate Professor IV',
-            'Associate Professor V',
-            'Professor I',
-            'Professor II',
-        ];
-
         $this->positions = Evaluation::with(['jobApplication.position'])
-            ->whereHas('jobApplication', function($q) use ($allowedPositions) {
+            ->whereHas('jobApplication', function($q) {
                 $q->where('status', 'approve')
-                  ->whereHas('position', function($posQuery) use ($allowedPositions) {
-                      $posQuery->whereIn('name', $allowedPositions);
+                  ->whereHas('position', function($posQuery) {
+                      $posQuery->whereIn('name', $this->allowedPositions);
                   });
             })
             ->get()
-            ->groupBy(fn($e) => $e->jobApplication->position->id . '_' . $e->interview_date)
-            ->map(function ($group) {
-                $evaluation = $group->first();
-                $position = $evaluation->jobApplication->position;
-
-                return [
-                    'id'             => $position->id,
-                    'name'           => $position->name,
-                    'college'        => $position->college,
-                    'department'     => $position->department,
-                    'interview_date' => $evaluation->interview_date,
-                    'display_name'   => $position->name . ' (' . date('M d, Y', strtotime($evaluation->interview_date)) . ')',
-                    'filter_key'     => $position->id . '_' . $evaluation->interview_date,
-                ];
-            })
+            ->pluck('jobApplication.position')
+            ->unique('id')
+            ->sortBy('name')
             ->values()
             ->toArray();
     }
 
+    /**
+     * Load unique interview dates for the selected position
+     */
     public function updatedSelectedPosition()
+    {
+        $this->selectedDate = null;
+        $this->screeningData = [];
+        
+        if (!$this->selectedPosition) {
+            $this->interviewDates = [];
+            return;
+        }
+
+        $this->interviewDates = Evaluation::whereHas('jobApplication', function($q) {
+                $q->where('status', 'approve')
+                  ->where('position_id', $this->selectedPosition);
+            })
+            ->get()
+            ->pluck('interview_date')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+    }
+
+    public function updatedSelectedDate()
     {
         $this->loadScreeningData();
     }
@@ -85,15 +99,7 @@ class Screening extends Component
      */
     public function loadScreeningData()
     {
-        if (!$this->selectedPosition) {
-            $this->screeningData = [];
-            return;
-        }
-
-        $positionData = collect($this->positions)
-            ->firstWhere('filter_key', $this->selectedPosition);
-
-        if (!$positionData) {
+        if (!$this->selectedPosition || !$this->selectedDate) {
             $this->screeningData = [];
             return;
         }
@@ -106,9 +112,9 @@ class Screening extends Component
             'panelAssignments.experience',
             'panelAssignments.performance'
         ])
-            ->where('interview_date', $positionData['interview_date'])
+            ->where('interview_date', $this->selectedDate)
             ->whereHas('jobApplication', fn($q) =>
-                $q->where('position_id', $positionData['id'])
+                $q->where('position_id', $this->selectedPosition)
                   ->where('status', 'approve')
             )
             ->get();
@@ -181,23 +187,23 @@ class Screening extends Component
 
     public function export()
     {
-        if (empty($this->screeningData) || !$this->selectedPosition) {
-            session()->flash('error', 'No data to export. Please select a position first.');
+        if (empty($this->screeningData) || !$this->selectedPosition || !$this->selectedDate) {
+            session()->flash('error', 'No data to export. Please select both position and date.');
             return;
         }
 
-        $positionData = collect($this->positions)
-            ->firstWhere('filter_key', $this->selectedPosition);
+        // Get position details
+        $position = collect($this->positions)->firstWhere('id', $this->selectedPosition);
 
         // Get panel members from Representative model
         $panelMembers = $this->getPanelMembersFromRepresentatives();
 
         $pdf = Pdf::loadView('pdf.screening-report', [
             'screeningData' => $this->screeningData->toArray(),
-            'positionName' => $positionData['name'] ?? 'Various Positions',
-            'college' => $positionData['college'] ?? '',
-            'department' => $positionData['department'] ?? '',
-            'interviewDate' => $positionData['interview_date'] ?? now()->format('M d, Y'),
+            'positionName' => $position['name'] ?? 'Various Positions',
+            'college' => $position['college'] ?? '',
+            'department' => $position['department'] ?? '',
+            'interviewDate' => date('M d, Y', strtotime($this->selectedDate)),
             'panelMembers' => $panelMembers,
             'generatedDate' => now()->format('F d, Y'),
         ]);
