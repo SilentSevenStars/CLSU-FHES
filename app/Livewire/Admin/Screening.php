@@ -45,15 +45,15 @@ class Screening extends Component
     public function loadPositions()
     {
         $this->positions = Evaluation::with(['jobApplication.position'])
-            ->whereHas('jobApplication', function($q) {
+            ->whereHas('jobApplication', function ($q) {
                 $q->where('status', 'approve')
-                  ->whereHas('position', function($posQuery) {
-                      $posQuery->whereIn('name', $this->allowedPositions);
-                  });
+                    ->whereHas('position', function ($posQuery) {
+                        $posQuery->whereIn('name', $this->allowedPositions);
+                    });
             })
             ->get()
             ->pluck('jobApplication.position')
-            ->unique('id')
+            ->unique('name')  // Changed from unique('id') to unique('name')
             ->sortBy('name')
             ->values()
             ->toArray();
@@ -66,16 +66,16 @@ class Screening extends Component
     {
         $this->selectedDate = null;
         $this->screeningData = [];
-        
+
         if (!$this->selectedPosition) {
             $this->interviewDates = [];
             return;
         }
 
-        $this->interviewDates = Evaluation::whereHas('jobApplication', function($q) {
-                $q->where('status', 'approve')
-                  ->where('position_id', $this->selectedPosition);
-            })
+        $this->interviewDates = Evaluation::whereHas('jobApplication', function ($q) {
+            $q->where('status', 'approve')
+                ->where('position_id', $this->selectedPosition);
+        })
             ->get()
             ->pluck('interview_date')
             ->unique()
@@ -113,9 +113,11 @@ class Screening extends Component
             'panelAssignments.performance'
         ])
             ->where('interview_date', $this->selectedDate)
-            ->whereHas('jobApplication', fn($q) =>
+            ->whereHas(
+                'jobApplication',
+                fn($q) =>
                 $q->where('position_id', $this->selectedPosition)
-                  ->where('status', 'approve')
+                    ->where('status', 'approve')
             )
             ->get();
 
@@ -167,8 +169,8 @@ class Screening extends Component
                 'total'                  => round($total, 2),
             ];
         })
-        ->sortByDesc('total')
-        ->values();
+            ->sortByDesc('total')
+            ->values();
 
         // Save rank + totals in DB
         $this->screeningData = $this->screeningData->transform(function ($row, $index) {
@@ -211,7 +213,7 @@ class Screening extends Component
         // Set to legal size (long bond paper) in landscape orientation
         $pdf->setPaper('legal', 'landscape');
 
-        return response()->streamDownload(function() use ($pdf) {
+        return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'screening-report-' . now()->format('Y-m-d') . '.pdf');
     }
