@@ -32,8 +32,8 @@
                 >
                     <option value="">Select Position</option>
                     @foreach($positions as $position)
-                        <option value="{{ $position['id'] }}">
-                            {{ $position['name'] }}
+                        <option value="{{ $position }}">
+                            {{ $position }}
                         </option>
                     @endforeach
                 </select>

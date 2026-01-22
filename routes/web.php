@@ -56,7 +56,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware([
     'auth',
-    'verified',
+    // 'verified',
     'role:applicant'
 ])->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');

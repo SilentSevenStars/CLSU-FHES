@@ -117,7 +117,7 @@ class EditJobApplication extends Component
 
         // Load applicant personal info including suffix
         $this->first_name = $applicant->first_name;
-        $this->middle_name = $applicant->middle_name;
+        $this->middle_name = $applicant->middle_name ?? '';
         $this->last_name = $applicant->last_name;
         $this->suffix = $applicant->suffix ?? '';
         $this->phone_number = $applicant->phone_number ?? '';

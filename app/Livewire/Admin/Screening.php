@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use App\Models\Evaluation;
 use App\Models\Representative;
+use App\Models\Position;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class Screening extends Component
@@ -16,7 +17,7 @@ class Screening extends Component
     public $interviewDates = [];
     public $screeningData = [];
 
-    // Define allowed faculty positions
+    // Define allowed faculty positions in the correct order
     private $allowedPositions = [
         'Instructor I',
         'Instructor II',
@@ -40,27 +41,32 @@ class Screening extends Component
     }
 
     /**
-     * Load unique positions (faculty only)
+     * Load unique positions (faculty only) - in predefined order
      */
     public function loadPositions()
     {
-        $this->positions = Evaluation::with(['jobApplication.position'])
-            ->whereHas('jobApplication', function ($q) {
+        // Get positions that have approved applications with evaluations
+        $existingPositions = Position::whereIn('name', $this->allowedPositions)
+            ->whereHas('jobApplications', function ($q) {
                 $q->where('status', 'approve')
-                    ->whereHas('position', function ($posQuery) {
-                        $posQuery->whereIn('name', $this->allowedPositions);
-                    });
+                    ->whereHas('evaluation');
             })
             ->get()
-            ->pluck('jobApplication.position')
-            ->unique('name')  // Changed from unique('id') to unique('name')
-            ->sortBy('name')
+            ->pluck('name')
+            ->unique()
+            ->toArray();
+
+        // Sort by the predefined order
+        $this->positions = collect($this->allowedPositions)
+            ->filter(function ($positionName) use ($existingPositions) {
+                return in_array($positionName, $existingPositions);
+            })
             ->values()
             ->toArray();
     }
 
     /**
-     * Load unique interview dates for the selected position
+     * Load unique interview dates for the selected position name
      */
     public function updatedSelectedPosition()
     {
@@ -72,10 +78,14 @@ class Screening extends Component
             return;
         }
 
+        // Get all interview dates for this position name across all colleges/departments
         $this->interviewDates = Evaluation::whereHas('jobApplication', function ($q) {
             $q->where('status', 'approve')
-                ->where('position_id', $this->selectedPosition);
+                ->whereHas('position', function ($posQuery) {
+                    $posQuery->where('name', $this->selectedPosition);
+                });
         })
+            ->whereNotNull('interview_date')
             ->get()
             ->pluck('interview_date')
             ->unique()
@@ -104,7 +114,7 @@ class Screening extends Component
             return;
         }
 
-        // Load evaluations and relationships
+        // Load evaluations for ALL positions with this name (across all colleges/departments)
         $evaluations = Evaluation::with([
             'jobApplication.applicant',
             'jobApplication.position',
@@ -113,12 +123,12 @@ class Screening extends Component
             'panelAssignments.performance'
         ])
             ->where('interview_date', $this->selectedDate)
-            ->whereHas(
-                'jobApplication',
-                fn($q) =>
-                $q->where('position_id', $this->selectedPosition)
-                    ->where('status', 'approve')
-            )
+            ->whereHas('jobApplication', function ($q) {
+                $q->where('status', 'approve')
+                    ->whereHas('position', function ($posQuery) {
+                        $posQuery->where('name', $this->selectedPosition);
+                    });
+            })
             ->get();
 
         // Include only completed assignments
@@ -149,7 +159,7 @@ class Screening extends Component
 
             $assignments = $evaluation->panelAssignments;
 
-            // FIX: read scores from related tables
+            // Read scores from related tables
             $avgPerformance = $assignments->pluck('performance.total_score')->filter()->avg() ?? 0;
             $avgExperience  = $assignments->pluck('experience.total_score')->filter()->avg() ?? 0;
             $avgInterview   = $assignments->pluck('interview.total_score')->filter()->avg() ?? 0;
@@ -163,6 +173,7 @@ class Screening extends Component
                 'evaluation_id'          => $evaluation->id,
                 'name'                   => "$a->first_name $a->middle_name $a->last_name",
                 'department'             => $p->department ?? $p->name,
+                'college'                => $p->college ?? '',
                 'performance'            => round($avgPerformance, 2),
                 'credentials_experience' => round($avgExperience, 2),
                 'interview'              => round($avgInterview, 2),
@@ -194,17 +205,17 @@ class Screening extends Component
             return;
         }
 
-        // Get position details
-        $position = collect($this->positions)->firstWhere('id', $this->selectedPosition);
+        // Get position name
+        $positionName = $this->selectedPosition;
 
         // Get panel members from Representative model
         $panelMembers = $this->getPanelMembersFromRepresentatives();
 
         $pdf = Pdf::loadView('pdf.screening-report', [
             'screeningData' => $this->screeningData->toArray(),
-            'positionName' => $position['name'] ?? 'Various Positions',
-            'college' => $position['college'] ?? '',
-            'department' => $position['department'] ?? '',
+            'positionName' => $positionName,
+            'college' => 'All Colleges',
+            'department' => 'All Departments',
             'interviewDate' => date('M d, Y', strtotime($this->selectedDate)),
             'panelMembers' => $panelMembers,
             'generatedDate' => now()->format('F d, Y'),
