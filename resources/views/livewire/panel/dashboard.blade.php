@@ -59,7 +59,7 @@
                             <div>
                                 <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Total Scheduled</p>
                                 <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                    {{ $applications->count() }}
+                                    {{ $totalCount }}
                                 </h3>
                             </div>
                             <div class="bg-[#0A6025] rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -77,11 +77,7 @@
                             <div>
                                 <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Completed</p>
                                 <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                    {{ $applications->filter(function($app) use ($assignments) {
-                                        $evaluation = $app->evaluation;
-                                        $assignment = $assignments[$evaluation->id] ?? null;
-                                        return $assignment && $assignment->status === 'complete';
-                                    })->count() }}
+                                    {{ $completedCount }}
                                 </h3>
                             </div>
                             <div class="bg-green-500 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -98,11 +94,7 @@
                             <div>
                                 <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Pending</p>
                                 <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                    {{ $applications->filter(function($app) use ($assignments) {
-                                        $evaluation = $app->evaluation;
-                                        $assignment = $assignments[$evaluation->id] ?? null;
-                                        return !$assignment || $assignment->status !== 'complete';
-                                    })->count() }}
+                                    {{ $pendingCount }}
                                 </h3>
                             </div>
                             <div class="bg-yellow-500 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -123,7 +115,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
-                        <input wire:model.live="search"
+                        <input wire:model.live.debounce.300ms="search"
                                type="text"
                                placeholder="Search by applicant name or email..."
                                class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] transition-all duration-200 shadow-sm">
@@ -260,15 +252,15 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    @if($applications->hasPages())
+                        <div class="px-6 py-4 border-t border-gray-200">
+                            {{ $applications->links() }}
+                        </div>
+                    @endif
                 </div>
             @endif
         </div>
     </div>
-
-    @push('scripts')
-    <script>
-        // Alpine.js is required for the success message auto-dismiss
-        // Make sure Alpine.js is included in your layouts.app
-    </script>
-    @endpush
 </div>
