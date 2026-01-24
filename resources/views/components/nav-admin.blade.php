@@ -164,6 +164,11 @@
                         Department
                      </a>
                   </li>
+                  <li>
+                     <a href="{{ route('admin.user') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                        Users Management
+                     </a>
+                  </li>
                </ul>
             </li>
 

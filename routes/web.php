@@ -23,6 +23,7 @@ use App\Livewire\Admin\RepresentativeManager;
 use App\Livewire\Admin\ScheduledApplicant;
 use App\Livewire\Admin\Screening;
 use App\Livewire\Admin\UpdatePassword as AdminUpdatePassword;
+use App\Livewire\Admin\UserManagement;
 use App\Livewire\Applicant\ApplicantMessage;
 use App\Livewire\Applicant\ApplicantNotification;
 use App\Livewire\Applicant\ApplicantNotifications;
@@ -108,6 +109,7 @@ Route::middleware([
         Route::get('/nbc-comittee', NbcCommitteeManager::class)->name('nbc.comittee');
         Route::get('/nbc', Nbc::class)->name('nbc');
         Route::get('/representative', RepresentativeManager::class)->name('representative');
+        Route::get('/users', UserManagement::class)->name('user');
         Route::get('/profile-view', AdminProfileView::class)->name('profile-view');
         Route::get('/update-password', AdminUpdatePassword::class)->name('update-password');
         Route::get('/profile', AdminProfile::class)->name('profile');
