@@ -12,6 +12,9 @@ class Interview extends Component
 {
     public $evaluationId;
     public $evaluation;
+    public $applicant;
+    public $position;
+    public $jobApplication;
 
     public $general_appearance = 0;
     public $manner_of_speaking = 0;
@@ -23,16 +26,24 @@ class Interview extends Component
 
     public $currentPage = 1;
     public $totalScore = 0;
+    public $showApplicantModal = false;
 
     public function mount($evaluationId, $page = null)
     {
         $this->evaluationId = $evaluationId;
-        $this->evaluation = Evaluation::findOrFail($evaluationId);
+        $this->evaluation = Evaluation::with([
+            'jobApplication.applicant.user',
+            'jobApplication.position',
+        ])->findOrFail($evaluationId);
 
-        // CHANGED: Check for session data first, then fall back to parameter
+        $this->jobApplication = $this->evaluation->jobApplication;
+        $this->applicant = $this->jobApplication->applicant;
+        $this->position = $this->jobApplication->position;
+
+        // Check for session data first, then fall back to parameter
         if (session()->has('returnPage')) {
             $this->currentPage = (int)session('returnPage');
-            session()->forget('returnPage'); // Clear it after use
+            session()->forget('returnPage');
         } elseif ($page !== null) {
             $this->currentPage = (int)$page;
         }
@@ -65,6 +76,11 @@ class Interview extends Component
                 }
             }
         }
+    }
+
+    public function toggleApplicantModal()
+    {
+        $this->showApplicantModal = !$this->showApplicantModal;
     }
 
     public function nextPage()
@@ -189,7 +205,7 @@ class Interview extends Component
                 $panelAssignment->update(['status' => 'complete']);
             }
 
-            // CHANGED: Dispatch browser event instead of session flash
+            // Dispatch browser event instead of session flash
             $this->dispatch('interview-saved');
         }
     }

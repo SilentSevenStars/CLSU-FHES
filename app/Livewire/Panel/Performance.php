@@ -15,17 +15,21 @@ class Performance extends Component
     public $evaluationId;
     public $interviewId;
     public $evaluation;
-    
-    public $question1 = ''; 
-    public $question2 = ''; 
-    public $question3 = ''; 
-    public $question4 = ''; 
-    public $question5 = ''; 
-    
+    public $applicant;
+    public $position;
+    public $jobApplication;
+
+    public $question1 = '';
+    public $question2 = '';
+    public $question3 = '';
+    public $question4 = '';
+    public $question5 = '';
+
     public $personalQuestion1 = '';
-    
+
     public $currentPage = 1;
     public $totalScore = 0;
+    public $showApplicantModal = false;
 
     protected $enumValues = [
         'VS' => 5,
@@ -39,7 +43,14 @@ class Performance extends Component
     {
         $this->evaluationId = $evaluationId;
         $this->interviewId = $interviewId;
-        $this->evaluation = Evaluation::findOrFail($evaluationId);
+        $this->evaluation = Evaluation::with([
+            'jobApplication.applicant.user',
+            'jobApplication.position',
+        ])->findOrFail($evaluationId);
+
+        $this->jobApplication = $this->evaluation->jobApplication;
+        $this->applicant = $this->jobApplication->applicant;
+        $this->position = $this->jobApplication->position;
 
         $user = Auth::user();
         $panel = $user->panel;
@@ -61,7 +72,7 @@ class Performance extends Component
                 if ($performance) {
                     $skill = Skill::find($performance->skill_id);
                     $personalCompetence = PersonalCompetence::find($performance->personal_competence_id);
-                    
+
                     if ($skill) {
                         $this->question1 = $skill->question1;
                         $this->question2 = $skill->question2;
@@ -69,13 +80,18 @@ class Performance extends Component
                         $this->question4 = $skill->question4;
                         $this->question5 = $skill->question5;
                     }
-                    
+
                     if ($personalCompetence) {
                         $this->personalQuestion1 = $personalCompetence->question1;
                     }
                 }
             }
         }
+    }
+
+    public function toggleApplicantModal()
+    {
+        $this->showApplicantModal = !$this->showApplicantModal;
     }
 
     public function nextPage()
@@ -95,7 +111,7 @@ class Performance extends Component
                 'question5.required' => 'Please rate skill in sustaining',
             ]);
         }
-        
+
         $this->currentPage++;
     }
 
@@ -109,10 +125,10 @@ class Performance extends Component
     public function calculateSkillTotal()
     {
         return $this->enumValues[$this->question1] +
-               $this->enumValues[$this->question2] +
-               $this->enumValues[$this->question3] +
-               $this->enumValues[$this->question4] +
-               $this->enumValues[$this->question5];
+            $this->enumValues[$this->question2] +
+            $this->enumValues[$this->question3] +
+            $this->enumValues[$this->question4] +
+            $this->enumValues[$this->question5];
     }
 
     public function calculatePersonalTotal()
@@ -125,21 +141,23 @@ class Performance extends Component
         // Save current performance data before returning
         $user = Auth::user();
         $panel = $user->panel;
-        
+
         if ($panel) {
             $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
                 ->where('evaluation_id', $this->evaluationId)
                 ->first();
-                
+
             // Only save if there's data to save
-            if ($this->question1 && $this->question2 && $this->question3 && 
-                $this->question4 && $this->question5 && 
-                ($this->currentPage == 2 ? $this->personalQuestion1 : true)) {
-                
+            if (
+                $this->question1 && $this->question2 && $this->question3 &&
+                $this->question4 && $this->question5 &&
+                ($this->currentPage == 2 ? $this->personalQuestion1 : true)
+            ) {
+
                 // Check if performance already exists to update instead of create
                 if ($panelAssignment && $panelAssignment->performance_id) {
                     $performance = ModelsPerformance::find($panelAssignment->performance_id);
-                    
+
                     // Update existing skill
                     $skill = Skill::find($performance->skill_id);
                     $skill->update([
@@ -149,18 +167,18 @@ class Performance extends Component
                         'question4' => $this->question4,
                         'question5' => $this->question5,
                     ]);
-                    
+
                     // Update personal competence if available
                     if ($this->personalQuestion1) {
                         $personalCompetence = PersonalCompetence::find($performance->personal_competence_id);
                         $personalCompetence->update([
                             'question1' => $this->personalQuestion1,
                         ]);
-                        
+
                         $skillTotal = $this->calculateSkillTotal();
                         $personalTotal = $this->calculatePersonalTotal();
                         $this->totalScore = $skillTotal + $personalTotal;
-                        
+
                         // Update performance
                         $performance->update([
                             'total_score' => $this->totalScore,
@@ -190,7 +208,7 @@ class Performance extends Component
                             'personal_competence_id' => $personalCompetence->id,
                             'total_score' => $this->totalScore,
                         ]);
-                        
+
                         if ($panelAssignment) {
                             $panelAssignment->update([
                                 'performance_id' => $performance->id,
@@ -200,10 +218,10 @@ class Performance extends Component
                 }
             }
         }
-        
+
         // Redirect to interview page 2 (last page)
         return redirect()->route('panel.interview', ['evaluationId' => $this->evaluationId])
-                        ->with('returnPage', 2);
+            ->with('returnPage', 2);
     }
 
     public function confirmSubmission()
@@ -228,16 +246,16 @@ class Performance extends Component
     {
         $user = Auth::user();
         $panel = $user->panel;
-        
+
         if ($panel) {
             $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
                 ->where('evaluation_id', $this->evaluationId)
                 ->first();
-                
+
             // Check if performance already exists to update instead of create
             if ($panelAssignment && $panelAssignment->performance_id) {
                 $performance = ModelsPerformance::find($panelAssignment->performance_id);
-                
+
                 // Update existing skill
                 $skill = Skill::find($performance->skill_id);
                 $skill->update([
@@ -247,17 +265,17 @@ class Performance extends Component
                     'question4' => $this->question4,
                     'question5' => $this->question5,
                 ]);
-                
+
                 // Update existing personal competence
                 $personalCompetence = PersonalCompetence::find($performance->personal_competence_id);
                 $personalCompetence->update([
                     'question1' => $this->personalQuestion1,
                 ]);
-                
+
                 $skillTotal = $this->calculateSkillTotal();
                 $personalTotal = $this->calculatePersonalTotal();
                 $this->totalScore = $skillTotal + $personalTotal;
-                
+
                 // Update performance
                 $performance->update([
                     'total_score' => $this->totalScore,
@@ -285,21 +303,21 @@ class Performance extends Component
                     'personal_competence_id' => $personalCompetence->id,
                     'total_score' => $this->totalScore,
                 ]);
-                
+
                 if ($panelAssignment) {
                     $panelAssignment->update([
                         'performance_id' => $performance->id,
                     ]);
                 }
             }
-            
+
             // Always mark as complete after performance, regardless of position
             if ($panelAssignment) {
                 $panelAssignment->update(['status' => 'complete']);
             }
         }
 
-        // CHANGED: Dispatch browser event for success
+        // Dispatch browser event for success
         $this->dispatch('performance-saved');
     }
 

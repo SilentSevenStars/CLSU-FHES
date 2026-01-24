@@ -2,20 +2,40 @@
     <div class="flex-1 bg-gradient-to-br from-slate-50 to-green-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-7xl mx-auto">
             <!-- Header Section -->
-            <div class="mb-8 animate-fadeIn">
-                <div class="flex items-center justify-between flex-wrap gap-4">
-                    <div>
-                        <h1 class="text-4xl font-extrabold text-[#0A6025] mb-2">
-                            Interview Evaluation
-                        </h1>
-                        <p class="text-gray-600 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-[#0A6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                </path>
+            <div class="mb-6 animate-fadeIn">
+                <h1 class="text-4xl font-extrabold text-[#0A6025] mb-2">
+                    Interview Evaluation
+                </h1>
+                <p class="text-gray-600 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-[#0A6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    Evaluate the applicant's interview performance
+                </p>
+            </div>
+
+            <!-- Applicant Details Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer border-l-4 border-blue-600" 
+                 wire:click="toggleApplicantModal">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-100 rounded-full p-3">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
-                            Evaluate the applicant's interview performance
-                        </p>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">Applicant Details</h3>
+                            <p class="text-sm text-gray-600">{{ $applicant->full_name }} - {{ $position->name }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-blue-600 font-semibold">
+                        <span>View Here</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
                     </div>
                 </div>
             </div>
@@ -335,7 +355,97 @@
         </div>
     </div>
 
-    <!-- SweetAlert2 Integration - FIXED to match Performance page -->
+    <!-- Applicant Details Modal -->
+    @if($showApplicantModal)
+        <div 
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+            x-data="{ show: @entangle('showApplicantModal') }"
+            x-show="show"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+        >
+            <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-lg bg-white">
+                <div class="flex items-center justify-between border-b pb-3 mb-4">
+                    <h3 class="text-2xl font-bold text-gray-900">Applicant Details</h3>
+                    <button 
+                        wire:click="toggleApplicantModal"
+                        class="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Full Name</p>
+                            <p class="mt-1 text-base text-gray-900">{{ $applicant->full_name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Email</p>
+                            <p class="mt-1 text-base text-gray-900">{{ $applicant->user->email }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Phone Number</p>
+                            <p class="mt-1 text-base text-gray-900">{{ $applicant->phone_number ?? 'N/A' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Position Applied</p>
+                            <p class="mt-1 text-base text-gray-900">{{ $position->name }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">Department</p>
+                            <p class="mt-1 text-base text-gray-900">{{ $position->department ?? 'N/A' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">College</p>
+                            <p class="mt-1 text-base text-gray-900">{{ $position->college ?? 'N/A' }}</p>
+                        </div>
+                    </div>
+
+                    @if($applicant->region || $applicant->city)
+                    <div class="pt-4 border-t">
+                        <p class="text-sm font-medium text-gray-500 mb-2">Address</p>
+                        <p class="text-base text-gray-900">
+                            {{ collect([$applicant->street, $applicant->barangay, $applicant->city, $applicant->province, $applicant->region])->filter()->join(', ') }}
+                        </p>
+                    </div>
+                    @endif
+
+                    @if($jobApplication->requirements_file)
+                    <div class="pt-4 border-t">
+                        <p class="text-sm font-medium text-gray-500 mb-2">Requirements File</p>
+                        <a href="{{ Storage::url($jobApplication->requirements_file) }}" 
+                           target="_blank"
+                           class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-150">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            View Requirements File
+                        </a>
+                    </div>
+                    @endif
+                </div>
+
+                <div class="flex justify-end mt-6 pt-4 border-t">
+                    <button 
+                        wire:click="toggleApplicantModal"
+                        class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- SweetAlert2 Integration -->
     <div x-data="{ 
         init() {
             window.addEventListener('show-swal-confirm', () => {

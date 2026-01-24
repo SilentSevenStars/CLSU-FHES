@@ -13,6 +13,9 @@ class Experience extends Component
 {
     public $evaluationId;
     public $evaluation;
+    public $applicant;
+    public $position;
+    public $jobApplication;
     
     public $education_qualification = 0; 
     public $experience_type = 0; 
@@ -24,6 +27,7 @@ class Experience extends Component
     public $school_graduate = ''; 
     
     public $totalScore = 0;
+    public $showApplicantModal = false;
 
     public $placeBoardExamOptions = [
         '' => 'Not Applicable',
@@ -59,7 +63,14 @@ class Experience extends Component
     public function mount($evaluationId)
     {
         $this->evaluationId = $evaluationId;
-        $this->evaluation = Evaluation::findOrFail($evaluationId);
+        $this->evaluation = Evaluation::with([
+            'jobApplication.applicant.user',
+            'jobApplication.position',
+        ])->findOrFail($evaluationId);
+
+        $this->jobApplication = $this->evaluation->jobApplication;
+        $this->applicant = $this->jobApplication->applicant;
+        $this->position = $this->jobApplication->position;
 
         $user = Auth::user();
         $panel = $user->panel;
@@ -75,6 +86,11 @@ class Experience extends Component
                 ]
             );
         }
+    }
+
+    public function toggleApplicantModal()
+    {
+        $this->showApplicantModal = !$this->showApplicantModal;
     }
 
     public function updated($propertyName)
