@@ -80,7 +80,7 @@
                 <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
             </div>
             <ul class="py-2 text-sm text-gray-700">
-                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100">Settings</a></li>
+                <li><a href="{{ route('panel.profile-view') }}" class="block px-4 py-2 hover:bg-gray-100">Settings</a></li>
             </ul>
             <div class="py-1">
                 <form method="POST" action="{{ route('logout') }}">
