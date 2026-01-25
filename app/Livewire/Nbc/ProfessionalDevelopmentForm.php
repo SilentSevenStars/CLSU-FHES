@@ -120,6 +120,8 @@ class ProfessionalDevelopmentForm extends Component
         $this->assignment->update([
             'professional_development_id' => $this->professionalDevelopment->id
         ]);
+        
+        $this->loadExistingScores();
     }
 
     protected function createProfessionalDevelopment()
@@ -215,6 +217,11 @@ class ProfessionalDevelopmentForm extends Component
         return $this->professionalDevelopment?->subtotal33 ?? 0;
     }
 
+    public function getSubtotal34Property()
+    {
+        return $this->professionalDevelopment?->subtotal34 ?? 0;
+    }
+
     public function getSubtotal35Property()
     {
         return $this->professionalDevelopment?->subtotal35 ?? 0;
@@ -223,6 +230,22 @@ class ProfessionalDevelopmentForm extends Component
     public function getSubtotal36Property()
     {
         return $this->professionalDevelopment?->subtotal36 ?? 0;
+    }
+
+    // Cumulative page totals
+    public function getPage1TotalProperty()
+    {
+        return $this->professionalDevelopment?->page1Total ?? 0;
+    }
+
+    public function getPage2TotalProperty()
+    {
+        return $this->professionalDevelopment?->page2Total ?? 0;
+    }
+
+    public function getPage3TotalProperty()
+    {
+        return $this->professionalDevelopment?->page3Total ?? 0;
     }
 
     public function getEpTotalProperty()
@@ -234,7 +257,7 @@ class ProfessionalDevelopmentForm extends Component
     {
         $this->validate([
             'rs_3_1_1' => 'numeric|min:0',
-            // (you can keep your existing rules)
+            // Add other validation rules as needed
         ]);
 
         $this->professionalDevelopment->update([

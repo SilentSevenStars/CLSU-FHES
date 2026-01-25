@@ -173,6 +173,7 @@ class Screening extends Component
                 'evaluation_id'          => $evaluation->id,
                 'name'                   => "$a->first_name $a->middle_name $a->last_name",
                 'department'             => $p->department ?? $p->name,
+                'specialization'         => $p->specialization ?? 'N/A',
                 'college'                => $p->college ?? '',
                 'performance'            => round($avgPerformance, 2),
                 'credentials_experience' => round($avgExperience, 2),

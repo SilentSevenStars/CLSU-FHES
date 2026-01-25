@@ -59,22 +59,48 @@
                         @include('livewire.nbc.partials.professional-dev-part3')
                     @endif
 
-                    <!-- Overall Total Display (shown on all pages) -->
+                    <!-- Cumulative Total Display (shown on all pages) -->
                     <div class="border-t-2 border-gray-300 pt-4 mt-6">
                         <div class="bg-purple-50 rounded-lg p-4">
                             <div class="grid grid-cols-12 gap-4 items-center">
                                 <div class="col-span-8">
                                     <label class="block text-lg font-bold text-gray-900">
-                                        OVERALL TOTAL (EP = MIN(All Subtotals, 90))
+                                        @if($currentPage == 1)
+                                            PAGE 1 TOTAL (Section 3.1)
+                                        @elseif($currentPage == 2)
+                                            CUMULATIVE TOTAL (Page 1 + Page 2)
+                                        @else
+                                            OVERALL TOTAL (All Pages Combined)
+                                        @endif
                                     </label>
-                                    <p class="text-xs text-gray-600 mt-1">Maximum: 90 points</p>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        @if($currentPage == 1)
+                                            Maximum: 30 points
+                                        @elseif($currentPage == 2)
+                                            Maximum: 60 points (30 + 10 + 20)
+                                        @else
+                                            Maximum: 90 points
+                                        @endif
+                                    </p>
                                 </div>
                                 <div class="col-span-4">
                                     <div class="px-4 py-3 bg-purple-100 border-2 border-purple-300 rounded-lg text-center">
                                         <div class="text-2xl font-bold text-purple-900">
-                                            {{ number_format($professionalDevelopment->ep_score ?? 0, 3) }}
+                                            @if($currentPage == 1)
+                                                {{ number_format($this->page1Total, 3) }}
+                                            @elseif($currentPage == 2)
+                                                {{ number_format($this->page2Total, 3) }}
+                                            @else
+                                                {{ number_format($this->page3Total, 3) }}
+                                            @endif
                                         </div>
-                                        <div class="text-xs text-purple-700 mt-1">EP</div>
+                                        <div class="text-xs text-purple-700 mt-1">
+                                            @if($currentPage == 3)
+                                                EP (Final Score)
+                                            @else
+                                                RS (Running Score)
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -115,7 +141,7 @@
         </form>
     </div>
 
-    <!-- Applicant Details Modal (same as before) -->
+    <!-- Applicant Details Modal -->
     @if($showApplicantModal)
         <div 
             class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
@@ -174,7 +200,7 @@
         </div>
     @endif
 
-    <!-- Confirm Submit Modal with SweetAlert Style -->
+    <!-- Confirm Submit Modal -->
     <div 
         x-show="showConfirmModal"
         x-cloak
@@ -186,10 +212,8 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
     >
-        <!-- Backdrop -->
         <div class="fixed inset-0 bg-black bg-opacity-50" @click="showConfirmModal = false"></div>
         
-        <!-- Modal -->
         <div class="flex items-center justify-center min-h-screen p-4">
             <div 
                 class="relative bg-white rounded-lg shadow-xl max-w-md w-full"
@@ -201,7 +225,6 @@
                 x-transition:leave-end="opacity-0 transform scale-95"
                 @click.away="showConfirmModal = false"
             >
-                <!-- Icon -->
                 <div class="pt-8 pb-4 text-center">
                     <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100">
                         <svg class="h-10 w-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,17 +233,13 @@
                     </div>
                 </div>
                 
-                <!-- Content -->
                 <div class="px-6 pb-4 text-center">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">
-                        Submit Evaluation?
-                    </h3>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Submit Evaluation?</h3>
                     <p class="text-gray-600">
                         Are you sure you want to submit this professional development evaluation? This action will mark the evaluation as complete.
                     </p>
                 </div>
                 
-                <!-- Actions -->
                 <div class="px-6 pb-6 flex gap-3">
                     <button
                         @click="showConfirmModal = false"

@@ -64,10 +64,33 @@ class ProfessionalDevelopment extends Model
     public function getSubtotal33Attribute(): float
     {
         return $this->cap(
-            collect($this->attributes)
-                ->only(array_filter(array_keys($this->attributes), fn ($k) => str_starts_with($k, 'rs_3_3')))
-                ->sum(),
+            ($this->rs_3_3_1_a ?? 0)
+          + ($this->rs_3_3_1_b ?? 0)
+          + ($this->rs_3_3_1_c ?? 0)
+          + ($this->rs_3_3_2 ?? 0)
+          + ($this->rs_3_3_3_a_doctorate ?? 0)
+          + ($this->rs_3_3_3_a_masters ?? 0)
+          + ($this->rs_3_3_3_a_nondegree ?? 0)
+          + ($this->rs_3_3_3_b_doctorate ?? 0)
+          + ($this->rs_3_3_3_b_masters ?? 0)
+          + ($this->rs_3_3_3_b_nondegree ?? 0)
+          + ($this->rs_3_3_3_c_doctorate ?? 0)
+          + ($this->rs_3_3_3_c_masters ?? 0)
+          + ($this->rs_3_3_3_c_nondegree ?? 0)
+          + ($this->rs_3_3_3_d_doctorate ?? 0)
+          + ($this->rs_3_3_3_d_masters ?? 0)
+          + ($this->rs_3_3_3_e ?? 0),
         30);
+    }
+
+    /* ===== SECTION 3.4 (NO MAX) ===== */
+    public function getSubtotal34Attribute(): float
+    {
+        return round(
+            ($this->rs_3_4_a ?? 0)
+          + ($this->rs_3_4_b ?? 0)
+          + ($this->rs_3_4_c ?? 0),
+        3);
     }
 
     /* ===== SECTION 3.5 (MAX 5) ===== */
@@ -87,16 +110,41 @@ class ProfessionalDevelopment extends Model
         10);
     }
 
-    /* ===== FINAL EP (MAX 90) ===== */
-    public function getEpScoreAttribute(): float
+    /* ===== CUMULATIVE TOTALS BY PAGE ===== */
+    
+    // Page 1 Total (Section 3.1 only)
+    public function getPage1TotalAttribute(): float
+    {
+        return $this->subtotal31;
+    }
+
+    // Page 2 Total (Page 1 + Sections 3.2.1 + 3.2.2)
+    public function getPage2TotalAttribute(): float
+    {
+        return round(
+            $this->subtotal31 
+          + $this->subtotal321 
+          + $this->subtotal322,
+        3);
+    }
+
+    // Page 3 Total (All sections combined)
+    public function getPage3TotalAttribute(): float
     {
         return $this->cap(
             $this->subtotal31
           + $this->subtotal321
           + $this->subtotal322
           + $this->subtotal33
+          + $this->subtotal34
           + $this->subtotal35
           + $this->subtotal36,
         90);
+    }
+
+    /* ===== FINAL EP (MAX 90) ===== */
+    public function getEpScoreAttribute(): float
+    {
+        return $this->page3Total; // Same as page 3 total
     }
 }
