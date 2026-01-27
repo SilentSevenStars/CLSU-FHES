@@ -45,7 +45,7 @@
                         </button>
 
                         <!-- Clear Search Button -->
-                        @if(!empty($searchTerm) || !empty($selectedPosition))
+                        @if(!empty($searchTerm) || !empty($selectedPosition) || !empty($selectedInterviewDate))
                         <button wire:click="clearSearch"
                             class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-300">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,9 +68,9 @@
                     </div>
 
                     <!-- Active Search Display -->
-                    @if(!empty($searchTerm) || !empty($selectedPosition))
+                    @if(!empty($searchTerm) || !empty($selectedPosition) || !empty($selectedInterviewDate))
                     <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm">
-                        <div class="flex items-center gap-2 text-sm text-emerald-800">
+                        <div class="flex items-center gap-2 text-sm text-emerald-800 flex-wrap">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
@@ -80,7 +80,12 @@
                             @endif
                             @if(!empty($selectedPosition))
                             <span class="px-3 py-1 bg-emerald-100 rounded-full text-xs font-semibold">
-                                Position: {{ collect($positions)->firstWhere('id', $selectedPosition)['name'] ?? 'Selected' }}
+                                Position: {{ $selectedPosition }}
+                            </span>
+                            @endif
+                            @if(!empty($selectedInterviewDate))
+                            <span class="px-3 py-1 bg-emerald-100 rounded-full text-xs font-semibold">
+                                Interview Date: {{ \Carbon\Carbon::parse($selectedInterviewDate)->format('M d, Y') }}
                             </span>
                             @endif
                         </div>
@@ -88,7 +93,7 @@
                     @endif
 
                     <!-- Display Data -->
-                    @if(!empty($searchTerm) && !empty($selectedPosition))
+                    @if(!empty($searchTerm) && !empty($selectedPosition) && !empty($selectedInterviewDate))
 
                     @if(count($nbcData) > 0)
                     <!-- Table -->
@@ -96,31 +101,47 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-[#0a6025]">
                                 <tr>
-                                    <th rowspan="2"
+                                    <th rowspan="3"
                                         class="px-6 py-3 text-left text-xs font-semibold text-white uppercase border-r border-white/20">
                                         Major Components
                                     </th>
-                                    <th rowspan="2"
+                                    <th rowspan="3"
                                         class="px-6 py-3 text-center text-xs font-semibold text-white uppercase border-r border-white/20">
                                         Maximum Points
                                     </th>
                                     <th
-                                        class="px-6 py-3 text-center text-xs font-semibold text-white uppercase border-r border-white/20">
-                                        Previous Points<br>as of
+                                        class="px-6 py-2 text-center text-xs font-semibold text-white uppercase border-r border-white/20">
+                                        Previous Points
                                     </th>
                                     <th
-                                        class="px-6 py-3 text-center text-xs font-semibold text-white uppercase border-r border-white/20">
-                                        Additional Points<br>as of
+                                        class="px-6 py-2 text-center text-xs font-semibold text-white uppercase border-r border-white/20">
+                                        Additional Points
                                     </th>
-                                    <th rowspan="2"
-                                        class="px-6 py-3 text-center text-xs font-semibold text-white uppercase border-r border-white/20">
-                                        EP Subtotal
-                                    </th>
-                                    <th rowspan="2" class="px-6 py-3 text-center text-xs font-semibold text-white uppercase">
+                                    <th rowspan="3" class="px-6 py-3 text-center text-xs font-semibold text-white uppercase">
                                         Total Points
                                     </th>
                                 </tr>
-                </thead>
+                                <tr>
+                                    <th class="px-6 py-1 text-center text-xs font-semibold text-white uppercase border-r border-white/20" style="border-top: none;">
+                                        Points as of
+                                    </th>
+                                    <th class="px-6 py-1 text-center text-xs font-semibold text-white uppercase border-r border-white/20" style="border-top: none;">
+                                        Points as of
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th class="px-6 py-1 text-center text-xs font-normal text-white border-r border-white/20" style="border-top: none;">
+                                        @if(!empty($nbcData[0]['previous_interview_date']))
+                                            {{ \Carbon\Carbon::parse($nbcData[0]['previous_interview_date'])->format('Y') }}
+                                        @else
+                                            &nbsp;
+                                        @endif
+                                    </th>
+                                    <th class="px-6 py-1 text-center text-xs font-normal text-white border-r border-white/20" style="border-top: none;">
+                                        {{ \Carbon\Carbon::parse($nbcData[0]['interview_date'])->format('Y') }}
+                                    </th>
+                                </tr>
+                            </thead>
 
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($nbcData as $data)
@@ -130,16 +151,13 @@
                                         1.0 Educational Qualification
                                     </td>
                                     <td class="px-6 py-3 text-sm text-center border-r border-gray-200">
-                                        90
+                                        85
                                     </td>
                                     <td class="px-6 py-3 text-sm text-center border-r border-gray-200">
                                         {{ $data['previous_education'] }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-center border-r border-gray-200">
                                         {{ $data['additional_education'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center font-semibold border-r border-gray-200 bg-emerald-50">
-                                        {{ $data['ep_education_subtotal'] }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-center font-bold">
                                         {{ $data['total_education'] }}
@@ -160,9 +178,6 @@
                                     <td class="px-6 py-3 text-sm text-center border-r border-gray-200">
                                         {{ $data['additional_experience'] }}
                                     </td>
-                                    <td class="px-6 py-3 text-sm text-center font-semibold border-r border-gray-200 bg-emerald-50">
-                                        {{ $data['ep_experience_subtotal'] }}
-                                    </td>
                                     <td class="px-6 py-3 text-sm text-center font-bold">
                                         {{ $data['total_experience'] }}
                                     </td>
@@ -181,9 +196,6 @@
                                     </td>
                                     <td class="px-6 py-3 text-sm text-center border-r border-gray-200">
                                         {{ $data['additional_professional'] }}
-                                    </td>
-                                    <td class="px-6 py-3 text-sm text-center font-semibold border-r border-gray-200 bg-emerald-50">
-                                        {{ $data['ep_professional_subtotal'] }}
                                     </td>
                                     <td class="px-6 py-3 text-sm text-center font-bold">
                                         {{ $data['total_professional'] }}
@@ -204,9 +216,6 @@
                                     <td class="px-6 py-3 text-sm text-center border-r border-gray-200">
                                         {{ $data['additional_total'] }}
                                     </td>
-                                    <td class="px-6 py-3 text-sm text-center border-r border-gray-200 bg-emerald-100">
-                                        {{ $data['ep_total_subtotal'] }}
-                                    </td>
                                     <td class="px-6 py-3 text-sm text-center">
                                         {{ $data['grand_total'] }}
                                     </td>
@@ -214,7 +223,7 @@
 
                                 <!-- Projected Points Row -->
                                 <tr class="bg-emerald-50">
-                                    <td colspan="5" class="px-6 py-3 text-sm text-right font-semibold border-r border-gray-200">
+                                    <td colspan="4" class="px-6 py-3 text-sm text-right font-semibold border-r border-gray-200">
                                         Projected Points:
                                     </td>
                                     <td class="px-6 py-3 text-sm text-center font-bold text-[#0a6025]">
@@ -228,7 +237,7 @@
 
                     <!-- Applicant Information -->
                     <div class="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200 shadow-sm">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-700">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-700">
                             <div class="flex items-center gap-2">
                                 <svg class="w-5 h-5 text-[#0a6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -250,6 +259,13 @@
                                 <span class="font-semibold text-gray-900">College:</span>
                                 <span>{{ $nbcData[0]['college'] }}</span>
                             </div>
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-[#0a6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="font-semibold text-gray-900">Interview Date:</span>
+                                <span>{{ \Carbon\Carbon::parse($nbcData[0]['interview_date'])->format('M d, Y') }}</span>
+                            </div>
                         </div>
                     </div>
                     @else
@@ -259,7 +275,7 @@
                                 d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <p class="text-lg font-medium">No evaluation data found</p>
-                        <p class="text-sm mt-1">The applicant may not have been evaluated yet for this position</p>
+                        <p class="text-sm mt-1">The applicant may not have been evaluated yet for this position and interview date</p>
                     </div>
                     @endif
 
@@ -270,7 +286,7 @@
                                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <p class="text-lg font-medium">Click "Search Applicant" to begin</p>
-                        <p class="text-sm mt-1">Enter applicant name and select position to view evaluation data</p>
+                        <p class="text-sm mt-1">Enter applicant name, select position and interview date to view evaluation data</p>
                     </div>
                     @endif
                 </div>
@@ -386,19 +402,41 @@
                             <label for="tempSelectedPosition" class="block text-sm font-medium text-gray-700 mb-2">
                                 Position Applied For <span class="text-red-500">*</span>
                             </label>
-                            <select wire:model="tempSelectedPosition" id="tempSelectedPosition"
+                            <select wire:model.live="tempSelectedPosition" id="tempSelectedPosition"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0a6025] focus:border-transparent"
                                 @if(empty($positions)) disabled @endif required>
                                 <option value="">-- Select Position --</option>
                                 @foreach($positions as $position)
-                                <option value="{{ $position['id'] }}">
-                                    {{ $position['name'] }}
+                                <option value="{{ $position }}">
+                                    {{ $position }}
                                 </option>
                                 @endforeach
                             </select>
                             @if(empty($positions) && !empty($tempSearchTerm) && $selectedApplicantId)
                             <p class="mt-2 text-sm text-amber-600">
                                 No approved positions found for this applicant
+                            </p>
+                            @endif
+                        </div>
+
+                        <!-- Interview Date Selection -->
+                        <div>
+                            <label for="tempSelectedInterviewDate" class="block text-sm font-medium text-gray-700 mb-2">
+                                Interview Date <span class="text-red-500">*</span>
+                            </label>
+                            <select wire:model="tempSelectedInterviewDate" id="tempSelectedInterviewDate"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0a6025] focus:border-transparent"
+                                @if(empty($interviewDates)) disabled @endif required>
+                                <option value="">-- Select Interview Date --</option>
+                                @foreach($interviewDates as $date)
+                                <option value="{{ $date }}">
+                                    {{ \Carbon\Carbon::parse($date)->format('F d, Y') }}
+                                </option>
+                                @endforeach
+                            </select>
+                            @if(empty($interviewDates) && !empty($tempSelectedPosition))
+                            <p class="mt-2 text-sm text-amber-600">
+                                No interview dates found for this position
                             </p>
                             @endif
                         </div>
@@ -413,10 +451,11 @@
                         </button>
                         <button type="submit" x-data="{
                                 name: @entangle('tempSearchTerm'),
-                                position: @entangle('tempSelectedPosition')
-                            }" :class="(name && position)
+                                position: @entangle('tempSelectedPosition'),
+                                interviewDate: @entangle('tempSelectedInterviewDate')
+                            }" :class="(name && position && interviewDate)
                                 ? 'bg-[#0a6025] hover:bg-green-700 cursor-pointer'
-                                : 'bg-gray-400 cursor-not-allowed'" :disabled="!(name && position)"
+                                : 'bg-gray-400 cursor-not-allowed'" :disabled="!(name && position && interviewDate)"
                             class="w-full sm:w-auto px-6 py-2 text-white font-semibold rounded-lg transition duration-200 flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

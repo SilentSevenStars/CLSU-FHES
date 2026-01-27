@@ -20,6 +20,17 @@ class Dashboard extends Component
         'perPage' => ['except' => 10],
     ];
 
+    public function mount()
+    {
+        // Security check: Verify user is an authorized NBC committee member
+        $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
+        
+        if (!$nbcCommittee) {
+            // User is not authorized as NBC committee member
+            abort(403, 'Unauthorized. You are not registered as an NBC Committee member.');
+        }
+    }
+
     public function updatedSearch()
     {
         $this->resetPage();
@@ -32,6 +43,14 @@ class Dashboard extends Component
 
     public function getEvaluationsProperty()
     {
+        // Security check: Verify user is an authorized NBC committee member
+        $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
+        
+        if (!$nbcCommittee) {
+            // Return empty collection if not authorized
+            return collect()->paginate($this->perPage);
+        }
+
         // Define allowed positions
         $allowedPositions = [
             'Professor III',

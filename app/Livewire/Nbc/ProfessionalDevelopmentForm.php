@@ -120,7 +120,7 @@ class ProfessionalDevelopmentForm extends Component
         $this->assignment->update([
             'professional_development_id' => $this->professionalDevelopment->id
         ]);
-        
+
         $this->loadExistingScores();
     }
 
@@ -332,6 +332,7 @@ class ProfessionalDevelopmentForm extends Component
 
         if (str_starts_with($property, 'rs_')) {
             $this->professionalDevelopment->$property = $this->$property;
+            $this->professionalDevelopment->save(); // ← ADD THIS LINE
         }
     }
 

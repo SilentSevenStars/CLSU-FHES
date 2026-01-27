@@ -16,15 +16,18 @@ class Nbc extends Component
 {
     public $searchTerm = '';
     public $selectedPosition = null;
+    public $selectedInterviewDate = null;
     public $positions = [];
     public $nbcData = [];
     public $applicantId = null;
     public $showSearchModal = false;
     public $tempSearchTerm = '';
     public $tempSelectedPosition = null;
+    public $tempSelectedInterviewDate = null;
     public $searchResults = [];
     public $showDropdown = false;
     public $selectedApplicantId = null;
+    public $interviewDates = [];
 
     /**
      * Open search modal
@@ -34,10 +37,12 @@ class Nbc extends Component
         $this->showSearchModal = true;
         $this->tempSearchTerm = '';
         $this->tempSelectedPosition = null;
+        $this->tempSelectedInterviewDate = null;
         $this->searchResults = [];
         $this->showDropdown = false;
         $this->selectedApplicantId = null;
         $this->positions = [];
+        $this->interviewDates = [];
     }
 
     /**
@@ -64,7 +69,9 @@ class Nbc extends Component
         $this->searchResults = [];
         $this->showDropdown = false;
         $this->positions = [];
+        $this->interviewDates = [];
         $this->tempSelectedPosition = null;
+        $this->tempSelectedInterviewDate = null;
         $this->selectedApplicantId = null;
 
         if (strlen($this->tempSearchTerm) < 2) {
@@ -105,12 +112,14 @@ class Nbc extends Component
     }
 
     /**
-     * Load positions for the selected applicant
+     * Load unique positions for the selected applicant
      */
     public function loadPositionsForSelectedApplicant()
     {
         $this->positions = [];
+        $this->interviewDates = [];
         $this->tempSelectedPosition = null;
+        $this->tempSelectedInterviewDate = null;
 
         if (!$this->selectedApplicantId) {
             return;
@@ -122,24 +131,57 @@ class Nbc extends Component
             return;
         }
 
-        // Get all positions this applicant has applied for (excluding Instructor I)
-        $this->positions = $applicant->jobApplications()
+        // Get all unique positions this applicant has applied for (excluding Instructor I)
+        $positionNames = $applicant->jobApplications()
             ->with('position')
             ->where('status', 'approve')
             ->whereHas('position', function ($q) {
                 $q->where('name', '!=', 'Instructor I');
             })
             ->get()
-            ->pluck('position')
-            ->unique('id')
-            ->map(function ($position) {
-                return [
-                    'id' => $position->id,
-                    'name' => $position->name,
-                ];
-            })
+            ->pluck('position.name')
+            ->unique()
             ->values()
             ->toArray();
+
+        $this->positions = $positionNames;
+    }
+
+    /**
+     * Load interview dates when position is selected
+     */
+    public function updatedTempSelectedPosition()
+    {
+        $this->interviewDates = [];
+        $this->tempSelectedInterviewDate = null;
+
+        if (!$this->selectedApplicantId || !$this->tempSelectedPosition) {
+            return;
+        }
+
+        $applicant = Applicant::find($this->selectedApplicantId);
+
+        if (!$applicant) {
+            return;
+        }
+
+        // Get all unique interview dates for the selected position
+        $dates = $applicant->jobApplications()
+            ->with(['position', 'evaluation'])
+            ->where('status', 'approve')
+            ->whereHas('position', function ($q) {
+                $q->where('name', $this->tempSelectedPosition);
+            })
+            ->whereHas('evaluation')
+            ->get()
+            ->pluck('evaluation.interview_date')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        $this->interviewDates = $dates;
     }
 
     /**
@@ -147,9 +189,9 @@ class Nbc extends Component
      */
     public function performSearch()
     {
-        // Validate that both fields are filled
-        if (empty($this->tempSearchTerm) || empty($this->tempSelectedPosition)) {
-            session()->flash('error', 'Please fill in both applicant name and position.');
+        // Validate that all fields are filled
+        if (empty($this->tempSearchTerm) || empty($this->tempSelectedPosition) || empty($this->tempSelectedInterviewDate)) {
+            session()->flash('error', 'Please fill in applicant name, position, and interview date.');
             return;
         }
 
@@ -161,13 +203,14 @@ class Nbc extends Component
 
         $this->searchTerm = $this->tempSearchTerm;
         $this->selectedPosition = $this->tempSelectedPosition;
+        $this->selectedInterviewDate = $this->tempSelectedInterviewDate;
         $this->applicantId = $this->selectedApplicantId;
 
         $this->loadNbcData();
 
         // Check if data was loaded successfully
         if (empty($this->nbcData)) {
-            session()->flash('error', 'No evaluation data found for this applicant and position.');
+            session()->flash('error', 'No evaluation data found for this applicant, position, and interview date.');
             return;
         }
 
@@ -181,11 +224,14 @@ class Nbc extends Component
     {
         $this->searchTerm = '';
         $this->selectedPosition = null;
+        $this->selectedInterviewDate = null;
         $this->positions = [];
+        $this->interviewDates = [];
         $this->nbcData = [];
         $this->applicantId = null;
         $this->tempSearchTerm = '';
         $this->tempSelectedPosition = null;
+        $this->tempSelectedInterviewDate = null;
         $this->searchResults = [];
         $this->showDropdown = false;
         $this->selectedApplicantId = null;
@@ -196,7 +242,7 @@ class Nbc extends Component
      */
     public function loadNbcData()
     {
-        if (!$this->applicantId || empty($this->selectedPosition)) {
+        if (!$this->applicantId || empty($this->selectedPosition) || empty($this->selectedInterviewDate)) {
             $this->nbcData = [];
             return;
         }
@@ -209,11 +255,16 @@ class Nbc extends Component
             return;
         }
 
+        // Find evaluation by position name and interview date
         $evaluation = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
             $q->where('applicant_id', $applicant->id)
-                ->where('position_id', $this->selectedPosition)
-                ->where('status', 'approve');
-        })->first();
+                ->where('status', 'approve')
+                ->whereHas('position', function ($posQ) {
+                    $posQ->where('name', $this->selectedPosition);
+                });
+        })
+        ->where('interview_date', $this->selectedInterviewDate)
+        ->first();
 
         if (!$evaluation) {
             $this->nbcData = [];
@@ -247,21 +298,28 @@ class Nbc extends Component
 
         /* ===============================
            PREVIOUS POINTS - Check for previous NBC evaluations
+           Find the most recent previous evaluation for ANY POSITION
+           (either same position or previous position)
+           with an EARLIER interview date
            =============================== */
-        // Find all previous NBC assignments for this applicant (same position, earlier evaluations)
         $previousNbcAssignment = NbcAssignment::whereHas('evaluation', function ($q) use ($applicant) {
                 $q->whereHas('jobApplication', function ($jobQ) use ($applicant) {
                     $jobQ->where('applicant_id', $applicant->id)
-                        ->where('position_id', $this->selectedPosition);
-                });
+                        ->where('status', 'approve');
+                })
+                ->where('interview_date', '<', $this->selectedInterviewDate);
             })
             ->where('type', 'evaluate')
             ->where('id', '!=', $nbcAssignment->id) // Exclude current assignment
             ->whereNotNull('nbc_id')
+            ->with(['evaluation.jobApplication.position'])
             ->orderBy('created_at', 'desc')
             ->first();
 
         $previousNbc = $previousNbcAssignment ? $previousNbcAssignment->nbc : null;
+        $previousInterviewDate = $previousNbcAssignment && $previousNbcAssignment->evaluation 
+            ? $previousNbcAssignment->evaluation->interview_date 
+            : null;
 
         // Set previous values (blank if no previous evaluation)
         $previousEducation = $previousNbc ? $previousNbc->educational_qualification : null;
@@ -278,7 +336,9 @@ class Nbc extends Component
         $grandTotal = $currentTotal;
 
         $position = $applicant->jobApplications()
-            ->where('position_id', $this->selectedPosition)
+            ->whereHas('position', function ($q) {
+                $q->where('name', $this->selectedPosition);
+            })
             ->first()
             ->position;
 
@@ -291,6 +351,7 @@ class Nbc extends Component
             'position' => $position->name,
             'college' => $position->college,
             'interview_date' => $evaluation->interview_date,
+            'previous_interview_date' => $previousInterviewDate,
 
             // Previous (from previous NBC evaluation)
             'previous_education' => $previousEducation !== null ? round($previousEducation, 2) : '',

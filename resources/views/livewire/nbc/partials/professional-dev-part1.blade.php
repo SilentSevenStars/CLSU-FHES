@@ -166,7 +166,7 @@
         <div class="grid grid-cols-12 gap-4 items-center">
             <div class="col-span-10">
                 <label class="block text-base font-bold text-gray-900">
-                    Section 3.1 Subtotal (MAX 30)
+                    Section 3.1 Subtotal (MAX 20)
                 </label>
             </div>
             <div class="col-span-2">

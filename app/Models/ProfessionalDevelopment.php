@@ -13,7 +13,7 @@ class ProfessionalDevelopment extends Model
         return round(min($value, $max), 3);
     }
 
-    /* ===== SECTION 3.1 (MAX 30) ===== */
+    /* ===== SECTION 3.1 (MAX 20) ===== */
     public function getSubtotal31Attribute(): float
     {
         return $this->cap(
@@ -27,7 +27,7 @@ class ProfessionalDevelopment extends Model
           + ($this->rs_3_1_3_b ?? 0)
           + ($this->rs_3_1_3_c ?? 0)
           + ($this->rs_3_1_4 ?? 0),
-        30);
+        20);
     }
 
     /* ===== SECTION 3.2.1 (MAX 10) ===== */
@@ -44,7 +44,7 @@ class ProfessionalDevelopment extends Model
         10);
     }
 
-    /* ===== SECTION 3.2.2 (MAX 20) ===== */
+    /* ===== SECTION 3.2.2 (MAX 10) ===== */
     public function getSubtotal322Attribute(): float
     {
         return $this->cap(
@@ -57,6 +57,14 @@ class ProfessionalDevelopment extends Model
           + ($this->rs_3_2_2_5 ?? 0)
           + ($this->rs_3_2_2_6 ?? 0)
           + ($this->rs_3_2_2_7 ?? 0),
+        10);
+    }
+
+    /* ===== SECTION 3.2 COMBINED (MAX 20) ===== */
+    public function getSubtotal32Attribute(): float
+    {
+        return $this->cap(
+            $this->subtotal321 + $this->subtotal322,
         20);
     }
 
@@ -83,14 +91,14 @@ class ProfessionalDevelopment extends Model
         30);
     }
 
-    /* ===== SECTION 3.4 (NO MAX) ===== */
+    /* ===== SECTION 3.4 (MAX 5) ===== */
     public function getSubtotal34Attribute(): float
     {
-        return round(
+        return $this->cap(
             ($this->rs_3_4_a ?? 0)
           + ($this->rs_3_4_b ?? 0)
           + ($this->rs_3_4_c ?? 0),
-        3);
+        5);
     }
 
     /* ===== SECTION 3.5 (MAX 5) ===== */
@@ -112,29 +120,26 @@ class ProfessionalDevelopment extends Model
 
     /* ===== CUMULATIVE TOTALS BY PAGE ===== */
     
-    // Page 1 Total (Section 3.1 only)
+    // Page 1 Total = Section 3.1 only (max 20)
     public function getPage1TotalAttribute(): float
     {
         return $this->subtotal31;
     }
 
-    // Page 2 Total (Page 1 + Sections 3.2.1 + 3.2.2)
+    // Page 2 Total = Page 1 + Section 3.2 (max 40)
     public function getPage2TotalAttribute(): float
     {
         return round(
-            $this->subtotal31 
-          + $this->subtotal321 
-          + $this->subtotal322,
+            $this->page1Total + $this->subtotal32,
         3);
     }
+    
 
-    // Page 3 Total (All sections combined)
+    // Page 3 Total = Page 2 + Sections 3.3, 3.4, 3.5, 3.6 (max 90)
     public function getPage3TotalAttribute(): float
     {
         return $this->cap(
-            $this->subtotal31
-          + $this->subtotal321
-          + $this->subtotal322
+            $this->page2Total
           + $this->subtotal33
           + $this->subtotal34
           + $this->subtotal35
@@ -145,6 +150,6 @@ class ProfessionalDevelopment extends Model
     /* ===== FINAL EP (MAX 90) ===== */
     public function getEpScoreAttribute(): float
     {
-        return $this->page3Total; // Same as page 3 total
+        return $this->page3Total;
     }
 }

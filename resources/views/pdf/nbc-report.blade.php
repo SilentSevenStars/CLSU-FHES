@@ -151,16 +151,25 @@
     <table>
         <thead>
             <tr>
-                <th rowspan="2" style="width: 25%;">MAJOR<br>COMPONENTS</th>
-                <th rowspan="2" style="width: 10%;">MAXIMUM<br>POINTS</th>
-                <th style="width: 13%;">PREVIOUS<br>POINTS<br>AS OF</th>
-                <th style="width: 13%;">ADDITIONAL<br>POINTS<br>AS OF</th>
-                <th rowspan="2" style="width: 13%;">EP<br>SUBTOTAL</th>
-                <th rowspan="2" style="width: 13%;">TOTAL<br>POINTS</th>
+                <th rowspan="3" style="width: 30%;">MAJOR<br>COMPONENTS</th>
+                <th rowspan="3" style="width: 15%;">MAXIMUM<br>POINTS</th>
+                <th style="width: 20%; border-bottom: none;">PREVIOUS POINTS</th>
+                <th style="width: 20%; border-bottom: none;">ADDITIONAL POINTS</th>
+                <th rowspan="3" style="width: 15%;">TOTAL<br>POINTS</th>
             </tr>
             <tr>
-                <th></th>
-                <th></th>
+                <th style="border-top: none; border-bottom: none;">POINTS AS OF</th>
+                <th style="border-top: none; border-bottom: none;">POINTS AS OF</th>
+            </tr>
+            <tr>
+                <th style="border-top: none;">
+                    @if(!empty($data['previous_interview_date']))
+                        {{ \Carbon\Carbon::parse($data['previous_interview_date'])->format('Y') }}
+                    @else
+                        &nbsp;
+                    @endif
+                </th>
+                <th style="border-top: none;">{{ \Carbon\Carbon::parse($data['interview_date'])->format('Y') }}</th>
             </tr>
         </thead>
 
@@ -172,7 +181,6 @@
                 <td class="text-center">85</td>
                 <td class="text-center">{{ $data['previous_education'] }}</td>
                 <td class="text-center">{{ $data['additional_education'] }}</td>
-                <td class="text-center font-bold">{{ $data['ep_education_subtotal'] }}</td>
                 <td class="text-center font-bold">{{ $data['total_education'] }}</td>
             </tr>
 
@@ -184,7 +192,6 @@
                 <td class="text-center">25</td>
                 <td class="text-center">{{ $data['previous_experience'] }}</td>
                 <td class="text-center">{{ $data['additional_experience'] }}</td>
-                <td class="text-center font-bold">{{ $data['ep_experience_subtotal'] }}</td>
                 <td class="text-center font-bold">{{ $data['total_experience'] }}</td>
             </tr>
 
@@ -195,7 +202,6 @@
                 <td class="text-center">90</td>
                 <td class="text-center">{{ $data['previous_professional'] }}</td>
                 <td class="text-center">{{ $data['additional_professional'] }}</td>
-                <td class="text-center font-bold">{{ $data['ep_professional_subtotal'] }}</td>
                 <td class="text-center font-bold">{{ $data['total_professional'] }}</td>
             </tr>
 
@@ -205,13 +211,12 @@
                 <td class="text-center font-bold">200</td>
                 <td class="text-center font-bold">{{ $data['previous_total'] }}</td>
                 <td class="text-center font-bold">{{ $data['additional_total'] }}</td>
-                <td class="text-center font-bold">{{ $data['ep_total_subtotal'] }}</td>
                 <td class="text-center font-bold">{{ $data['grand_total'] }}</td>
             </tr>
 
             <!-- Projected Points Row -->
             <tr>
-                <td colspan="5" class="text-right font-bold" style="border-right: none;">Projected&nbsp;&nbsp;Points
+                <td colspan="4" class="text-right font-bold" style="border-right: none;">Projected&nbsp;&nbsp;Points
                 </td>
                 <td class="text-center font-bold" style="border-left: none;">{{ $data['projected_points'] }}</td>
             </tr>

@@ -118,6 +118,7 @@ class JobApplication extends Component
             $this->barangay = $applicant->barangay ?? '';
             $this->street = $applicant->street ?? '';
             $this->postal_code = $applicant->postal_code ?? '';
+            $this->present_position = $applicant->position ?? '';
         }
 
         // Load initial regions
