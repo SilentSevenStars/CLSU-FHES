@@ -32,7 +32,6 @@ class ApplyJob extends Component
     {
         $today = Carbon::today();
 
-        // Only show positions that are currently active (between start_date and end_date)
         $query = Position::where('status', 'vacant')
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today);

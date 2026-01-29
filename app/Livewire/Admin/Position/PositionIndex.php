@@ -17,8 +17,8 @@ class PositionIndex extends Component
 
     public string $search = '';
     public string $filter = 'all';
-    public string $filterCollege = '';
-    public string $filterDepartment = '';
+    public string $filterCollege = '';      // Now stores college_id
+    public string $filterDepartment = '';   // Now stores department_id
     public int $perPage = 5;
 
     protected $paginationTheme = 'tailwind';
@@ -89,12 +89,14 @@ class PositionIndex extends Component
 
     public function getFilteredPositionsProperty()
     {
-        return Position::query()
+        return Position::with(['college', 'department'])  // Eager load relationships
             ->when(
                 $this->search,
                 fn($q) =>
                 $q->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('department', 'like', "%{$this->search}%")
+                    ->orWhereHas('department', function($query) {
+                        $query->where('name', 'like', "%{$this->search}%");
+                    })
             )
             ->when($this->filter !== 'all', function ($q) {
                 if ($this->filter === 'vacant') {
@@ -107,13 +109,11 @@ class PositionIndex extends Component
             })
             ->when(
                 $this->filterCollege,
-                fn($q) =>
-                $q->where('college', $this->filterCollege)
+                fn($q) => $q->where('college_id', $this->filterCollege)  // Use college_id
             )
             ->when(
                 $this->filterDepartment,
-                fn($q) =>
-                $q->where('department', $this->filterDepartment)
+                fn($q) => $q->where('department_id', $this->filterDepartment)  // Use department_id
             )
             // Ensure end_date is not in the past
             ->where(function($query) {
@@ -148,8 +148,9 @@ class PositionIndex extends Component
             'vacant' => $this->vacantCount,
             'promotion' => $this->promotionCount,
             'colleges' => $colleges,
+            // Filter departments by college_id
             'filterDepartments' => $this->filterCollege
-                ? Department::where('college', $this->filterCollege)->orderBy('name')->get()
+                ? Department::where('college_id', $this->filterCollege)->orderBy('name')->get()
                 : []
         ]);
     }

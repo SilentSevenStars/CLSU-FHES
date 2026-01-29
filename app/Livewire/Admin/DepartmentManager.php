@@ -7,24 +7,25 @@ use App\Models\College;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
-
 class DepartmentManager extends Component
 {
     use WithPagination;
 
+    // Component properties
     public $search = '';
     public $perPage = 10;
     public $showModal = false;
     public $editMode = false;
     public $departmentId;
+    
     public $name = '';
-    public $college = '';
+    public $college_id = ''; 
 
     protected $paginationTheme = 'bootstrap';
 
     protected $rules = [
         'name' => 'required|string|max:255',
-        'college' => 'required|string|max:255',
+        'college_id' => 'required|exists:colleges,id', 
     ];
 
     public function updatingSearch()
@@ -39,8 +40,11 @@ class DepartmentManager extends Component
 
     public function render()
     {
-        $departments = Department::where('name', 'like', '%' . $this->search . '%')
-            ->orWhere('college', 'like', '%' . $this->search . '%')
+        $departments = Department::with('college')
+            ->where('name', 'like', '%' . $this->search . '%')
+            ->orWhereHas('college', function($query) {
+                $query->where('name', 'like', '%' . $this->search . '%');
+            })
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage);
 
@@ -66,7 +70,7 @@ class DepartmentManager extends Component
 
             Department::create([
                 'name' => $this->name,
-                'college' => $this->college,
+                'college_id' => $this->college_id, 
             ]);
 
             $this->showModal = false;
@@ -82,7 +86,7 @@ class DepartmentManager extends Component
         $department = Department::findOrFail($id);
         $this->departmentId = $id;
         $this->name = $department->name;
-        $this->college = $department->college;
+        $this->college_id = $department->college_id; 
         $this->editMode = true;
         $this->showModal = true;
     }
@@ -92,13 +96,13 @@ class DepartmentManager extends Component
         try {
             $this->validate([
                 'name' => 'required|string|max:255|unique:departments,name,' . $this->departmentId,
-                'college' => 'required|string|max:255',
+                'college_id' => 'required|exists:colleges,id',
             ]);
 
             $department = Department::findOrFail($this->departmentId);
             $department->update([
                 'name' => $this->name,
-                'college' => $this->college,
+                'college_id' => $this->college_id, 
             ]);
 
             $this->showModal = false;
@@ -145,7 +149,7 @@ class DepartmentManager extends Component
     private function resetInputFields()
     {
         $this->name = '';
-        $this->college = '';
+        $this->college_id = '';
         $this->departmentId = null;
         $this->resetErrorBag();
     }

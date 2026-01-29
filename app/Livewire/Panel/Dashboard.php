@@ -26,7 +26,10 @@ class Dashboard extends Component
     {
         $user = Auth::user();
 
-        $panel = Panel::where('user_id', $user->id)->first();
+        // Load panel with relationships
+        $panel = Panel::with(['college', 'department'])
+            ->where('user_id', $user->id)
+            ->first();
 
         if (!$panel) {
             return view('livewire.panel.dashboard', [
@@ -54,6 +57,7 @@ class Dashboard extends Component
             'Professor II'
         ];
 
+        // Base query with eager loading
         $query = JobApplication::query()
             ->whereHas('evaluation', function ($q) {
                 $q->whereDate('interview_date', today());
@@ -62,20 +66,25 @@ class Dashboard extends Component
                 $q->whereIn('name', $allowedPositions);
             });
 
+        // Filter by panel position using foreign keys
         $panelPos = strtolower($panel->panel_position);
+        
         if (in_array($panelPos, ['head', 'senior', 'señior'])) {
+            // Filter by both college_id AND department_id (foreign keys)
             $query->whereHas('position', function ($q) use ($panel) {
-                $q->where('college', $panel->college)
-                  ->where('department', $panel->department);
+                $q->where('college_id', $panel->college_id)
+                  ->where('department_id', $panel->department_id);
             });
         }
 
         if ($panelPos === 'dean') {
+            // Filter by college_id only (foreign key)
             $query->whereHas('position', function ($q) use ($panel) {
-                $q->where('college', $panel->college);
+                $q->where('college_id', $panel->college_id);
             });
         }
 
+        // Search filter
         if ($this->search) {
             $query->where(function ($q) {
                 $q->whereHas('applicant', function ($sub) {
@@ -88,8 +97,13 @@ class Dashboard extends Component
             });
         }
 
-        // Get all matching applications with their evaluations
-        $applications = $query->with(['applicant.user', 'position', 'evaluation'])->get();
+        // Get all matching applications with eager loading
+        $applications = $query->with([
+            'applicant.user', 
+            'position.college',      // Eager load college relationship
+            'position.department',   // Eager load department relationship
+            'evaluation'
+        ])->get();
 
         // Get assignments for this panel
         $assignments = PanelAssignment::where('panel_id', $panel->id)

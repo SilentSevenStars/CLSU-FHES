@@ -35,7 +35,6 @@
 
                         <!-- Right: Search + Filter + Create -->
                         <div class="flex flex-wrap items-center gap-3">
-                            <!-- Filter -->
                             <!-- Position Filter -->
                             <select wire:model.live="filterPosition"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
@@ -45,21 +44,23 @@
                                 <option value="dean">Dean</option>
                             </select>
 
-                            <!-- College Filter -->
+                            <!-- College Filter (using college_id) -->
                             <select wire:model.live="filterCollege"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="all">All Colleges</option>
                                 @foreach($colleges as $col)
-                                <option value="{{ $col->name }}">{{ $col->name }}</option>
+                                {{-- Use college ID as value --}}
+                                <option value="{{ $col->id }}">{{ $col->name }}</option>
                                 @endforeach
                             </select>
 
-                            <!-- Department Filter -->
+                            <!-- Department Filter (using department_id) -->
                             <select wire:model.live="filterDepartment"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="all">All Departments</option>
                                 @foreach($departments as $dept)
-                                <option value="{{ $dept->name }}">{{ $dept->name }}</option>
+                                {{-- Use department ID as value --}}
+                                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                                 @endforeach
                             </select>
 
@@ -175,37 +176,44 @@
                                         <tbody class="divide-y divide-gray-200">
                                             @forelse($positions as $position)
                                             <tr class="bg-white hover:bg-gray-50">
-                                                <td class="size-px whitespace-nowrap align-top text-gray-900">{{
-                                                    $position->user->name }}
+                                                <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                                    {{ $position->user->name }}
                                                 </td>
-                                                <td class="size-px whitespace-nowrap align-top text-gray-900">{{
-                                                    $position->user->email
-                                                    }}</td>
-                                                <td class="size-px whitespace-nowrap align-top text-gray-900">{{
-                                                    $position->panel_position
-                                                    }}</td>
-                                                <td class="size-px whitespace-nowrap align-top text-gray-900">{{
-                                                    $position->college }}
+                                                <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                                    {{ $position->user->email }}
                                                 </td>
-                                                <td class="size-px whitespace-nowrap align-top text-gray-900">{{
-                                                    $position->department
-                                                    }}</td>
-                                                <td class="size-px whitespace-nowrap align-top">
+                                                <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                                    {{ $position->panel_position }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                                    {{-- Display college name through relationship --}}
+                                                    {{ $position->college->name ?? 'N/A' }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                                                    {{-- Display department name through relationship --}}
+                                                    {{-- Deans don't have departments --}}
+                                                    {{ $position->department->name ?? ($position->panel_position === 'Dean' ? 'N/A (Dean)' : 'N/A') }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
                                                     <button wire:click="openEditModal({{ $position->id }})"
                                                         class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 rounded-lg px-3 py-1 text-sm font-medium">
                                                         Edit
                                                     </button>
                                                     <button wire:click="confirmDelete({{ $position->id }})"
-                                                        class="px-3 py-1 bg-red-600 text-white rounded">
+                                                        class="px-3 py-1 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
                                                         Delete
                                                     </button>
                                                 </td>
                                             </tr>
                                             @empty
                                             <tr>
-                                                <td colspan="6" class="text-center py-4 text-gray-900 bg-white">No
-                                                    positions
-                                                    found</td>
+                                                <td colspan="6" class="text-center py-8 text-gray-500 bg-white">
+                                                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                                    </svg>
+                                                    <p class="text-lg font-medium">No panels found</p>
+                                                    <p class="text-sm mt-1">Create a new panel to get started</p>
+                                                </td>
                                             </tr>
                                             @endforelse
                                         </tbody>
@@ -252,3 +260,4 @@
         @include('livewire.admin.modals.edit-panel')
         @endif
     </div>
+</div>

@@ -20,8 +20,8 @@
 
             {{-- Panel Position --}}
             <label class="block mt-4 text-sm font-medium mb-1 text-gray-700">Panel Position</label>
-            <select wire:model="panel_position" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900
-           focus:outline-none focus:ring-2 focus:ring-[#0a6025] focus:border-gray-400">
+            <select wire:model.live="panel_position" 
+                class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0a6025] focus:border-gray-400">
                 <option value="">-- Select Position --</option>
                 <option value="Head">Head</option>
                 <option value="Dean">Dean</option>
@@ -29,35 +29,38 @@
             </select>
             @error('panel_position') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
 
-            {{-- College --}}
+            {{-- College (using college_id) --}}
             <label class="block mt-4 text-sm font-medium mb-1 text-gray-700">College</label>
-            <select wire:model="college" wire:change="setCollege($event.target.value)"
+            {{-- wire:model.live triggers updatedCollegeId() method --}}
+            <select wire:model.live="college_id" 
                 class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400">
                 <option value="">-- Select College --</option>
                 @foreach($colleges as $col)
-                <option value="{{ $col->name }}">{{ $col->name }}</option>
+                {{-- Use college ID as value instead of name --}}
+                <option value="{{ $col->id }}">{{ $col->name }}</option>
                 @endforeach
             </select>
-            @error('college') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            @error('college_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
 
-            {{-- Department --}}
+            {{-- Department (using department_id, filtered by college) --}}
             <label class="block mt-4 text-sm font-medium mb-1 text-gray-700">Department</label>
-            <select wire:model="department" class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900
-           focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400" @if($panel_position==='Dean' )
-                disabled @endif>
+            <select wire:model="department_id" 
+                class="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-gray-400" 
+                @if($panel_position === 'Dean' || !$college_id) disabled @endif>
 
                 @if($panel_position === 'Dean')
-                <option value="none">None</option>
-                @elseif(empty($college))
-                <option value="">Please choose a college first</option>
+                    <option value="">None (Dean position)</option>
+                @elseif(!$college_id)
+                    <option value="">Please choose a college first</option>
                 @else
-                <option value="">-- Select Department --</option>
-                @foreach($departments as $dep)
-                <option value="{{ $dep->name }}">{{ $dep->name }}</option>
-                @endforeach
+                    <option value="">-- Select Department --</option>
+                    @foreach($departments as $dep)
+                        {{-- Use department ID as value instead of name --}}
+                        <option value="{{ $dep->id }}">{{ $dep->name }}</option>
+                    @endforeach
                 @endif
             </select>
-            @error('department') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            @error('department_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
 
             <!-- Buttons -->
             <div class="flex justify-end mt-6 space-x-3">

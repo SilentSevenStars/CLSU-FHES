@@ -90,7 +90,7 @@
                         <!-- Job Title with Department -->
                         <h5
                             class="text-xl font-bold text-gray-800 mb-3 group-hover:text-[#0A6025] transition-colors duration-300 leading-tight">
-                            {{ $position->name }} - {{ $position->department }}
+                            {{ $position->name }} - {{ $position->department->name }}
                         </h5>
 
                         <!-- College -->
@@ -99,7 +99,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
-                            <p class="text-sm font-medium text-gray-600">{{ $position->college }}</p>
+                            <p class="text-sm font-medium text-gray-600">{{ $position->college->name }}</p>
                         </div>
 
                         <!-- Date Range -->
@@ -178,11 +178,11 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <h4 class="text-sm font-semibold text-gray-500 mb-1">Department</h4>
-                                <p class="text-lg font-medium text-gray-800">{{ $selectedPosition->department }}</p>
+                                <p class="text-lg font-medium text-gray-800">{{ $selectedPosition->department->name }}</p>
                             </div>
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <h4 class="text-sm font-semibold text-gray-500 mb-1">College</h4>
-                                <p class="text-lg font-medium text-gray-800">{{ $selectedPosition->college }}</p>
+                                <p class="text-lg font-medium text-gray-800">{{ $selectedPosition->college->name }}</p>
                             </div>
                         </div>
 

@@ -14,8 +14,8 @@ class PositionEdit extends Component
 {
     public $position_id;
     public string $name = "";
-    public string $college = "";
-    public string $department = "";
+    public $college_id = "";        // Changed from 'college' to 'college_id'
+    public $department_id = "";     // Changed from 'department' to 'department_id'
     public string $status = "";
     public $start_date;
     public $end_date;
@@ -34,12 +34,11 @@ class PositionEdit extends Component
         $this->colleges = College::orderBy('name')->get();
         $this->positionRanks = PositionRank::orderBy('id')->get();
 
-        $position = Position::findOrFail($id);
+        // Load position with relationships
+        $position = Position::with(['college', 'department'])->findOrFail($id);
 
         $this->position_id = $position->id;
-        $this->name = $position->name; // ← stored rank NAME
-        $this->college = trim($position->college);
-        $this->department = $position->department;
+        $this->name = $position->name;
         $this->status = $position->status;
         $this->start_date = $position->start_date;
         $this->end_date = $position->end_date;
@@ -49,18 +48,34 @@ class PositionEdit extends Component
         $this->training = $position->training;
         $this->eligibility = $position->eligibility;
 
-        $this->departments = Department::where('college', $this->college)
-            ->orderBy('name')
-            ->get();
+        // IMPORTANT: Set college_id first, load departments, then set department_id
+        $this->college_id = (string) $position->college_id;
+        
+        // Load departments for the selected college
+        if ($this->college_id) {
+            $this->departments = Department::where('college_id', $this->college_id)
+                ->orderBy('name')
+                ->get();
+        }
+        
+        // Set department_id after departments are loaded
+        $this->department_id = (string) $position->department_id;
     }
 
-    public function updatedCollege($value)
+    /**
+     * When college is selected, load its departments
+     * Method name changed from updatedCollege to updatedCollegeId
+     */
+    public function updatedCollegeId($value)
     {
         if ($value) {
-            $this->departments = Department::where('college', $value)->orderBy('name')->get();
+            // Use college_id foreign key instead of college name
+            $this->departments = Department::where('college_id', $value)
+                ->orderBy('name')
+                ->get();
         } else {
             $this->departments = [];
-            $this->department = "";
+            $this->department_id = "";
         }
     }
 
@@ -68,8 +83,8 @@ class PositionEdit extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'college' => 'required|string',
-            'department' => 'required|string',
+            'college_id' => 'required|exists:colleges,id',        // Updated validation
+            'department_id' => 'required|exists:departments,id',  // Updated validation
             'status' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
@@ -84,8 +99,8 @@ class PositionEdit extends Component
         try {
             $position = Position::findOrFail($this->position_id);
             $position->name = $this->name;
-            $position->college = $this->college;
-            $position->department = $this->department;
+            $position->college_id = $this->college_id;         // Use foreign key
+            $position->department_id = $this->department_id;   // Use foreign key
             $position->status = $this->status;
             $position->start_date = $this->start_date;
             $position->end_date = $this->end_date;

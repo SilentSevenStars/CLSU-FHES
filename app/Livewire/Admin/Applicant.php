@@ -15,8 +15,8 @@ class Applicant extends Component
     use WithPagination;
 
     public $status = 'pending';
-    public $college_id = '';
-    public $department_id = '';
+    public $college_id = '';        // Now stores college ID
+    public $department_id = '';     // Now stores department ID
     public $departments = [];
     public $perPage = 10;
     public $search = '';
@@ -26,6 +26,7 @@ class Applicant extends Component
     {
         $this->resetPage();
     }
+
     public function updatingCollegeId()
     {
         $this->department_id = '';
@@ -33,6 +34,7 @@ class Applicant extends Component
         $this->resetPage();
         $this->updatedCollegeId();
     }
+
     public function updatingDepartmentId()
     {
         $this->position = '';
@@ -40,14 +42,17 @@ class Applicant extends Component
         $this->updatedDepartmentId();
     }
 
+    /**
+     * When college is selected, load its departments
+     * Now uses college_id foreign key instead of college name
+     */
     public function updatedCollegeId()
     {
-        $college = trim($this->college_id ?? '');
-        if (!empty($college)) {
-            $this->departments = Department::whereRaw('lower(college) = ?', [strtolower($college)])->get();
-            if (count($this->departments) === 0) {
-                $this->departments = Department::where('college', 'like', "%{$college}%")->get();
-            }
+        if (!empty($this->college_id)) {
+            // Load departments filtered by college_id (foreign key)
+            $this->departments = Department::where('college_id', $this->college_id)
+                ->orderBy('name')
+                ->get();
         } else {
             $this->departments = [];
         }
@@ -57,14 +62,17 @@ class Applicant extends Component
     {
         // When department changes, positions will be filtered in render via Position::when
     }
+
     public function updatingPerPage()
     {
         $this->resetPage();
     }
+
     public function updatingPosition()
     {
         $this->resetPage();
     }
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -90,39 +98,36 @@ class Applicant extends Component
             ->where('status', 'decline')
             ->count();
 
-        // Ensure departments are populated when a college is selected.
-        // This covers cases where frontend modifiers prevented the `updatedCollegeId` hook.
+        // Ensure departments are populated when a college is selected
         if (!empty($this->college_id) && empty($this->departments)) {
-            $college = trim($this->college_id ?? '');
-            $this->departments = Department::whereRaw('lower(college) = ?', [strtolower($college)])->get();
-            if (count($this->departments) === 0) {
-                $this->departments = Department::where('college', 'like', "%{$college}%")->get();
-            }
+            $this->departments = Department::where('college_id', $this->college_id)
+                ->orderBy('name')
+                ->get();
         }
 
-        // Main Query
-        $query = JobApplication::with(['applicant.user', 'position']);
+        // Main Query with eager loading
+        $query = JobApplication::with(['applicant.user', 'position.college', 'position.department']);
 
-        // Status filter (only 3)
+        // Status filter
         if (in_array($this->status, ['pending', 'approve', 'decline'])) {
             $query->where('status', $this->status);
         }
 
-        // College filter: the select now provides the college NAME.
+        // College filter: now uses college_id foreign key
         if ($this->college_id) {
             $query->whereHas('position', function ($q) {
-                $q->where('college', $this->college_id);
+                $q->where('college_id', $this->college_id);
             });
         }
 
-        // Department filter: the select now provides the department NAME.
+        // Department filter: now uses department_id foreign key
         if ($this->department_id) {
             $query->whereHas('position', function ($q) {
-                $q->where('department', $this->department_id);
+                $q->where('department_id', $this->department_id);
             });
         }
 
-        // Position filter: select provides the position NAME.
+        // Position filter: still uses position name
         if ($this->position) {
             $query->whereHas('position', function ($q) {
                 $q->where('name', $this->position);
@@ -144,13 +149,14 @@ class Applicant extends Component
             'pendingCount' => $pendingCount,
             'approvedCount' => $approvedCount,
             'declinedCount' => $declinedCount,
-            'colleges' => College::all(),
+            'colleges' => College::orderBy('name')->get(),
             'departments' => $this->departments,
+            // Filter positions by college_id and department_id (foreign keys)
             'positions' => Position::when($this->college_id, function ($q) {
-                    $q->where('college', $this->college_id);
+                    $q->where('college_id', $this->college_id);
                 })->when($this->department_id, function ($q) {
-                    $q->where('department', $this->department_id);
-                })->get(),
+                    $q->where('department_id', $this->department_id);
+                })->orderBy('name')->get(),
         ]);
     }
 }

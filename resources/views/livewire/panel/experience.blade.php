@@ -362,11 +362,11 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">Department</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $position->department ?? 'N/A' }}</p>
+                            <p class="mt-1 text-base text-gray-900">{{ $position->department->name ?? 'N/A' }}</p>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">College</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $position->college ?? 'N/A' }}</p>
+                            <p class="mt-1 text-base text-gray-900">{{ $position->college->name ?? 'N/A' }}</p>
                         </div>
                     </div>
 

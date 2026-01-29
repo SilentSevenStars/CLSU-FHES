@@ -122,7 +122,7 @@
                             <h2 class="text-2xl font-bold text-white">Applicant List</h2>
                         </div>
 
-                        <!-- Right: Per Page -->
+                        <!-- Right: Filters -->
                         <div class="flex flex-wrap items-center gap-3">
                             <!-- Status Filter -->
                             <select wire:model.live="status"
@@ -132,30 +132,34 @@
                                 <option value="decline">Declined</option>
                             </select>
 
-                            <!-- College Filter -->
+                            <!-- College Filter (using college_id) -->
+                            {{-- Now stores college ID instead of name --}}
                             <select wire:model.live="college_id"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700">
-                                <option value="">Select College</option>
+                                <option value="">All Colleges</option>
                                 @foreach ($colleges as $college)
-                                <option value="{{ $college->name }}">{{ $college->name }}</option>
+                                {{-- Use college ID as value --}}
+                                <option value="{{ $college->id }}">{{ $college->name }}</option>
                                 @endforeach
                             </select>
 
-                            <!-- Department Filter -->
+                            <!-- Department Filter (using department_id, dynamic) -->
+                            {{-- Now stores department ID instead of name --}}
                             <select wire:model.live="department_id"
-                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" {{
-                                !$college_id ? 'disabled' : '' }}>
-                                <option value="">Select Department</option>
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" 
+                                @if(!$college_id) disabled @endif>
+                                <option value="">All Departments</option>
                                 @foreach ($departments as $dept)
-                                <option value="{{ $dept->name }}">{{ $dept->name }}</option>
+                                {{-- Use department ID as value --}}
+                                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                                 @endforeach
                             </select>
 
-                            <!-- Position Filter -->
+                            <!-- Position Filter (still uses name) -->
                             <select wire:model.live="position"
-                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" {{
-                                !$department_id ? 'disabled' : '' }}>
-                                <option value="">Select Position</option>
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" 
+                                @if(!$department_id) disabled @endif>
+                                <option value="">All Positions</option>
                                 @foreach ($positions as $pos)
                                 <option value="{{ $pos->name }}">{{ $pos->name }}</option>
                                 @endforeach
@@ -189,7 +193,7 @@
                                             <div class="relative">
                                                 <input type="text" wire:model.live="search"
                                                     class="py-2 px-3 ps-11 block w-full border-gray-200 rounded-lg text-sm focus:border-green-500 focus:ring-green-500"
-                                                    placeholder="Search by name, email, or position...">
+                                                    placeholder="Search by name or email...">
                                                 <div
                                                     class="absolute inset-y-0 start-0 flex items-center pointer-events-none ps-4">
                                                     <svg class="shrink-0 size-4 text-gray-400 dark:text-neutral-500"
@@ -210,57 +214,37 @@
                                         <thead class="bg-gray-200">
                                             <tr>
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <div class="flex items-center gap-x-2">
-                                                        <span
-                                                            class="text-xs font-semibold uppercase text-black">#</span>
-                                                    </div>
+                                                    <span class="text-xs font-semibold uppercase text-black">#</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <div class="flex items-center gap-x-2">
-                                                        <span class="text-xs font-semibold uppercase text-black">
-                                                            Applicant Name
-                                                        </span>
-                                                    </div>
+                                                    <span class="text-xs font-semibold uppercase text-black">
+                                                        Applicant Name
+                                                    </span>
                                                 </th>
-
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <div class="flex items-center gap-x-2">
-                                                        <span class="text-xs font-semibold uppercase text-black">
-                                                            Email
-                                                        </span>
-                                                    </div>
+                                                    <span class="text-xs font-semibold uppercase text-black">
+                                                        Email
+                                                    </span>
                                                 </th>
-
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <div class="flex items-center gap-x-2">
-                                                        <span class="text-xs font-semibold uppercase text-black">
-                                                            Position
-                                                        </span>
-                                                    </div>
+                                                    <span class="text-xs font-semibold uppercase text-black">
+                                                        Position
+                                                    </span>
                                                 </th>
-
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <div class="flex items-center gap-x-2">
-                                                        <span class="text-xs font-semibold uppercase text-black">
-                                                            Date Applied
-                                                        </span>
-                                                    </div>
+                                                    <span class="text-xs font-semibold uppercase text-black">
+                                                        Date Applied
+                                                    </span>
                                                 </th>
-
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <div class="flex items-center gap-x-2">
-                                                        <span class="text-xs font-semibold uppercase text-black">
-                                                            Status
-                                                        </span>
-                                                    </div>
+                                                    <span class="text-xs font-semibold uppercase text-black">
+                                                        Status
+                                                    </span>
                                                 </th>
-
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <div class="flex items-center gap-x-2">
-                                                        <span class="text-xs font-semibold uppercase text-black">
-                                                            Action
-                                                        </span>
-                                                    </div>
+                                                    <span class="text-xs font-semibold uppercase text-black">
+                                                        Action
+                                                    </span>
                                                 </th>
                                             </tr>
                                         </thead>
@@ -268,34 +252,23 @@
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
                                             @forelse($applications as $application)
                                             <tr class="bg-gray-50 hover:bg-gray-100">
-                                                <td class="size-px whitespace-nowrap align-top">
-                                                    <div class="text-sm font-semibold text-black">
-                                                        {{ $applications->firstItem() ? $applications->firstItem() +
-                                                        $loop->index : $loop->iteration }}
-                                                    </div>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-medium">
+                                                    {{ $applications->firstItem() ? $applications->firstItem() +
+                                                    $loop->index : $loop->iteration }}
                                                 </td>
-                                                <td class="size-px whitespace-nowrap align-top">
-                                                    <div class="text-sm font-semibold text-black">
-                                                        {{ $application->applicant->user->name }}
-                                                    </div>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-semibold">
+                                                    {{ $application->applicant->user->name }}
                                                 </td>
-
-                                                <td class="size-px whitespace-nowrap align-top">
-                                                    <div class="text-sm font-medium text-black">
-                                                        {{ $application->applicant->user->email }}
-                                                    </div>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
+                                                    {{ $application->applicant->user->email }}
                                                 </td>
-                                                <td class="size-px whitespace-nowrap align-top">
-                                                    <div class="text-sm font-medium text-black">
-                                                        {{ $application->position->name }}
-                                                    </div>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
+                                                    {{ $application->position->name }}
                                                 </td>
-                                                <td class="size-px whitespace-nowrap align-top">
-                                                    <div class="text-sm font-medium text-black">
-                                                        {{ $application->created_at->format('M j, Y') }}
-                                                    </div>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
+                                                    {{ $application->created_at->format('M j, Y') }}
                                                 </td>
-                                                <td class="size-px whitespace-nowrap align-top">
+                                                <td class="px-6 py-4 whitespace-nowrap">
                                                     <span
                                                         class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
                                                         {{ $application->status === 'approve' ? 'bg-green-100 text-green-800' : '' }}
@@ -304,7 +277,7 @@
                                                         {{ ucfirst($application->status) }}
                                                     </span>
                                                 </td>
-                                                <td class="size-px whitespace-nowrap align-top">
+                                                <td class="px-6 py-4 whitespace-nowrap">
                                                     <a href="{{ route('admin.applicant.show', $application) }}"
                                                         class="inline-flex items-center px-4 py-2 bg-[#0a6025] text-white text-sm font-medium rounded-lg hover:bg-green-700 transition shadow-sm">
                                                         <svg class="w-4 h-4 mr-2" fill="currentColor"
@@ -320,7 +293,7 @@
                                             </tr>
                                             @empty
                                             <tr>
-                                                <td colspan="6" class="px-6 py-12 text-center">
+                                                <td colspan="7" class="px-6 py-12 text-center">
                                                     <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none"
                                                         stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"

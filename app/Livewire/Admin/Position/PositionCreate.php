@@ -13,8 +13,8 @@ use Livewire\Component;
 class PositionCreate extends Component
 {
     public string $name = "";
-    public string $college = "";
-    public string $department = "";
+    public $college_id = "";        // Changed from 'college' to 'college_id'
+    public $department_id = "";     // Changed from 'department' to 'department_id'
     public string $status = "vacant";
     public $start_date;
     public $end_date;
@@ -34,13 +34,20 @@ class PositionCreate extends Component
         $this->positionRanks = PositionRank::orderBy('id')->get();
     }
 
-    public function updatedCollege($value)
+    /**
+     * When college is selected, load its departments
+     * Method name changed from updatedCollege to updatedCollegeId
+     */
+    public function updatedCollegeId($value)
     {
         if ($value) {
-            $this->departments = Department::where('college', $value)->orderBy('name')->get();
+            // Use college_id foreign key instead of college name
+            $this->departments = Department::where('college_id', $value)
+                ->orderBy('name')
+                ->get();
         } else {
             $this->departments = [];
-            $this->department = "";
+            $this->department_id = "";
         }
     }
 
@@ -48,8 +55,8 @@ class PositionCreate extends Component
     {
         $this->validate([
             'name' => 'required|string|max:255',
-            'college' => 'required|string',
-            'department' => 'required|string',
+            'college_id' => 'required|exists:colleges,id',        // Updated validation
+            'department_id' => 'required|exists:departments,id',  // Updated validation
             'status' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
@@ -62,10 +69,11 @@ class PositionCreate extends Component
 
         DB::beginTransaction();
         try {
+            // Create position with foreign keys
             $position = new Position();
             $position->name = $this->name;
-            $position->college = $this->college;
-            $position->department = $this->department;
+            $position->college_id = $this->college_id;         // Use foreign key
+            $position->department_id = $this->department_id;   // Use foreign key
             $position->status = $this->status;
             $position->start_date = $this->start_date;
             $position->end_date = $this->end_date;

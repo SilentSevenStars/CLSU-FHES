@@ -137,7 +137,9 @@
                                                     {{ $department->name }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                                    {{ $department->college }}
+                                                    {{-- Display college name through relationship --}}
+                                                    {{-- Uses department->college relationship (belongsTo) --}}
+                                                    {{ $department->college->name ?? 'N/A' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
                                                     {{ $department->created_at->format('M d, Y h:i A') }}
@@ -199,18 +201,20 @@
                 <form wire:submit.prevent="{{ $editMode ? 'update' : 'store' }}">
                     <div class="p-6">
                         <div class="mb-4">
-                            <label for="college" class="block text-sm font-medium text-gray-700 mb-2">
+                            <label for="college_id" class="block text-sm font-medium text-gray-700 mb-2">
                                 College <span class="text-red-500">*</span>
                             </label>
-                            <select wire:model="college" 
-                                    id="college"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 @error('college') border-red-500 @enderror">
+                            {{-- Dropdown to select college using college_id foreign key --}}
+                            {{-- Value is college.id which will be stored in departments.college_id --}}
+                            <select wire:model="college_id" 
+                                    id="college_id"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 @error('college_id') border-red-500 @enderror">
                                 <option value="">-- Select College --</option>
-                                @foreach($colleges as $collegeOption)
-                                <option value="{{ $collegeOption->name }}">{{ $collegeOption->name }}</option>
+                                @foreach($colleges as $college)
+                                <option value="{{ $college->id }}">{{ $college->name }}</option>
                                 @endforeach
                             </select>
-                            @error('college')
+                            @error('college_id')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>

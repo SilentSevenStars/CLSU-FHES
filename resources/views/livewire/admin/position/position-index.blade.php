@@ -94,21 +94,23 @@
                                 <option value="none">None</option>
                             </select>
 
-                            <!-- College Filter -->
+                            <!-- College Filter (using college_id) -->
                             <select wire:model.live="filterCollege"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="">All Colleges</option>
                                 @foreach($colleges as $college)
-                                <option value="{{ $college->name }}">{{ $college->name }}</option>
+                                {{-- Use college ID as value instead of name --}}
+                                <option value="{{ $college->id }}">{{ $college->name }}</option>
                                 @endforeach
                             </select>
 
-                            <!-- Department Filter -->
+                            <!-- Department Filter (dynamic based on college) -->
                             <select wire:model.live="filterDepartment"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="">All Departments</option>
                                 @foreach($filterDepartments as $dept)
-                                <option value="{{ $dept->name }}">{{ $dept->name }}</option>
+                                {{-- Use department ID as value instead of name --}}
+                                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                                 @endforeach
                             </select>
 
@@ -195,8 +197,14 @@
                                             @forelse($positions as $position)
                                             <tr class="bg-gray-50 hover:bg-gray-100">
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->name }}</td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->college }}</td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->department }}</td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-black">
+                                                    {{-- Display college name through relationship --}}
+                                                    {{ $position->college->name ?? 'N/A' }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-black">
+                                                    {{-- Display department name through relationship --}}
+                                                    {{ $position->department->name ?? 'N/A' }}
+                                                </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">
                                                     <span class="px-2 py-1 rounded text-xs font-semibold
                                                         @if($position->status === 'vacant') bg-amber-100 text-amber-800
