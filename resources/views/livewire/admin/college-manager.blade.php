@@ -33,7 +33,7 @@
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <h1 class="text-4xl font-extrabold bg-green-600 bg-clip-text text-transparent mb-2">
+                        <h1 class="text-4xl font-extrabold bg-[#1E7F3E] bg-clip-text text-transparent mb-2">
                             Colleges
                         </h1>
                         <p class="text-gray-600 flex items-center gap-2">
@@ -51,7 +51,7 @@
             <!-- Table Card -->
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn">
                 <!-- Table Header -->
-                <div class="bg-green-600 p-6">
+                <div class="bg-[#1E7F3E] p-6">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
@@ -134,7 +134,7 @@
                                                     {{ $college->name }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                                    {{ $college->created_at->format('M d, Y h:i A') }}
+                                                    {{ $college->created_at?->format('M d, Y h:i A') ?? 'N/A' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                                     <button wire:click="edit({{ $college->id }})"

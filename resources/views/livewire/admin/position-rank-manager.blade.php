@@ -33,11 +33,11 @@
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <h1 class="text-4xl font-extrabold bg-blue-600 bg-clip-text text-transparent mb-2">
+                        <h1 class="text-4xl font-extrabold bg-[#0a6025] bg-clip-text text-transparent mb-2">
                             Position Ranks
                         </h1>
                         <p class="text-gray-600 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-[#0a6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01">
                                 </path>
@@ -51,7 +51,7 @@
             <!-- Table Card -->
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn">
                 <!-- Table Header -->
-                <div class="bg-blue-600 p-6">
+                <div class="bg-[#0a6025] p-6">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
@@ -85,7 +85,7 @@
                                             <label class="sr-only">Search</label>
                                             <div class="relative">
                                                 <input type="text" wire:model.live.debounce.300ms="search"
-                                                    class="py-2 px-3 ps-11 block w-full border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500"
+                                                    class="py-2 px-3 ps-11 block w-full border-gray-200 rounded-lg text-sm focus:border-green-700 focus:ring-green-700"
                                                     placeholder="Search position ranks...">
                                                 <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none ps-4">
                                                     <svg class="shrink-0 size-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
@@ -99,7 +99,7 @@
 
                                         <!-- Create Button -->
                                         <div>
-                                            <button wire:click="create" class="block text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 
+                                            <button wire:click="create" class="block text-white bg-[#1E7F3E] hover:bg-[#138032] focus:ring-4 focus:ring-blue-300 
                                                 font-medium rounded-lg text-sm px-5 py-2.5">
                                                 Create Rank
                                             </button>
@@ -155,7 +155,7 @@
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                                                         </svg>
                                                         <p class="text-lg font-medium">No position ranks found</p>
-                                                        <button wire:click="create" class="mt-4 text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-4 py-2 text-sm font-medium">
+                                                        <button wire:click="create" class="mt-4 text-white bg-green-600 hover:bg-green-800 rounded-lg px-4 py-2 text-sm font-medium">
                                                             Create First Rank
                                                         </button>
                                                     </div>
@@ -185,7 +185,7 @@
          style="background-color: rgba(0,0,0,0.5);">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div @click.away="$wire.closeModal()" class="bg-white rounded-lg shadow-xl max-w-md w-full">
-                <div class="bg-blue-600 px-6 py-4 rounded-t-lg">
+                <div class="bg-green-600 px-6 py-4 rounded-t-lg">
                     <h3 class="text-xl font-bold text-white">
                         {{ $editMode ? 'Edit' : 'Create' }} Position Rank
                     </h3>
@@ -199,7 +199,7 @@
                             <input type="text" 
                                    wire:model="name" 
                                    id="name"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-blue-500 @error('name') border-red-500 @enderror"
                                    placeholder="e.g., Instructor I, Professor">
                             @error('name')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -210,7 +210,7 @@
                         <button type="button" wire:click="closeModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium">
                             Cancel
                         </button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-800 font-medium">
                             {{ $editMode ? 'Update' : 'Save' }}
                         </button>
                     </div>

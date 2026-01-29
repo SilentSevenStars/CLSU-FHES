@@ -1,16 +1,17 @@
-<div class="p-6">
-    <div class="mb-6 flex justify-between items-center">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">My Notifications</h2>
-            <p class="text-gray-600">View all your notifications and messages</p>
+<div class="flex-1 bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-6 overflow-auto min-h-screen">
+    <div class="max-w-7xl mx-auto">
+        <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h2 class="text-3xl font-extrabold bg-[#1E7F3E] bg-clip-text text-transparent mb-1">My Notifications</h2>
+                <p class="text-gray-600">View all your notifications and messages</p>
+            </div>
+            <button
+                wire:click="markAllAsRead"
+                class="px-4 py-2 bg-[#1E7F3E] hover:bg-[#156B2D] text-white rounded-lg transition duration-200 font-medium"
+            >
+                Mark All as Read
+            </button>
         </div>
-        <button 
-            wire:click="markAllAsRead"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200"
-        >
-            Mark All as Read
-        </button>
-    </div>
 
     @if (session()->has('success'))
         <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
@@ -18,40 +19,40 @@
         </div>
     @endif
 
-    <!-- Filter Tabs -->
-    <div class="mb-6 bg-white rounded-lg shadow">
+        <!-- Filter Tabs -->
+        <div class="mb-6 bg-white rounded-xl shadow overflow-hidden">
         <div class="flex border-b">
             <button 
                 wire:click="$set('filter', 'all')"
-                class="px-6 py-3 text-sm font-medium transition duration-200 {{ $filter === 'all' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}"
+             class="px-6 py-3 text-sm font-medium transition duration-200 {{ $filter === 'all' ? 'text-[#1E7F3E] border-b-2 border-[#1E7F3E]' : 'text-gray-500 hover:text-gray-700' }}"
             >
                 All Notifications
             </button>
             <button 
                 wire:click="$set('filter', 'unread')"
-                class="px-6 py-3 text-sm font-medium transition duration-200 {{ $filter === 'unread' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}"
+                class="px-6 py-3 text-sm font-medium transition duration-200 {{ $filter === 'unread' ? 'text-[#1E7F3E] border-b-2 border-[#1E7F3E]' : 'text-gray-500 hover:text-gray-700' }}"
             >
                 Unread
             </button>
             <button 
                 wire:click="$set('filter', 'read')"
-                class="px-6 py-3 text-sm font-medium transition duration-200 {{ $filter === 'read' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}"
+                class="px-6 py-3 text-sm font-medium transition duration-200 {{ $filter === 'read' ? 'text-[#1E7F3E] border-b-2 border-[#1E7F3E]' : 'text-gray-500 hover:text-gray-700' }}"
             >
                 Read
             </button>
         </div>
-    </div>
+        </div>
 
-    <!-- Notifications List -->
-    <div class="space-y-4">
+        <!-- Notifications List -->
+        <div class="space-y-4">
         @forelse($notifications as $notification)
-            <div class="bg-white rounded-lg shadow hover:shadow-md transition duration-200 {{ !$notification->is_read ? 'border-l-4 border-blue-500' : '' }}">
+            <div class="bg-white rounded-xl shadow hover:shadow-md transition duration-200 {{ !$notification->is_read ? 'border-l-4 border-[#1E7F3E]' : '' }}">
                 <div class="p-6">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center mb-2">
                                 @if(!$notification->is_read)
-                                    <span class="inline-block w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                                    <span class="inline-block w-2 h-2 bg-[#1E7F3E] rounded-full mr-2"></span>
                                 @endif
                                 <h3 class="text-lg font-semibold text-gray-900">{{ $notification->subject }}</h3>
                             </div>
@@ -65,7 +66,7 @@
                         <div class="flex space-x-2 ml-4">
                             <button 
                                 wire:click="viewNotification({{ $notification->id }})"
-                                class="text-blue-600 hover:text-blue-800"
+                                class="text-[#1E7F3E] hover:text-[#156B2D]"
                                 title="View"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,42 +118,48 @@
                 <p class="mt-1 text-sm text-gray-500">You don't have any notifications yet.</p>
             </div>
         @endforelse
-    </div>
+        </div>
 
-    <!-- Pagination -->
-    <div class="mt-6">
-        {{ $notifications->links() }}
-    </div>
+        <!-- Pagination -->
+        <div class="mt-6 bg-white rounded-xl shadow p-4">
+            {{ $notifications->links() }}
+        </div>
 
-    <!-- View Notification Modal -->
-    @if($selectedNotification)
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div class="relative top-10 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-2/3 shadow-lg rounded-md bg-white mb-10">
-                <div class="flex justify-between items-center mb-4 pb-4 border-b">
-                    <h3 class="text-xl font-semibold text-gray-900">{{ $selectedNotification->subject }}</h3>
-                    <button wire:click="closeNotification" class="text-gray-400 hover:text-gray-500">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
+        <!-- View Notification Modal -->
+        @if($selectedNotification)
+            <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: true }" x-show="show" x-cloak>
+                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                    <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" @click="$wire.closeNotification()"></div>
 
-                <div class="mb-4">
-                    <p class="text-sm text-gray-600">
-                        <strong>Date:</strong> {{ $selectedNotification->created_at->format('F d, Y h:i A') }}
-                    </p>
-                    @if($selectedNotification->email_sent)
-                        <p class="text-sm text-green-600">
-                            <strong>Email Sent:</strong> {{ $selectedNotification->email_sent_at->format('F d, Y h:i A') }}
-                        </p>
-                    @endif
-                </div>
+                    <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-                <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <div class="prose max-w-none">
-                        {!! $selectedNotification->message !!}
-                    </div>
-                </div>
+                    <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full">
+                        <div class="bg-[#1E7F3E] px-6 py-4 flex justify-between items-center">
+                            <h3 class="text-xl font-semibold text-white">{{ $selectedNotification->subject }}</h3>
+                            <button wire:click="closeNotification" class="text-white/80 hover:text-white">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="bg-white px-6 py-5">
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-600">
+                                    <strong>Date:</strong> {{ $selectedNotification->created_at->format('F d, Y h:i A') }}
+                                </p>
+                                @if($selectedNotification->email_sent)
+                                    <p class="text-sm text-green-700">
+                                        <strong>Email Sent:</strong> {{ $selectedNotification->email_sent_at?->format('F d, Y h:i A') ?? 'N/A' }}
+                                    </p>
+                                @endif
+                            </div>
+
+                            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                                <div class="prose max-w-none">
+                                    {!! $selectedNotification->message !!}
+                                </div>
+                            </div>
 
                 @if($selectedNotification->attachments && count($selectedNotification->attachments) > 0)
                     <div class="mb-6">
@@ -179,15 +186,18 @@
                     </div>
                 @endif
 
-                <div class="flex justify-end pt-4 border-t">
-                    <button 
-                        wire:click="closeNotification"
-                        class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded-lg transition duration-200"
-                    >
-                        Close
-                    </button>
+                            <div class="flex justify-end pt-4 border-t">
+                                <button 
+                                    wire:click="closeNotification"
+                                    class="px-6 py-2 bg-[#1E7F3E] hover:bg-[#156B2D] text-white font-semibold rounded-lg transition duration-200"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    @endif
+        @endif
+    </div>
 </div>

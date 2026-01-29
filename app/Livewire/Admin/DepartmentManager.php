@@ -21,7 +21,7 @@ class DepartmentManager extends Component
     public $name = '';
     public $college_id = ''; 
 
-    protected $paginationTheme = 'bootstrap';
+    protected $paginationTheme = 'tailwind';
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -40,12 +40,16 @@ class DepartmentManager extends Component
 
     public function render()
     {
+        $search = trim((string) $this->search);
+
         $departments = Department::with('college')
-            ->where('name', 'like', '%' . $this->search . '%')
-            ->orWhereHas('college', function($query) {
-                $query->where('name', 'like', '%' . $this->search . '%');
+            ->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhereHas('college', function ($query) use ($search) {
+                        $query->where('name', 'like', '%' . $search . '%');
+                    });
             })
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
             ->paginate($this->perPage);
 
         $colleges = College::orderBy('name', 'asc')->get();

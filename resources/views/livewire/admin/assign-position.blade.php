@@ -1,9 +1,23 @@
-<div class="container mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold text-gray-800">Assign Position</h1>
-        <p class="text-gray-600 mt-2">Promote or hire applicants to their evaluated positions</p>
-    </div>
+<div class="flex-1 bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-6 overflow-auto min-h-screen">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="mb-8 animate-fadeIn">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                    <h1 class="text-4xl font-extrabold bg-[#1E7F3E] bg-clip-text text-transparent mb-2">
+                        Assign Position
+                    </h1>
+                    <p class="text-gray-600 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#1E7F3E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                            </path>
+                        </svg>
+                        Promote or hire applicants to their evaluated positions
+                    </p>
+                </div>
+            </div>
+        </div>
 
     <!-- Alert Modal -->
     <div x-data="{ show: @entangle('showAlertModal') }" x-show="show" x-cloak class="fixed inset-0 z-50 overflow-y-auto"
@@ -74,13 +88,43 @@
         </div>
     </div>
 
-    <!-- Filters and Search -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <!-- Search Button -->
-                <button wire:click="openSearchModal"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        <!-- Table Card -->
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn">
+            <!-- Table Header -->
+            <div class="bg-[#1E7F3E] p-6">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+                            <i class="fa-solid fa-user-check text-white text-lg"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Applicants for Assignment</h2>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <select wire:model.live="perPage"
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
+                            <option value="5">5 / page</option>
+                            <option value="10">10 / page</option>
+                            <option value="25">25 / page</option>
+                            <option value="50">50 / page</option>
+                            <option value="100">100 / page</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
+                <div class="flex flex-col">
+                    <div class="-m-1.5 overflow-x-auto">
+                        <div class="p-1.5 min-w-full inline-block align-middle">
+                            <div class="bg-gray-50 border border-gray-300 rounded-xl shadow-2xs overflow-hidden">
+                                <!-- Filters / Search Row -->
+                                <div class="px-6 py-4 flex flex-wrap items-center justify-between border-b border-gray-300 gap-3">
+                                    <div class="flex items-center gap-4 flex-wrap">
+                                        <!-- Search Button -->
+                                        <button wire:click="openSearchModal"
+                                            class="inline-flex items-center px-4 py-2 bg-[#156B2D] hover:bg-[#125A26] text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -88,87 +132,69 @@
                     Search Applicant
                 </button>
 
-                <!-- Active Filters Display -->
-                @if($search || $positionFilter)
-                <div class="flex items-center gap-2">
-                    @if($search)
-                    <span
-                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        Name: {{ $search }}
-                        <button wire:click="$set('search', '')" class="ml-2 focus:outline-none">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                    </span>
-                    @endif
-                    @if($positionFilter)
-                    <span
-                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        Position: {{ $positionFilter }}
-                        <button wire:click="$set('positionFilter', '')" class="ml-2 focus:outline-none">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                        </button>
-                    </span>
-                    @endif
-                </div>
-                @endif
-            </div>
+                                        <!-- Active Filters Display -->
+                                        @if($search || $positionFilter)
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            @if($search)
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">
+                                                Name: {{ $search }}
+                                                <button wire:click="$set('search', '')" class="ml-2 focus:outline-none">
+                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd"
+                                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                            clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </button>
+                                            </span>
+                                            @endif
+                                            @if($positionFilter)
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                                Position: {{ $positionFilter }}
+                                                <button wire:click="$set('positionFilter', '')" class="ml-2 focus:outline-none">
+                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd"
+                                                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                            clip-rule="evenodd"></path>
+                                                    </svg>
+                                                </button>
+                                            </span>
+                                            @endif
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
 
-            <!-- Per Page -->
-            <div class="flex items-center gap-2">
-                <label for="perPage" class="text-sm font-medium text-gray-700">Show:</label>
-                <select wire:model.live="perPage" id="perPage"
-                    class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <!-- Table -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+                                <!-- Table -->
+                                <table class="min-w-full divide-y divide-gray-300">
+                                    <thead class="bg-gray-200">
                     <tr>
                         <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Applicant Name
-                        </th>
+                                            class="px-6 py-3 text-start">
+                                            <span class="text-xs font-semibold uppercase text-black">Applicant Name</span>
+                                        </th>
                         <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Current Position
-                        </th>
+                                            class="px-6 py-3 text-start">
+                                            <span class="text-xs font-semibold uppercase text-black">Current Position</span>
+                                        </th>
                         <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Applied Position
-                        </th>
+                                            class="px-6 py-3 text-start">
+                                            <span class="text-xs font-semibold uppercase text-black">Applied Position</span>
+                                        </th>
                         <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Interview Date
-                        </th>
+                                            class="px-6 py-3 text-start">
+                                            <span class="text-xs font-semibold uppercase text-black">Interview Date</span>
+                                        </th>
                         <th scope="col"
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Action
-                        </th>
+                                            class="px-6 py-3 text-start">
+                                            <span class="text-xs font-semibold uppercase text-black">Action</span>
+                                        </th>
                     </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-300 bg-gray-50">
                     @forelse($applicants as $applicant)
                     @foreach($applicant->jobApplications as $application)
                     @if($application->evaluation)
-                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                    <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">
                                 {{ $applicant->user->name }}
@@ -185,7 +211,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span
-                                class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
                                 {{ $application->position->name }}
                             </span>
                         </td>
@@ -195,7 +221,7 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                                 wire:click="openConfirmModal({{ $applicant->id }}, {{ $application->evaluation->id }})"
-                                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                class="bg-[#1E7F3E] hover:bg-[#156B2D] text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
                                 Assign Position
                             </button>
                         </td>
@@ -218,15 +244,19 @@
                         </td>
                     </tr>
                     @endforelse
-                </tbody>
-            </table>
-        </div>
+                                    </tbody>
+                                </table>
 
-        <!-- Pagination -->
-        <div class="px-6 py-4 border-t border-gray-200">
-            {{ $applicants->links() }}
+                                <!-- Pagination -->
+                                <div class="p-4 bg-white border-t border-gray-300">
+                                    {{ $applicants->links() }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
 
     <!-- Search Modal -->
     <div x-data="{ show: @entangle('showSearchModal') }" x-show="show" x-cloak
@@ -269,9 +299,9 @@
                                 Search by Name
                             </label>
                             <input type="text" wire:model.live.debounce.300ms="searchInput" id="searchInput"
-                                placeholder="Type applicant name..."
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                autocomplete="off">
+                                   placeholder="Type applicant name..."
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E7F3E] focus:border-transparent"
+                                   autocomplete="off">
 
                             <!-- Dropdown -->
                             <div x-show="open" x-cloak
@@ -279,7 +309,7 @@
                                 @if(!empty($filteredNames))
                                 @foreach($filteredNames as $name)
                                 <div wire:click="selectName('{{ $name }}')"
-                                    class="px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors duration-150">
+                                     class="px-4 py-2 hover:bg-emerald-50 cursor-pointer transition-colors duration-150">
                                     <div class="flex items-center">
                                         <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -305,7 +335,7 @@
                                 Filter by Applied Position
                             </label>
                             <select wire:model="tempPositionFilter" id="tempPositionFilter"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E7F3E] focus:border-transparent">
                                 <option value="">All Positions</option>
                                 @foreach($availablePositions as $position)
                                 <option value="{{ $position }}">{{ $position }}</option>
@@ -317,7 +347,7 @@
 
                 <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
                     <button type="button" wire:click="applySearch"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto sm:text-sm transition-colors duration-200">
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#1E7F3E] text-base font-medium text-white hover:bg-[#156B2D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-300 sm:w-auto sm:text-sm transition-colors duration-200">
                         Apply
                     </button>
                     <button type="button" wire:click="clearFilters"
@@ -411,7 +441,7 @@
                         </span>
                     </button>
                     <button type="button" wire:click="closeConfirmModal"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200">
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-300 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200">
                         Cancel
                     </button>
                 </div>
@@ -423,4 +453,5 @@
             display: none !important;
         }
     </style>
+    </div>
 </div>

@@ -17,7 +17,7 @@ class CollegeManager extends Component
     public $collegeId;
     public $name = '';
 
-    protected $paginationTheme = 'bootstrap';
+    protected $paginationTheme = 'tailwind';
 
     protected $rules = [
         'name' => 'required|string|max:255',
