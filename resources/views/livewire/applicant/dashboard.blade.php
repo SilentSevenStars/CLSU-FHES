@@ -124,7 +124,7 @@
                                     <!-- Position -->
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="font-semibold text-gray-900">{{ $app->position->name }}</span>
-                                        <p class="text-xs text-gray-500 mt-1">{{ $app->position->department }}</p>
+                                        <p class="text-xs text-gray-500 mt-1">{{ $app->position->department->name }}</p>
                                     </td>
 
                                     <!-- Status + Progress -->
