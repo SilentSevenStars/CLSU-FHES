@@ -114,7 +114,7 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-800">Position</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-800">Job Application Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-800">Status & Progress</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-800">Submitted</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-800">Requirements</th>
                                     <th class="px-6 py-3 text-left text-xs font-semibold uppercase text-gray-800">Interview Schedule</th>
@@ -220,6 +220,7 @@
                                     <td class="px-6 py-4">
                                         <!--[if BLOCK]><![endif]--><?php if(!empty($app->evaluation_status['status'])): ?>
                                             <!--[if BLOCK]><![endif]--><?php if($app->evaluation_status['is_complete']): ?>
+                                                <!-- Complete Status -->
                                                 <div class="flex items-center gap-2">
                                                     <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold flex items-center gap-1">
                                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -228,7 +229,28 @@
                                                         Complete
                                                     </span>
                                                 </div>
+                                            <?php elseif($app->evaluation_status['status'] === 'Pending'): ?>
+                                                <!-- Pending Status -->
+                                                <div class="flex items-center gap-2">
+                                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold flex items-center gap-1">
+                                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        Pending
+                                                    </span>
+                                                </div>
+                                            <?php elseif($app->evaluation_status['status'] === 'Overdue'): ?>
+                                                <!-- Overdue Status -->
+                                                <div class="flex items-center gap-2">
+                                                    <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold flex items-center gap-1">
+                                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                                        </svg>
+                                                        Overdue
+                                                    </span>
+                                                </div>
                                             <?php else: ?>
+                                                <!-- In Progress Status -->
                                                 <div class="flex items-center gap-2">
                                                     <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold flex items-center gap-1">
                                                         <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

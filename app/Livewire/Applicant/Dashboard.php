@@ -34,7 +34,6 @@ class Dashboard extends Component
                         ];
                     }
 
-                    // Calculate evaluation completion status from panel assignments
                     $evaluationStatus = $this->getEvaluationStatus($application);
 
                     return (object) array_merge($application->toArray(), [
@@ -49,22 +48,29 @@ class Dashboard extends Component
         ]);
     }
 
-
+    /**
+     * Check if evaluation is complete based on panel assignments
+     */
     private function getEvaluationStatus($application)
     {
         if (!$application->evaluation) {
             return [
                 'is_complete' => false,
                 'status' => 'No Evaluation',
+                'is_late' => false,
             ];
         }
 
         $panelAssignments = $application->evaluation->panelAssignments;
-        
+
         if ($panelAssignments->count() === 0) {
+            $interviewDate = $application->evaluation->interview_date;
+            $isLate = $interviewDate && now()->isAfter($interviewDate);
+            
             return [
                 'is_complete' => false,
-                'status' => 'Pending',
+                'status' => $isLate ? 'Overdue' : 'Pending',
+                'is_late' => $isLate,
             ];
         }
 
@@ -72,11 +78,19 @@ class Dashboard extends Component
             return $assignment->status === 'complete';
         });
 
+        $interviewDate = $application->evaluation->interview_date;
+        $isLate = false;
+        
+        if (!$allComplete && $interviewDate && now()->isAfter($interviewDate)) {
+            $isLate = true;
+        }
+
         return [
             'is_complete' => $allComplete,
-            'status' => $allComplete ? 'Complete' : 'In Progress',
+            'status' => $allComplete ? 'Complete' : ($isLate ? 'Overdue' : 'In Progress'),
             'completed_count' => $panelAssignments->where('status', 'complete')->count(),
             'total_count' => $panelAssignments->count(),
+            'is_late' => $isLate,
         ];
     }
 }
