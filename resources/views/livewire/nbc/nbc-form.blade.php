@@ -39,7 +39,7 @@
                 </div>
                 <div>
                     <p class="text-sm font-medium text-gray-500">Department</p>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->department ?? 'N/A' }}</p>
+                    <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->department->name ?? 'N/A' }}</p>
                 </div>
             </div>
         </div>

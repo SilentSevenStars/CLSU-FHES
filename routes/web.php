@@ -86,7 +86,7 @@ Route::middleware([
 Route::middleware([
     'auth',
     'verified',
-    'role:admin'
+    'role:admin|super-admin'
 ])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', AdminDashboard::class)->name('dashboard');

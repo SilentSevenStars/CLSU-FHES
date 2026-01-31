@@ -27,7 +27,8 @@
                         <div>
                             <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Total Applications</p>
                             <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                {{ $applications->count() }}
+                                <?php echo e($applications->count()); ?>
+
                             </h3>
                         </div>
                         <div class="bg-[#0A6025] rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -45,7 +46,8 @@
                         <div>
                             <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Pending</p>
                             <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                {{ $applications->where('status', 'pending')->count() }}
+                                <?php echo e($applications->where('status', 'pending')->count()); ?>
+
                             </h3>
                         </div>
                         <div class="bg-yellow-500 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -62,7 +64,8 @@
                         <div>
                             <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Approved</p>
                             <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                {{ $applications->where('status', 'approve')->count() }}
+                                <?php echo e($applications->where('status', 'approve')->count()); ?>
+
                             </h3>
                         </div>
                         <div class="bg-[#0A6025] rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -79,7 +82,8 @@
                         <div>
                             <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Declined</p>
                             <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                {{ $applications->where('status', 'decline')->count() }}
+                                <?php echo e($applications->where('status', 'decline')->count()); ?>
+
                             </h3>
                         </div>
                         <div class="bg-red-500 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -119,33 +123,33 @@
                             </thead>
 
                             <tbody class="divide-y divide-gray-200 bg-white">
-                                @forelse ($applications as $app)
+                                <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $applications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $app): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr class="hover:bg-gray-50 transition-colors duration-150">
 
                                     <!-- Position -->
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="font-semibold text-gray-900">{{ $app->position['name'] ?? 'N/A' }}</span>
-                                        <p class="text-xs text-gray-500 mt-1">{{ $app->position['department']['name'] ?? 'N/A' }}</p>
+                                        <span class="font-semibold text-gray-900"><?php echo e($app->position['name'] ?? 'N/A'); ?></span>
+                                        <p class="text-xs text-gray-500 mt-1"><?php echo e($app->position['department']['name'] ?? 'N/A'); ?></p>
                                     </td>
 
                                     <!-- Status + Progress -->
                                     <td class="px-6 py-4">
-                                        @switch($app->status)
-                                            @case('pending')
+                                        <!--[if BLOCK]><![endif]--><?php switch($app->status):
+                                            case ('pending'): ?>
                                                 <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">Pending</span>
-                                                @break
-                                            @case('approve')
+                                                <?php break; ?>
+                                            <?php case ('approve'): ?>
                                                 <span class="px-3 py-1 bg-[#0A6025] bg-opacity-10 text-[#0A6025] rounded-full text-xs font-semibold">Approved</span>
-                                                @break
-                                            @case('decline')
+                                                <?php break; ?>
+                                            <?php case ('decline'): ?>
                                                 <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Declined</span>
-                                                @break
-                                            @case('hired')
+                                                <?php break; ?>
+                                            <?php case ('hired'): ?>
                                                 <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">Hired</span>
-                                                @break
-                                        @endswitch
+                                                <?php break; ?>
+                                        <?php endswitch; ?><!--[if ENDBLOCK]><![endif]-->
 
-                                        @php
+                                        <?php
                                             $steps = [
                                                 'pending' => 1,
                                                 'approve' => 2,
@@ -154,67 +158,68 @@
                                             ];
 
                                             $currentStep = $steps[$app->status] ?? 1;
-                                        @endphp
+                                        ?>
 
                                         <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
                                             <div class="bg-[#0A6025] h-2 rounded-full transition-all duration-300"
-                                                style="width: {{ ($currentStep / 3) * 100 }}%"></div>
+                                                style="width: <?php echo e(($currentStep / 3) * 100); ?>%"></div>
                                         </div>
 
                                         <p class="text-xs text-gray-600 mt-2">
-                                            @if($app->status === 'pending')
+                                            <!--[if BLOCK]><![endif]--><?php if($app->status === 'pending'): ?>
                                                 Under Review
-                                            @elseif($app->status === 'approve')
+                                            <?php elseif($app->status === 'approve'): ?>
                                                 Approved / For Interview
-                                            @elseif($app->status === 'decline')
+                                            <?php elseif($app->status === 'decline'): ?>
                                                 Declined
-                                            @elseif($app->status === 'hired')
+                                            <?php elseif($app->status === 'hired'): ?>
                                                 Hired
-                                            @endif
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                         </p>
                                     </td>
 
                                     <!-- Submitted -->
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {{ \Carbon\Carbon::parse($app->created_at)->format('F d, Y') }}
+                                        <?php echo e(\Carbon\Carbon::parse($app->created_at)->format('F d, Y')); ?>
+
                                     </td>
 
                                     <!-- Requirements -->
                                     <td class="px-6 py-4">
-                                        @if(!empty($app->requirements_file))
+                                        <!--[if BLOCK]><![endif]--><?php if(!empty($app->requirements_file)): ?>
                                             <a
-                                                href="{{ asset($app->requirements_file) }}"
+                                                href="<?php echo e(asset($app->requirements_file)); ?>"
                                                 target="_blank"
                                                 class="text-[#0A6025] hover:text-[#0B712C] underline font-medium text-sm transition-colors">
                                                 View File
                                             </a>
-                                        @else
+                                        <?php else: ?>
                                             <span class="text-gray-400 text-sm">No file uploaded</span>
-                                        @endif
+                                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                     </td>
 
                                     <!-- Interview Schedule -->
                                     <td class="px-6 py-4">
-                                        @if(!empty($app->interview_schedule) && $app->interview_schedule['date'])
+                                        <!--[if BLOCK]><![endif]--><?php if(!empty($app->interview_schedule) && $app->interview_schedule['date']): ?>
                                             <div class="bg-[#0A6025] bg-opacity-5 p-3 rounded-lg border border-[#0A6025] border-opacity-20 text-xs">
                                                 <p class="mb-1">
                                                     <strong class="text-gray-700">Date:</strong> 
-                                                    <span class="text-gray-600">{{ \Carbon\Carbon::parse($app->interview_schedule['date'])->format('F d, Y') }}</span>
+                                                    <span class="text-gray-600"><?php echo e(\Carbon\Carbon::parse($app->interview_schedule['date'])->format('F d, Y')); ?></span>
                                                 </p>
                                                 <p>
                                                     <strong class="text-gray-700">Room:</strong> 
-                                                    <span class="text-gray-600">{{ $app->interview_schedule['room'] ?? 'TBA' }}</span>
+                                                    <span class="text-gray-600"><?php echo e($app->interview_schedule['room'] ?? 'TBA'); ?></span>
                                                 </p>
                                             </div>
-                                        @else
+                                        <?php else: ?>
                                             <span class="text-gray-500 text-sm">No schedule yet</span>
-                                        @endif
+                                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                     </td>
 
                                     <!-- Evaluation Status -->
                                     <td class="px-6 py-4">
-                                        @if(!empty($app->evaluation_status['status']))
-                                            @if($app->evaluation_status['is_complete'])
+                                        <!--[if BLOCK]><![endif]--><?php if(!empty($app->evaluation_status['status'])): ?>
+                                            <!--[if BLOCK]><![endif]--><?php if($app->evaluation_status['is_complete']): ?>
                                                 <div class="flex items-center gap-2">
                                                     <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold flex items-center gap-1">
                                                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -223,29 +228,30 @@
                                                         Complete
                                                     </span>
                                                 </div>
-                                            @else
+                                            <?php else: ?>
                                                 <div class="flex items-center gap-2">
                                                     <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold flex items-center gap-1">
                                                         <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                         </svg>
-                                                        {{ $app->evaluation_status['status'] }}
+                                                        <?php echo e($app->evaluation_status['status']); ?>
+
                                                     </span>
-                                                    @if(isset($app->evaluation_status['completed_count']))
+                                                    <!--[if BLOCK]><![endif]--><?php if(isset($app->evaluation_status['completed_count'])): ?>
                                                         <span class="text-xs text-gray-500">
-                                                            ({{ $app->evaluation_status['completed_count'] }}/{{ $app->evaluation_status['total_count'] }} panels)
+                                                            (<?php echo e($app->evaluation_status['completed_count']); ?>/<?php echo e($app->evaluation_status['total_count']); ?> panels)
                                                         </span>
-                                                    @endif
+                                                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                                 </div>
-                                            @endif
-                                        @else
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+                                        <?php else: ?>
                                             <span class="text-gray-500 text-sm">No evaluation yet</span>
-                                        @endif
+                                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                     </td>
 
                                 </tr>
-                                @empty
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
                                     <td colspan="6" class="px-6 py-12 text-center">
                                         <div class="flex flex-col items-center justify-center">
@@ -259,7 +265,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                @endforelse
+                                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                             </tbody>
 
                         </table>
@@ -268,4 +274,4 @@
             </div>
         </div>
     </div>
-</div>
+</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/applicant/dashboard.blade.php ENDPATH**/ ?>

@@ -15,6 +15,16 @@ class PanelAssignment extends Model
         'evaluation_id'
     ];
 
+    public function panel()
+    {
+        return $this->belongsTo(Panel::class);
+    }
+
+    public function evaluation()
+    {
+        return $this->belongsTo(Evaluation::class);
+    }
+
     public function performance()
     {
         return $this->belongsTo(Performance::class);
