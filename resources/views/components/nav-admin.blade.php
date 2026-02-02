@@ -141,6 +141,7 @@
                </ul>
             </li>
 
+            @canany(['position-rank.view', 'college.view', 'department.view', 'user.view', 'role-permission.view'])
             <li>
                <button @click="managementOpen = !managementOpen"
                   class="flex items-center w-full p-3 rounded-lg text-white hover:bg-[#0A6025]">
@@ -150,7 +151,6 @@
                      :class="managementOpen ? 'rotate-180' : ''"></i>
                </button>
 
-               @canany(['position-rank.view', 'college.view', 'department.view', 'user.view', 'role-permission.view'])
                <ul x-show="managementOpen" x-transition class="ml-8 mt-1 space-y-1 text-sm">
                   @can('position-rank.view')
                   <li>
