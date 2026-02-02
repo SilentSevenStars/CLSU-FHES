@@ -189,6 +189,12 @@
                      </a>
                   </li>
                   @endcan
+                  <li>
+                     <a href="{{ route('admin.user.archive') }}"
+                        class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                        Archive User Management
+                     </a>
+                  </li>
                </ul>
             </li>
             @endcanany

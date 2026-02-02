@@ -98,7 +98,7 @@
                         <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
                             <i class="fa-solid fa-user-check text-white text-lg"></i>
                         </div>
-                        <h2 class="text-2xl font-bold text-white">Applicants for Assignment</h2>
+                        <h2 class="text-2xl font-bold text-white"><?php echo e($showArchived ? 'Archived Applications' : 'Applicants for Assignment'); ?></h2>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3">
@@ -110,6 +110,17 @@
                             <option value="50">50 / page</option>
                             <option value="100">100 / page</option>
                         </select>
+
+                        <!-- Toggle Archived/Active -->
+                        <button wire:click="$set('showArchived', !$showArchived)"
+                                class="inline-flex items-center px-4 py-2 <?php echo e($showArchived ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700'); ?> text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 <?php echo e($showArchived ? 'focus:ring-yellow-300' : 'focus:ring-blue-300'); ?>">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            <?php echo e($showArchived ? 'Show Active' : 'Show Archived'); ?>
+
+                        </button>
                     </div>
                 </div>
             </div>
@@ -189,14 +200,14 @@
                                         </th>
                         <th scope="col"
                                             class="px-6 py-3 text-start">
-                                            <span class="text-xs font-semibold uppercase text-black">Action</span>
+                                            <span class="text-xs font-semibold uppercase text-black">Actions</span>
                                         </th>
                     </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-300 bg-gray-50">
                     <?php $__empty_1 = true; $__currentLoopData = $applicants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $applicant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <?php $__currentLoopData = $applicant->jobApplications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $application): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <?php if($application->evaluation): ?>
+                    <?php if($application->evaluation && ($application->archive == $showArchived)): ?>
                     <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">
@@ -227,11 +238,37 @@
 
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button
-                                wire:click="openConfirmModal(<?php echo e($applicant->id); ?>, <?php echo e($application->evaluation->id); ?>)"
-                                class="bg-[#1E7F3E] hover:bg-[#156B2D] text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
-                                Assign Position
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <?php if(!$showArchived): ?>
+                                <button
+                                    wire:click="openConfirmModal(<?php echo e($applicant->id); ?>, <?php echo e($application->evaluation->id); ?>)"
+                                    class="bg-[#1E7F3E] hover:bg-[#156B2D] text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
+                                    Assign Position
+                                </button>
+                                <button
+                                    wire:click="openArchiveModal(<?php echo e($application->id); ?>)"
+                                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+                                    title="Archive this application">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                                    </svg>
+                                </button>
+                                <?php else: ?>
+                                <button
+                                    wire:click="unarchive(<?php echo e($application->id); ?>)"
+                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+                                    title="Unarchive this application">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
+                                    </svg>
+                                    Unarchive
+                                </button>
+                                <?php endif; ?>
+                            </div>
                         </td>
                     </tr>
                     <?php endif; ?>
@@ -455,6 +492,84 @@
             </div>
         </div>
     </div>
+
+    <!-- Archive Confirmation Modal -->
+    <div x-data="{ show: <?php if ((object) ('showArchiveModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showArchiveModal'->value()); ?>')<?php echo e('showArchiveModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showArchiveModal'); ?>')<?php endif; ?> }" x-show="show" x-cloak
+        class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="archive-modal-title" role="dialog" aria-modal="true">
+
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="show" x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div
+                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="archive-modal-title">
+                                Archive Job Application
+                            </h3>
+                            <?php if($selectedJobApplication): ?>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500 mb-3">
+                                    Are you sure you want to archive this job application?
+                                </p>
+                                <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Applicant:</span>
+                                        <span class="text-sm text-gray-900"><?php echo e($selectedJobApplication->applicant->user->name); ?></span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Position:</span>
+                                        <span class="text-sm text-gray-900"><?php echo e($selectedJobApplication->position->name); ?></span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-3">
+                                    * Archived applications will not be visible in this list and cannot be assigned a position
+                                </p>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" wire:click="confirmArchive" wire:loading.attr="disabled"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-yellow-600 text-base font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="confirmArchive">Archive</span>
+                        <span wire:loading wire:target="confirmArchive" class="flex items-center">
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Archiving...
+                        </span>
+                    </button>
+                    <button type="button" wire:click="closeArchiveModal"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
         [x-cloak] {
             display: none !important;

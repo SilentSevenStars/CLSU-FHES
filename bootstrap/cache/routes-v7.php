@@ -536,7 +536,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::UdDcDc3Z0Mbit4z8',
+            '_route' => 'generated::1kJugZrCN7HDkHxr',
           ),
           1 => NULL,
           2 => 
@@ -556,7 +556,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::KAPjqwaB4GvRR1ln',
+            '_route' => 'generated::c38OIuLrwXEpO2Un',
           ),
           1 => NULL,
           2 => 
@@ -595,7 +595,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::zoKN5hiIBs0FwJPd',
+            '_route' => 'generated::g1hMbO9kjb4mGYi1',
           ),
           1 => NULL,
           2 => 
@@ -615,7 +615,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::TTG1mc0ubVpolUJW',
+            '_route' => 'generated::lylAJnGtRy9OqtKb',
           ),
           1 => NULL,
           2 => 
@@ -1109,6 +1109,26 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
+      '/admin/archive-user' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.user.archive',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
       '/admin/profile-view' => 
       array (
         0 => 
@@ -1335,7 +1355,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::kOG3E5BMMU9J0i26',
+            '_route' => 'generated::aGH5Hw2JXEuUWPTD',
           ),
           1 => NULL,
           2 => 
@@ -2945,7 +2965,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::UdDcDc3Z0Mbit4z8' => 
+    'generated::1kJugZrCN7HDkHxr' => 
     array (
       'methods' => 
       array (
@@ -2957,7 +2977,7 @@ app('router')->setCompiledRoutes(
       array (
         'uses' => 'Livewire\\Mechanisms\\FrontendAssets\\FrontendAssets@returnJavaScriptAsFile',
         'controller' => 'Livewire\\Mechanisms\\FrontendAssets\\FrontendAssets@returnJavaScriptAsFile',
-        'as' => 'generated::UdDcDc3Z0Mbit4z8',
+        'as' => 'generated::1kJugZrCN7HDkHxr',
       ),
       'fallback' => false,
       'defaults' => 
@@ -2973,7 +2993,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::KAPjqwaB4GvRR1ln' => 
+    'generated::c38OIuLrwXEpO2Un' => 
     array (
       'methods' => 
       array (
@@ -2985,7 +3005,7 @@ app('router')->setCompiledRoutes(
       array (
         'uses' => 'Livewire\\Mechanisms\\FrontendAssets\\FrontendAssets@maps',
         'controller' => 'Livewire\\Mechanisms\\FrontendAssets\\FrontendAssets@maps',
-        'as' => 'generated::KAPjqwaB4GvRR1ln',
+        'as' => 'generated::c38OIuLrwXEpO2Un',
       ),
       'fallback' => false,
       'defaults' => 
@@ -3056,7 +3076,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::zoKN5hiIBs0FwJPd' => 
+    'generated::g1hMbO9kjb4mGYi1' => 
     array (
       'methods' => 
       array (
@@ -3079,7 +3099,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::zoKN5hiIBs0FwJPd',
+        'as' => 'generated::g1hMbO9kjb4mGYi1',
       ),
       'fallback' => false,
       'defaults' => 
@@ -3095,7 +3115,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::TTG1mc0ubVpolUJW' => 
+    'generated::lylAJnGtRy9OqtKb' => 
     array (
       'methods' => 
       array (
@@ -3124,7 +3144,7 @@ app('router')->setCompiledRoutes(
                         \'exception\' => $exception,
                     ]), status: $exception ? 500 : 200);
                 }";s:5:"scope";s:54:"Illuminate\\Foundation\\Configuration\\ApplicationBuilder";s:4:"this";N;s:4:"self";s:32:"00000000000008aa0000000000000000";}}',
-        'as' => 'generated::TTG1mc0ubVpolUJW',
+        'as' => 'generated::lylAJnGtRy9OqtKb',
       ),
       'fallback' => false,
       'defaults' => 
@@ -4339,6 +4359,45 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'admin.user.archive' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'admin/archive-user',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'role:admin|super-admin',
+        ),
+        'uses' => 'App\\Livewire\\Admin\\ArchiveUserManagement@__invoke',
+        'controller' => 'App\\Livewire\\Admin\\ArchiveUserManagement',
+        'as' => 'admin.user.archive',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'admin.profile-view' => 
     array (
       'methods' => 
@@ -5041,7 +5100,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::kOG3E5BMMU9J0i26' => 
+    'generated::aGH5Hw2JXEuUWPTD' => 
     array (
       'methods' => 
       array (
@@ -5062,7 +5121,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::kOG3E5BMMU9J0i26',
+        'as' => 'generated::aGH5Hw2JXEuUWPTD',
       ),
       'fallback' => false,
       'defaults' => 

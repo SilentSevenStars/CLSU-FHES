@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,21 +17,16 @@ class UserManagement extends Component
     public $name, $email, $password, $password_confirmation, $role, $user_id;
     public $isEditMode = false;
     public $showModal = false;
-    public $showDeleteModal = false;
-    public $deleteUserId;
+    public $showArchiveModal = false;
+    public $archiveUserId;
     public $perPage = 10;
     public $search = '';
 
     protected $paginationTheme = 'tailwind';
-
-    // Roles that must NOT appear in the create/edit dropdown.
-    // These roles have their own dedicated account-creation flows
-    // (e.g. applicant self-registers, panel/nbc are created via their own managers).
     protected array $excludedRoles = ['applicant', 'nbc', 'panel'];
 
     public function rules()
     {
-        // Dynamically build allowed role names for validation
         $allowedRoles = Role::whereNotIn('name', $this->excludedRoles)
                              ->pluck('name')
                              ->toArray();
@@ -59,9 +55,6 @@ class UserManagement extends Component
         $this->resetPage();
     }
 
-    // -------------------------------------------------------
-    // MODAL OPENERS
-    // -------------------------------------------------------
     public function openCreateModal()
     {
         $this->resetForm();
@@ -77,36 +70,29 @@ class UserManagement extends Component
         $this->user_id  = $user->id;
         $this->name     = $user->name;
         $this->email    = $user->email;
-        // Pull the first role the user currently has via Spatie
         $this->role     = $user->roles->first()?->name ?? '';
         $this->isEditMode = true;
         $this->showModal  = true;
     }
 
-    public function openDeleteModal($id)
+    public function openArchiveModal($id)
     {
-        $this->deleteUserId = $id;
-        $this->showDeleteModal = true;
+        $this->archiveUserId = $id;
+        $this->showArchiveModal = true;
     }
 
-    // -------------------------------------------------------
-    // MODAL CLOSERS
-    // -------------------------------------------------------
     public function closeModal()
     {
         $this->showModal = false;
         $this->resetForm();
     }
 
-    public function closeDeleteModal()
+    public function closeArchiveModal()
     {
-        $this->showDeleteModal = false;
-        $this->deleteUserId = null;
+        $this->showArchiveModal = false;
+        $this->archiveUserId = null;
     }
 
-    // -------------------------------------------------------
-    // FORM RESET
-    // -------------------------------------------------------
     public function resetForm()
     {
         $this->user_id              = null;
@@ -129,6 +115,7 @@ class UserManagement extends Component
                 $userData = [
                     'name'  => $this->name,
                     'email' => $this->email,
+                    'email_verified_at' => Carbon::now()
                 ];
 
                 if ($this->password) {
@@ -160,40 +147,34 @@ class UserManagement extends Component
         }
     }
 
-    // -------------------------------------------------------
-    // DELETE
-    // -------------------------------------------------------
-    public function delete()
+    public function archive()
     {
         try {
-            $user = User::findOrFail($this->deleteUserId);
+            $user = User::findOrFail($this->archiveUserId);
 
             if ($user->id === Auth::id()) {
-                session()->flash('error', 'You cannot delete your own account!');
-                $this->closeDeleteModal();
+                session()->flash('error', 'You cannot archive your own account!');
+                $this->closeArchiveModal();
                 return;
             }
 
-            $user->delete();
-            session()->flash('success', 'User deleted successfully!');
-            $this->closeDeleteModal();
+            $user->update(['archive' => true]);
+            
+            session()->flash('success', 'User archived successfully!');
+            $this->closeArchiveModal();
         } catch (\Exception $e) {
             session()->flash('error', 'An error occurred: ' . $e->getMessage());
         }
     }
 
-    // -------------------------------------------------------
-    // RENDER
-    // -------------------------------------------------------
     public function render()
     {
-        // Only list users who hold at least one role that is NOT excluded.
-        // This keeps applicant/nbc/panel users out of this management table —
-        // they are managed through their own dedicated pages.
+
         $users = User::whereHas('roles', function ($query) {
                     $query->whereNotIn('name', $this->excludedRoles);
                 })
                 ->where('id', '!=', Auth::id())
+                ->where('archive', false) // Only show non-archived users
                 ->when($this->search, function ($query) {
                     $query->where(function ($q) {
                         $q->where('name', 'like', '%' . $this->search . '%')
@@ -203,7 +184,6 @@ class UserManagement extends Component
                 ->orderBy('created_at', 'desc')
                 ->paginate($this->perPage);
 
-        // Roles available for the create/edit dropdown
         $availableRoles = Role::whereNotIn('name', $this->excludedRoles)
                                ->orderBy('name')
                                ->get();

@@ -44,6 +44,12 @@ class FortifyServiceProvider extends ServiceProvider
 
             if ($user && Hash::check($request->password, $user->password)) {
 
+                // Check if user is archived
+                if ($user->archive) {
+                    session()->flash('error', 'Your account has been archived. Please contact the administrator.');
+                    return null;
+                }
+
                 // Only block applicants if email not verified
                 if ($user->role === 'applicant' && ! $user->hasVerifiedEmail()) {
                     session()->flash('error', 'Applicants must verify their email before logging in.');

@@ -4,6 +4,8 @@ use App\Http\Controllers\ScreeningExportController;
 use App\Livewire\Admin\Applicant;
 use App\Livewire\Admin\ApplicantEdit;
 use App\Livewire\Admin\ApplicantShow;
+use App\Livewire\Admin\ArchieveUnasignPosition;
+use App\Livewire\Admin\ArchiveUserManagement;
 use App\Livewire\Admin\AssignPosition;
 use App\Livewire\Admin\CollegeManager;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
@@ -162,10 +164,12 @@ Route::middleware([
             ->name('assign.position')
             ->middleware('permission:assign-position.view');
 
+        Route::get('/archive-assign-position', ArchieveUnasignPosition::class)->name('assign.position.archive')->middleware('permission:assign.position.archive.view');
+
         // --- NBC Committee (CRUD) — TYPO FIXED here ---
         Route::get('/nbc-comittee', NbcCommitteeManager::class)
             ->name('nbc.comittee')
-            ->middleware('permission:nbc-committee.view');  // was 'permisssion:...'
+            ->middleware('permission:nbc-committee.view');  
 
         // --- NBC ---
         Route::get('/nbc', Nbc::class)
@@ -185,6 +189,8 @@ Route::middleware([
         Route::get('/roles-permissions', RolePermissionManager::class)
             ->name('role-permission')
             ->middleware('permission:role-permission.view');
+
+        Route::get('/archive-user', ArchiveUserManagement::class)->name('user.archive.view')->middleware('permission:user.archive.view');
 
         Route::get('/profile-view', AdminProfileView::class)->name('profile-view');
         Route::get('/update-password', AdminUpdatePassword::class)->name('update-password');

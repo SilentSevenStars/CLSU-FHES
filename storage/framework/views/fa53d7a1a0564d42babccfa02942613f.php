@@ -178,7 +178,7 @@
 
                     </span>
                     <div>
-                        <?php echo e($roles->onlyPageButtons()->links()); ?>
+                        <?php echo e($roles->links()); ?>
 
                     </div>
                 </div>
@@ -299,7 +299,7 @@
 
                     </span>
                     <div>
-                        <?php echo e($permissions->onlyPageButtons()->links()); ?>
+                        <?php echo e($permissions->links()); ?>
 
                     </div>
                 </div>

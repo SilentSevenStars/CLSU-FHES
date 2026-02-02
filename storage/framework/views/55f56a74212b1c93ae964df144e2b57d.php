@@ -1,7 +1,7 @@
 <div
     x-data="{
-        showModal: <?php if ((object) ('showModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showModal'->value()); ?>')<?php echo e('showModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showModal'); ?>')<?php endif; ?>,
-        showArchiveModal: <?php if ((object) ('showArchiveModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showArchiveModal'->value()); ?>')<?php echo e('showArchiveModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showArchiveModal'); ?>')<?php endif; ?>
+        showRestoreModal: <?php if ((object) ('showRestoreModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showRestoreModal'->value()); ?>')<?php echo e('showRestoreModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showRestoreModal'); ?>')<?php endif; ?>,
+        showDeleteModal: <?php if ((object) ('showDeleteModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showDeleteModal'->value()); ?>')<?php echo e('showDeleteModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showDeleteModal'); ?>')<?php endif; ?>
     }"
 >
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-6 overflow-auto min-h-screen">
@@ -36,15 +36,15 @@
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 class="text-4xl font-extrabold bg-[#1E7F3E] bg-clip-text text-transparent mb-2">
-                            Users
+                            Archived Users
                         </h1>
                         <p class="text-gray-600 flex items-center gap-2">
                             <svg class="w-5 h-5 text-[#1E7F3E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z">
+                                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
                                 </path>
                             </svg>
-                            User Management
+                            Manage Archived Users
                         </p>
                     </div>
                 </div>
@@ -57,9 +57,9 @@
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-                                <i class="fa-solid fa-users text-white text-lg"></i>
+                                <i class="fa-solid fa-box-archive text-white text-lg"></i>
                             </div>
-                            <h2 class="text-2xl font-bold text-white">Users List</h2>
+                            <h2 class="text-2xl font-bold text-white">Archived Users List</h2>
                         </div>
 
                         <div class="flex flex-wrap items-center gap-3">
@@ -100,12 +100,17 @@
                                             </div>
                                         </div>
 
-                                        <!-- Create Button -->
-                                        <div>
-                                            <button wire:click="openCreateModal"
-                                                    class="block text-white bg-[#156B2D] hover:bg-[#125A26] focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5">
-                                                Add New User
-                                            </button>
+                                        <!-- Info Badge -->
+                                        <div class="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-4 py-2">
+                                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                                </path>
+                                            </svg>
+                                            <span class="text-sm font-medium text-orange-800">
+                                                <?php echo e($archivedUsers->total()); ?> Archived User<?php echo e($archivedUsers->total() !== 1 ? 's' : ''); ?>
+
+                                            </span>
                                         </div>
                                     </div>
 
@@ -126,7 +131,7 @@
                                                     <span class="text-xs font-semibold uppercase text-black">Role</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <span class="text-xs font-semibold uppercase text-black">Created Date</span>
+                                                    <span class="text-xs font-semibold uppercase text-black">Archived Date</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
                                                     <span class="text-xs font-semibold uppercase text-black">Action</span>
@@ -134,7 +139,7 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
-                                            <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                            <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $archivedUsers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                                 <?php
                                                     // Get the first role name via Spatie relationship
                                                     $roleName = $user->roles->first()?->name ?? 'none';
@@ -150,12 +155,21 @@
                                                 ?>
                                                 <tr class="bg-gray-50 hover:bg-gray-100">
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-medium">
-                                                        <?php echo e($users->firstItem() + $index); ?>
+                                                        <?php echo e($archivedUsers->firstItem() + $index); ?>
 
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                                        <?php echo e($user->name); ?>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="inline-flex items-center justify-center w-6 h-6 bg-orange-100 text-orange-600 rounded-full text-xs font-medium">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                          d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
+                                                                    </path>
+                                                                </svg>
+                                                            </span>
+                                                            <?php echo e($user->name); ?>
 
+                                                        </div>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
                                                         <?php echo e($user->email); ?>
@@ -168,17 +182,17 @@
                                                         </span>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                                        <?php echo e($user->created_at->format('M d, Y')); ?>
+                                                        <?php echo e($user->updated_at->format('M d, Y')); ?>
 
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                        <button wire:click="openEditModal(<?php echo e($user->id); ?>)"
-                                                                class="text-white bg-yellow-500 hover:bg-yellow-600 rounded-lg px-3 py-1 text-sm font-medium">
-                                                            Edit
+                                                        <button wire:click="openRestoreModal(<?php echo e($user->id); ?>)"
+                                                                class="text-white bg-blue-600 hover:bg-blue-700 rounded-lg px-3 py-1 text-sm font-medium">
+                                                            Restore
                                                         </button>
-                                                        <button wire:click="openArchiveModal(<?php echo e($user->id); ?>)"
-                                                                class="px-3 py-1 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700">
-                                                            Archive
+                                                        <button wire:click="openDeleteModal(<?php echo e($user->id); ?>)"
+                                                                class="px-3 py-1 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
+                                                            Delete
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -188,14 +202,11 @@
                                                         <div class="flex flex-col items-center justify-center">
                                                             <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z">
+                                                                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
                                                                 </path>
                                                             </svg>
-                                                            <p class="text-lg font-medium">No users found</p>
-                                                            <button wire:click="openCreateModal"
-                                                                    class="mt-4 text-white bg-[#1E7F3E] hover:bg-[#156B2D] rounded-lg px-4 py-2 text-sm font-medium">
-                                                                Create First User
-                                                            </button>
+                                                            <p class="text-lg font-medium">No archived users found</p>
+                                                            <p class="text-sm text-gray-400 mt-2">All users are active</p>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -206,14 +217,14 @@
                                     <!-- Pagination -->
                                     <div class="p-4 bg-white border-t border-gray-300 flex flex-col sm:flex-row items-center justify-between gap-3">
                                         <span class="text-xs text-gray-500">
-                                            <!--[if BLOCK]><![endif]--><?php if($users->total() > 0): ?>
-                                                Showing <?php echo e($users->firstItem()); ?> to <?php echo e($users->lastItem()); ?> of <?php echo e($users->total()); ?> user<?php echo e($users->total() !== 1 ? 's' : ''); ?>
+                                            <!--[if BLOCK]><![endif]--><?php if($archivedUsers->total() > 0): ?>
+                                                Showing <?php echo e($archivedUsers->firstItem()); ?> to <?php echo e($archivedUsers->lastItem()); ?> of <?php echo e($archivedUsers->total()); ?> archived user<?php echo e($archivedUsers->total() !== 1 ? 's' : ''); ?>
 
                                             <?php else: ?>
-                                                No users found
+                                                No archived users found
                                             <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                         </span>
-                                        <?php echo e($users->links()); ?>
+                                        <?php echo e($archivedUsers->links()); ?>
 
                                     </div>
                                 </div>
@@ -226,13 +237,13 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- CREATE / EDIT MODAL                                            -->
+    <!-- RESTORE CONFIRMATION MODAL                                     -->
     <!-- ============================================================ -->
-    <div x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <div x-show="showRestoreModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <!-- Overlay -->
             <div
-                x-show="showModal"
+                x-show="showRestoreModal"
                 x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100"
@@ -240,12 +251,12 @@
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-                @click="$wire.closeModal()"
+                @click="$wire.closeRestoreModal()"
             ></div>
 
             <!-- Modal panel -->
             <div
-                x-show="showModal"
+                x-show="showRestoreModal"
                 x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -253,184 +264,21 @@
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-                @click.away="$wire.closeModal()"
-            >
-                <div class="bg-[#1E7F3E] px-6 py-4">
-                    <h3 class="text-xl font-bold text-white">
-                        <?php echo e($isEditMode ? 'Edit' : 'Create'); ?> User
-                    </h3>
-                </div>
-
-                <form wire:submit.prevent="save">
-                    <div class="bg-white px-6 pt-5 pb-4">
-                        <!-- Name -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                            <input wire:model="name" type="text"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] <?php $__errorArgs = ['name'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-                            <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['name'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p> <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
-                        </div>
-
-                        <!-- Email -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                            <input wire:model="email" type="email"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] <?php $__errorArgs = ['email'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-                            <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['email'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p> <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
-                        </div>
-
-                        <!-- Role — populated dynamically from DB, excludes applicant / nbc / panel -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                            <select wire:model="role"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] <?php $__errorArgs = ['role'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-                                <option value="">Select Role</option>
-                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $availableRoles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $availableRole): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                    <option value="<?php echo e($availableRole->name); ?>">
-                                        <?php echo e(ucfirst(str_replace('-', ' ', $availableRole->name))); ?>
-
-                                    </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
-                            </select>
-                            <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['role'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p> <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
-                        </div>
-
-                        <!-- Password -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Password
-                                <!--[if BLOCK]><![endif]--><?php if($isEditMode): ?>
-                                    <span class="text-gray-400 font-normal">(Leave blank to keep current)</span>
-                                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
-                            </label>
-                            <input wire:model="password" type="password"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] <?php $__errorArgs = ['password'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> border-red-500 <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-                            <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['password'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> <p class="mt-1 text-sm text-red-600"><?php echo e($message); ?></p> <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
-                        </div>
-
-                        <!-- Confirm Password -->
-                        <div class="mb-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                            <input wire:model="password_confirmation" type="password"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E]">
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
-                        <button type="button" wire:click="closeModal"
-                                class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                                class="px-4 py-2 bg-[#1E7F3E] text-white rounded-lg hover:bg-[#156B2D] font-medium">
-                            <?php echo e($isEditMode ? 'Update' : 'Create'); ?>
-
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- ARCHIVE CONFIRMATION MODAL                                      -->
-    <!-- ============================================================ -->
-    <div x-show="showArchiveModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Overlay -->
-            <div
-                x-show="showArchiveModal"
-                x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-                @click="$wire.closeArchiveModal()"
-            ></div>
-
-            <!-- Modal panel -->
-            <div
-                x-show="showArchiveModal"
-                x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-                @click.away="$wire.closeArchiveModal()"
+                @click.away="$wire.closeRestoreModal()"
             >
                 <div class="bg-white px-6 pt-5 pb-4">
                     <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Archive User</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Restore User</h3>
                             <div class="mt-2">
                                 <p class="text-sm text-gray-500">
-                                    Are you sure you want to archive this user? The user will no longer be able to log in and will be hidden from the users list. This action can be reversed later.
+                                    Are you sure you want to restore this user? The user will be able to log in again and will appear in the active users list.
                                 </p>
                             </div>
                         </div>
@@ -438,13 +286,81 @@ unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
                 </div>
 
                 <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
-                    <button wire:click="closeArchiveModal" type="button"
+                    <button wire:click="closeRestoreModal" type="button"
                             class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
                         Cancel
                     </button>
-                    <button wire:click="archive" type="button"
-                            class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium">
-                        Archive
+                    <button wire:click="restore" type="button"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                        Restore
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- DELETE CONFIRMATION MODAL                                      -->
+    <!-- ============================================================ -->
+    <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Overlay -->
+            <div
+                x-show="showDeleteModal"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
+                @click="$wire.closeDeleteModal()"
+            ></div>
+
+            <!-- Modal panel -->
+            <div
+                x-show="showDeleteModal"
+                x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                @click.away="$wire.closeDeleteModal()"
+            >
+                <div class="bg-white px-6 pt-5 pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Delete User Permanently</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">
+                                    Are you sure you want to <span class="font-semibold text-red-600">permanently delete</span> this user? This action cannot be undone and all user data will be lost forever.
+                                </p>
+                                <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <p class="text-xs text-red-800 font-medium">
+                                        ⚠️ Warning: This is a permanent action. Consider restoring the user instead if you might need their data later.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                    <button wire:click="closeDeleteModal" type="button"
+                            class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
+                        Cancel
+                    </button>
+                    <button wire:click="delete" type="button"
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                        Delete Permanently
                     </button>
                 </div>
             </div>
@@ -454,4 +370,4 @@ unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
     <style>
         [x-cloak] { display: none !important; }
     </style>
-</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/admin/user-management.blade.php ENDPATH**/ ?>
+</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/admin/archive-user-management.blade.php ENDPATH**/ ?>

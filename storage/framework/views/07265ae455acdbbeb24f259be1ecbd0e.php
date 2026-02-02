@@ -1,6 +1,40 @@
 <div>
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-7xl mx-auto">
+            
+            <!-- Flash Messages -->
+            <?php if(session()->has('success')): ?>
+                <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span><?php echo e(session('success')); ?></span>
+                    </div>
+                    <button wire:click="$refresh" class="text-green-700 hover:text-green-900">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            <?php endif; ?>
+
+            <?php if(session()->has('error')): ?>
+                <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center justify-between">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <span><?php echo e(session('error')); ?></span>
+                    </div>
+                    <button wire:click="$refresh" class="text-red-700 hover:text-red-900">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            <?php endif; ?>
+
             <!-- Header Section with Enhanced Styling -->
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
@@ -44,22 +78,20 @@
                                 <option value="dean">Dean</option>
                             </select>
 
-                            <!-- College Filter (using college_id) -->
+                            <!-- College Filter -->
                             <select wire:model.live="filterCollege"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="all">All Colleges</option>
                                 <?php $__currentLoopData = $colleges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $col): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                
                                 <option value="<?php echo e($col->id); ?>"><?php echo e($col->name); ?></option>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
 
-                            <!-- Department Filter (using department_id) -->
+                            <!-- Department Filter -->
                             <select wire:model.live="filterDepartment"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="all">All Departments</option>
                                 <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dept): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                
                                 <option value="<?php echo e($dept->id); ?>"><?php echo e($dept->name); ?></option>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
@@ -109,13 +141,15 @@
                                             </div>
                                         </div>
 
-                                        <!-- Create Button -->
+                                        <!-- Create Button - Only show if user has permission -->
+                                        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('panel.create')): ?>
                                         <div>
                                             <button wire:click="openCreateModal" class="block text-white bg-[#0D7A2F] hover:bg-[#0a6025] focus:ring-4 focus:ring-blue-300 
                                         font-medium rounded-lg text-sm px-5 py-2.5">
                                                 Create Panel
                                             </button>
                                         </div>
+                                        <?php endif; ?>
                                     </div>
                                     <!-- End Header -->
 
@@ -189,25 +223,27 @@
 
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                                    
                                                     <?php echo e($position->college->name ?? 'N/A'); ?>
 
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                                    
-                                                    
                                                     <?php echo e($position->department->name ?? ($position->panel_position === 'Dean' ? 'N/A (Dean)' : 'N/A')); ?>
 
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
+                                                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('panel.edit')): ?>
                                                     <button wire:click="openEditModal(<?php echo e($position->id); ?>)"
                                                         class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 rounded-lg px-3 py-1 text-sm font-medium">
                                                         Edit
                                                     </button>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('panel.delete')): ?>
                                                     <button wire:click="confirmDelete(<?php echo e($position->id); ?>)"
                                                         class="px-3 py-1 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
                                                         Delete
                                                     </button>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
@@ -240,30 +276,42 @@
         </div>
     </div>
 
-    <div x-data x-on:swal:confirm.window="
-        const d = $event.detail;
-
-        Swal.fire({
-            title: d.title ?? 'Are you sure?',
-            text: d.text ?? 'This action cannot be undone.',
-            icon: d.icon ?? 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $wire.deleteConfirmed(d.id);
-            }
-        });
-    ">
-
-        <?php if($showCreateModal): ?>
-        <?php echo $__env->make('livewire.admin.modals.create-panel', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-        <?php endif; ?>
-
-        <?php if($showEditModal): ?>
-        <?php echo $__env->make('livewire.admin.modals.edit-panel', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-        <?php endif; ?>
+    <!-- Delete Confirmation Modal -->
+    <?php if($showDeleteModal): ?>
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" wire:click="cancelDelete">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" wire:click.stop>
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-5">Delete Panel</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        Are you sure you want to delete this panel? This action cannot be undone.
+                    </p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button wire:click="deletePanel"
+                        class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-24 mr-2 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+                        Delete
+                    </button>
+                    <button wire:click="cancelDelete"
+                        class="px-4 py-2 bg-gray-300 text-gray-700 text-base font-medium rounded-md w-24 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
+    <?php endif; ?>
+
+    <?php if($showCreateModal): ?>
+    <?php echo $__env->make('livewire.admin.modals.create-panel', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php endif; ?>
+
+    <?php if($showEditModal): ?>
+    <?php echo $__env->make('livewire.admin.modals.edit-panel', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php endif; ?>
 </div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views\livewire\admin\panel-manager.blade.php ENDPATH**/ ?>

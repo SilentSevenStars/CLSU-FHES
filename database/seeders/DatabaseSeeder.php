@@ -22,7 +22,6 @@ class DatabaseSeeder extends Seeder
             'college',
             'department',
             'representative',
-            'user',
             'role-permission',
         ];
 
@@ -32,48 +31,50 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Position
+        Permission::firstOrCreate(['name' => 'user.view']);
+        Permission::firstOrCreate(['name' => 'user.create']);
+        Permission::firstOrCreate(['name' => 'user.edit']);
+
+        Permission::firstOrCreate(['name' => 'user.archive.view']);
+        Permission::firstOrCreate(['name' => 'user.archive.restore']);
+        Permission::firstOrCreate(['name' => 'user.archive.delete']);
+
         Permission::firstOrCreate(['name' => 'position.view']);
         Permission::firstOrCreate(['name' => 'position.create']);
         Permission::firstOrCreate(['name' => 'position.edit']);
 
-        // Applicant
         Permission::firstOrCreate(['name' => 'applicant.view']);
         Permission::firstOrCreate(['name' => 'applicant.edit']);
         Permission::firstOrCreate(['name' => 'applicant.scheduled']);
 
-        // Screening & NBC
         Permission::firstOrCreate(['name' => 'screening.view']);
         Permission::firstOrCreate(['name' => 'screening.export']);
         Permission::firstOrCreate(['name' => 'nbc.view']);
         Permission::firstOrCreate(['name' => 'nbc.export']);
 
-        // Standalone
         Permission::firstOrCreate(['name' => 'notification']);
         Permission::firstOrCreate(['name' => 'message']);
         Permission::firstOrCreate(['name' => 'assign-position.view']);
 
-        // -------------------------------------------------------
-        // ROLES
-        // -------------------------------------------------------
+        Permission::firstOrCreate(['name' => 'assign.position.archive.view']);
+        Permission::firstOrCreate(['name' => 'assign.position.archive.restore']);
+        Permission::firstOrCreate(['name' => 'assign.position.archive.delete']);
+
         $superAdmin = Role::firstOrCreate(['name' => 'super-admin']);
         $adminRole  = Role::firstOrCreate(['name' => 'admin']);
         Role::firstOrCreate(['name' => 'applicant']);
         Role::firstOrCreate(['name' => 'panel']);
         Role::firstOrCreate(['name' => 'nbc']);
 
-        // Super Admin → ALL permissions
         $superAdmin->syncPermissions(Permission::all());
 
-        // -------------------------------------------------------
-        // ADMIN PERMISSIONS (EXCEPT SPECIFIC CRUD MODULES)
-        // -------------------------------------------------------
         $restrictedModules = [
             'position-rank',
             'college',
             'department',
             'user',
             'role-permission',
+            'assign.position.archive',
         ];
 
         $excludedPermissions = Permission::where(function ($query) use ($restrictedModules) {

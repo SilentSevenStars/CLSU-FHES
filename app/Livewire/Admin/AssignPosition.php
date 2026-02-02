@@ -32,11 +32,17 @@ class AssignPosition extends Component
     public $tempPositionFilter = '';
     public $showDropdown = false;
     public $filteredNames = [];
+    
+    // Archive functionality
+    public $showArchiveModal = false;
+    public $selectedJobApplication = null;
+    public $showArchived = false;
 
     protected $queryString = [
         'search' => ['except' => ''],
         'positionFilter' => ['except' => ''],
         'perPage' => ['except' => 10],
+        'showArchived' => ['except' => false],
     ];
 
     public function updatingSearch()
@@ -177,7 +183,8 @@ class AssignPosition extends Component
             Log::info('Starting position assignment', [
                 'applicant_id' => $this->selectedApplicant->id,
                 'old_position' => $oldPosition,
-                'new_position' => $newPosition
+                'new_position' => $newPosition,
+                'job_application_id' => $this->selectedEvaluation->jobApplication->id
             ]);
 
             // Update applicant position and set hired to true
@@ -188,12 +195,13 @@ class AssignPosition extends Component
 
             Log::info('Applicant updated successfully');
 
-            // Update job application status to hired
+            // Update job application status to hired AND archive it
             $this->selectedEvaluation->jobApplication->update([
                 'status' => 'hired',
+                'archive' => true, // Archive the job application after assignment
             ]);
 
-            Log::info('Job application updated successfully');
+            Log::info('Job application updated successfully (hired and archived)');
 
             // Send email notification
             $this->sendPromotionEmail($this->selectedApplicant, $oldPosition, $newPosition);
@@ -214,6 +222,83 @@ class AssignPosition extends Component
 
             $this->showAlert('error', 'Something went wrong: ' . $e->getMessage());
             $this->closeConfirmModal();
+        }
+    }
+
+    // Archive functionality methods
+    public function openArchiveModal($jobApplicationId)
+    {
+        $this->selectedJobApplication = \App\Models\JobApplication::with(['applicant.user', 'position'])
+            ->findOrFail($jobApplicationId);
+        $this->showArchiveModal = true;
+    }
+
+    public function closeArchiveModal()
+    {
+        $this->showArchiveModal = false;
+        $this->reset(['selectedJobApplication']);
+    }
+
+    public function confirmArchive()
+    {
+        if (!$this->selectedJobApplication) {
+            $this->showAlert('error', 'Invalid job application selection.');
+            return;
+        }
+
+        try {
+            Log::info('Archiving job application', [
+                'job_application_id' => $this->selectedJobApplication->id,
+                'applicant_name' => $this->selectedJobApplication->applicant->user->name,
+                'position' => $this->selectedJobApplication->position->name
+            ]);
+
+            // Update archive column to true
+            $this->selectedJobApplication->update([
+                'archive' => true,
+            ]);
+
+            Log::info('Job application archived successfully');
+
+            $this->showAlert('success', "Successfully archived job application for {$this->selectedJobApplication->applicant->user->name}");
+
+            $this->closeArchiveModal();
+            $this->resetPage();
+        } catch (Exception $e) {
+            Log::error('Error in confirmArchive: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            $this->showAlert('error', 'Something went wrong: ' . $e->getMessage());
+            $this->closeArchiveModal();
+        }
+    }
+
+    public function unarchive($jobApplicationId)
+    {
+        $jobApplication = \App\Models\JobApplication::findOrFail($jobApplicationId);
+
+        try {
+            Log::info('Unarchiving job application', [
+                'job_application_id' => $jobApplication->id,
+                'applicant_name' => $jobApplication->applicant->user->name,
+                'position' => $jobApplication->position->name
+            ]);
+
+            // Update archive column to false
+            $jobApplication->update([
+                'archive' => false,
+            ]);
+
+            Log::info('Job application unarchived successfully');
+
+            $this->showAlert('success', "Successfully unarchived job application for {$jobApplication->applicant->user->name}");
+
+            $this->resetPage();
+        } catch (Exception $e) {
+            Log::error('Error in unarchive: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            $this->showAlert('error', 'Something went wrong: ' . $e->getMessage());
         }
     }
 
@@ -326,14 +411,17 @@ class AssignPosition extends Component
                     $q->with([
                         'position',
                         'evaluation'
-                    ]);
+                    ])
+                    // Include or exclude archived job applications based on showArchived
+                    ->where('archive', $this->showArchived ? true : false);
                 }
             ])
-            // Must have a job application WITH evaluation
+            // Must have a job application WITH evaluation and matching archive status
             ->whereHas('jobApplications', function ($q) {
-                $q->whereHas('evaluation', function ($e) {
-                    $e->whereDate('interview_date', '<=', now());
-                });
+                $q->where('archive', $this->showArchived ? true : false)
+                    ->whereHas('evaluation', function ($e) {
+                        $e->whereDate('interview_date', '<=', now());
+                    });
             })
             // NOT YET HIRED
             ->where('hired', false);
@@ -348,9 +436,10 @@ class AssignPosition extends Component
         // Filter by applied position
         if (!empty($this->positionFilter)) {
             $applicantsQuery->whereHas('jobApplications', function ($q) {
-                $q->whereHas('position', function ($p) {
-                    $p->where('name', $this->positionFilter);
-                });
+                $q->where('archive', $this->showArchived ? true : false)
+                    ->whereHas('position', function ($p) {
+                        $p->where('name', $this->positionFilter);
+                    });
             });
         }
 

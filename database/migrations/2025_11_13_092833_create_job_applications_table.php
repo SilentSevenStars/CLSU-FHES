@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('interview_location')->nullable();
             $table->foreignId('position_id')->constrained()->cascadeOnDelete();
             $table->foreignId('applicant_id')->constrained('applicants')->onDelete('cascade');
+            $table->boolean('archive')->default(false);
             $table->timestamps();
         });
     }

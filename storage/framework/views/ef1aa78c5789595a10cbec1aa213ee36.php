@@ -1,7 +1,7 @@
 <div
     x-data="{
         showModal: <?php if ((object) ('showModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showModal'->value()); ?>')<?php echo e('showModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showModal'); ?>')<?php endif; ?>,
-        showDeleteModal: <?php if ((object) ('showDeleteModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showDeleteModal'->value()); ?>')<?php echo e('showDeleteModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showDeleteModal'); ?>')<?php endif; ?>
+        showArchiveModal: <?php if ((object) ('showArchiveModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showArchiveModal'->value()); ?>')<?php echo e('showArchiveModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showArchiveModal'); ?>')<?php endif; ?>
     }"
 >
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-6 overflow-auto min-h-screen">
@@ -114,7 +114,7 @@
                                         <thead class="bg-gray-200">
                                             <tr>
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <span class="text-xs font-semibold uppercase text-black">ID</span>
+                                                    <span class="text-xs font-semibold uppercase text-black">No.</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
                                                     <span class="text-xs font-semibold uppercase text-black">Name</span>
@@ -134,10 +134,23 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
-                                            <?php $__empty_1 = true; $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                            <?php $__empty_1 = true; $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                                <?php
+                                                    // Get the first role name via Spatie relationship
+                                                    $roleName = $user->roles->first()?->name ?? 'none';
+
+                                                    // Determine badge color based on role name
+                                                    $badgeClass = match($roleName) {
+                                                        'admin'       => 'bg-purple-100 text-purple-800',
+                                                        'super-admin' => 'bg-indigo-100 text-indigo-800',
+                                                        'panel'       => 'bg-blue-100 text-blue-800',
+                                                        'nbc'         => 'bg-green-100 text-green-800',
+                                                        default       => 'bg-amber-100 text-amber-800',  // any custom role
+                                                    };
+                                                ?>
                                                 <tr class="bg-gray-50 hover:bg-gray-100">
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-medium">
-                                                        <?php echo e($user->id); ?>
+                                                        <?php echo e($users->firstItem() + $index); ?>
 
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
@@ -149,13 +162,8 @@
 
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                        <span class="px-2 py-1 rounded-full text-xs font-medium
-                                                            <?php if($user->role === 'admin'): ?> bg-purple-100 text-purple-800
-                                                            <?php elseif($user->role === 'panel'): ?> bg-blue-100 text-blue-800
-                                                            <?php elseif($user->role === 'nbc'): ?> bg-green-100 text-green-800
-                                                            <?php else: ?> bg-gray-100 text-gray-800
-                                                            <?php endif; ?>">
-                                                            <?php echo e(ucfirst($user->role)); ?>
+                                                        <span class="px-2 py-1 rounded-full text-xs font-medium <?php echo e($badgeClass); ?>">
+                                                            <?php echo e(ucfirst(str_replace('-', ' ', $roleName))); ?>
 
                                                         </span>
                                                     </td>
@@ -168,9 +176,9 @@
                                                                 class="text-white bg-yellow-500 hover:bg-yellow-600 rounded-lg px-3 py-1 text-sm font-medium">
                                                             Edit
                                                         </button>
-                                                        <button wire:click="openDeleteModal(<?php echo e($user->id); ?>)"
-                                                                class="px-3 py-1 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
-                                                            Delete
+                                                        <button wire:click="openArchiveModal(<?php echo e($user->id); ?>)"
+                                                                class="px-3 py-1 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700">
+                                                            Archive
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -196,7 +204,15 @@
                                     </table>
 
                                     <!-- Pagination -->
-                                    <div class="p-4 bg-white border-t border-gray-300">
+                                    <div class="p-4 bg-white border-t border-gray-300 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                        <span class="text-xs text-gray-500">
+                                            <?php if($users->total() > 0): ?>
+                                                Showing <?php echo e($users->firstItem()); ?> to <?php echo e($users->lastItem()); ?> of <?php echo e($users->total()); ?> user<?php echo e($users->total() !== 1 ? 's' : ''); ?>
+
+                                            <?php else: ?>
+                                                No users found
+                                            <?php endif; ?>
+                                        </span>
                                         <?php echo e($users->links()); ?>
 
                                     </div>
@@ -209,7 +225,9 @@
         </div>
     </div>
 
-    <!-- Create/Edit Modal -->
+    <!-- ============================================================ -->
+    <!-- CREATE / EDIT MODAL                                            -->
+    <!-- ============================================================ -->
     <div x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <!-- Overlay -->
@@ -245,6 +263,7 @@
 
                 <form wire:submit.prevent="save">
                     <div class="bg-white px-6 pt-5 pb-4">
+                        <!-- Name -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
                             <input wire:model="name" type="text"
@@ -266,6 +285,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                         </div>
 
+                        <!-- Email -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                             <input wire:model="email" type="email"
@@ -287,6 +307,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                         </div>
 
+                        <!-- Role — populated dynamically from DB, excludes applicant / nbc / panel -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
                             <select wire:model="role"
@@ -299,10 +320,12 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>">
                                 <option value="">Select Role</option>
-                                <option value="admin">Admin</option>
-                                <option value="applicant">Applicant</option>
-                                <option value="panel">Panel</option>
-                                <option value="nbc">NBC</option>
+                                <?php $__currentLoopData = $availableRoles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $availableRole): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($availableRole->name); ?>">
+                                        <?php echo e(ucfirst(str_replace('-', ' ', $availableRole->name))); ?>
+
+                                    </option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
                             <?php $__errorArgs = ['role'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -314,10 +337,13 @@ endif;
 unset($__errorArgs, $__bag); ?>
                         </div>
 
+                        <!-- Password -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Password <?php echo e($isEditMode ? '(Leave blank to keep current)' : ''); ?>
-
+                                Password
+                                <?php if($isEditMode): ?>
+                                    <span class="text-gray-400 font-normal">(Leave blank to keep current)</span>
+                                <?php endif; ?>
                             </label>
                             <input wire:model="password" type="password"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] <?php $__errorArgs = ['password'];
@@ -338,6 +364,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                         </div>
 
+                        <!-- Confirm Password -->
                         <div class="mb-1">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                             <input wire:model="password_confirmation" type="password"
@@ -361,12 +388,14 @@ unset($__errorArgs, $__bag); ?>
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+    <!-- ============================================================ -->
+    <!-- ARCHIVE CONFIRMATION MODAL                                      -->
+    <!-- ============================================================ -->
+    <div x-show="showArchiveModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <!-- Overlay -->
             <div
-                x-show="showDeleteModal"
+                x-show="showArchiveModal"
                 x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100"
@@ -374,12 +403,12 @@ unset($__errorArgs, $__bag); ?>
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-                @click="$wire.closeDeleteModal()"
+                @click="$wire.closeArchiveModal()"
             ></div>
 
             <!-- Modal panel -->
             <div
-                x-show="showDeleteModal"
+                x-show="showArchiveModal"
                 x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -387,21 +416,21 @@ unset($__errorArgs, $__bag); ?>
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-                @click.away="$wire.closeDeleteModal()"
+                @click.away="$wire.closeArchiveModal()"
             >
                 <div class="bg-white px-6 pt-5 pb-4">
                     <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                             </svg>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Delete User</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">Archive User</h3>
                             <div class="mt-2">
                                 <p class="text-sm text-gray-500">
-                                    Are you sure you want to delete this user? This action cannot be undone.
+                                    Are you sure you want to archive this user? The user will no longer be able to log in and will be hidden from the users list. This action can be reversed later.
                                 </p>
                             </div>
                         </div>
@@ -409,13 +438,13 @@ unset($__errorArgs, $__bag); ?>
                 </div>
 
                 <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3">
-                    <button wire:click="closeDeleteModal" type="button"
+                    <button wire:click="closeArchiveModal" type="button"
                             class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">
                         Cancel
                     </button>
-                    <button wire:click="delete" type="button"
-                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
-                        Delete
+                    <button wire:click="archive" type="button"
+                            class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium">
+                        Archive
                     </button>
                 </div>
             </div>

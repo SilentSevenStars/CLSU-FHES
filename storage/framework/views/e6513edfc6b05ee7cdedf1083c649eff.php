@@ -111,7 +111,8 @@
                      </a>
                   </li>
                   <li>
-                     <a href="<?php echo e(route('admin.representative')); ?>" class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                     <a href="<?php echo e(route('admin.representative')); ?>"
+                        class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         Representative
                      </a>
                   </li>
@@ -140,42 +141,63 @@
                </ul>
             </li>
 
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->any(['position-rank.view', 'college.view', 'department.view', 'user.view', 'role-permission.view'])): ?>
             <li>
                <button @click="managementOpen = !managementOpen"
                   class="flex items-center w-full p-3 rounded-lg text-white hover:bg-[#0A6025]">
                   <i class="fa-solid fa-gear text-xl w-5"></i>
                   <span class="ml-4 flex-1 block sm:hidden sm:group-hover:block">Management</span>
-                  <i class="fa-solid fa-chevron-down text-xs transition-transform" :class="managementOpen ? 'rotate-180' : ''"></i>
+                  <i class="fa-solid fa-chevron-down text-xs transition-transform"
+                     :class="managementOpen ? 'rotate-180' : ''"></i>
                </button>
 
                <ul x-show="managementOpen" x-transition class="ml-8 mt-1 space-y-1 text-sm">
+                  <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('position-rank.view')): ?>
                   <li>
-                     <a href="<?php echo e(route('admin.position.rank')); ?>" class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                     <a href="<?php echo e(route('admin.position.rank')); ?>"
+                        class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         Position
                      </a>
                   </li>
+                  <?php endif; ?>
+                  <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('college.view')): ?>
                   <li>
                      <a href="<?php echo e(route('admin.college')); ?>" class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         College
                      </a>
                   </li>
+                  <?php endif; ?>
+                  <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('department.view')): ?>
                   <li>
                      <a href="<?php echo e(route('admin.department')); ?>" class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         Department
                      </a>
                   </li>
+                  <?php endif; ?>
+                  <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('user.view')): ?>
                   <li>
                      <a href="<?php echo e(route('admin.user')); ?>" class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         Users Management
                      </a>
                   </li>
+                  <?php endif; ?>
+                  <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('role-permission.view')): ?>
                   <li>
-                     <a href="<?php echo e(route('admin.role-permission')); ?>" class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                     <a href="<?php echo e(route('admin.role-permission')); ?>"
+                        class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         Roles and Permission
+                     </a>
+                  </li>
+                  <?php endif; ?>
+                  <li>
+                     <a href="<?php echo e(route('admin.user.archive')); ?>"
+                        class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                        Archive User Management
                      </a>
                   </li>
                </ul>
             </li>
+            <?php endif; ?>
 
             <li>
                <a href="<?php echo e(route('admin.notifications')); ?>"
@@ -228,7 +250,8 @@
                <p class="text-xs text-gray-500"><?php echo e(Auth::user()->email); ?></p>
             </div>
             <ul class="py-2 text-sm text-gray-700">
-               <li><a href="<?php echo e(route('admin.profile-view')); ?>" class="block px-4 py-2 hover:bg-gray-100">Settings</a></li>
+               <li><a href="<?php echo e(route('admin.profile-view')); ?>" class="block px-4 py-2 hover:bg-gray-100">Settings</a>
+               </li>
             </ul>
             <div class="py-1">
                <form method="POST" action="<?php echo e(route('logout')); ?>">
