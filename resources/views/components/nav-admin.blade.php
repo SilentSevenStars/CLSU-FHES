@@ -191,6 +191,7 @@
                   @endcan
                </ul>
             </li>
+            @endcanany
 
             <li>
                <a href="{{ route('admin.notifications') }}"
