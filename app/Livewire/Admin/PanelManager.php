@@ -6,6 +6,7 @@ use App\Models\College;
 use App\Models\Department;
 use App\Models\Panel;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -24,12 +25,14 @@ class PanelManager extends Component
 
     public $name, $email, $password, $password_confirmation;
     public $panel_position, $college_id, $department_id;
-    public $colleges = [];      // Add this to make colleges accessible in modals
+    public $colleges = [];
     public $departments = [];
     public $panelId;
 
     public $showCreateModal = false;
     public $showEditModal = false;
+    public $showDeleteModal = false;
+    public $panelToDelete = null;
 
     protected $rules = [
         'name' => 'required|string',
@@ -49,6 +52,12 @@ class PanelManager extends Component
 
     public function mount()
     {
+        // Check if user has permission to view panels
+        if (!Auth::user()->can('panel.view')) {
+            session()->flash('error', 'You do not have permission to access this page.');
+            return redirect()->route('admin.dashboard');
+        }
+
         // Load colleges when component mounts
         $this->colleges = College::orderBy('name')->get();
     }
@@ -98,14 +107,26 @@ class PanelManager extends Component
 
     public function openCreateModal()
     {
+        // Check permission
+        if (!Auth::user()->can('panel.create')) {
+            session()->flash('error', 'You do not have permission to create panels.');
+            return;
+        }
+
         $this->resetForm();
-        $this->colleges = College::orderBy('name')->get();  // Reload colleges
+        $this->colleges = College::orderBy('name')->get();
         $this->showCreateModal = true;
     }
 
     public function openEditModal($id)
     {
         $panel = Panel::with(['user', 'college', 'department'])->findOrFail($id);
+        
+        // Check permission
+        if (!Auth::user()->can('panel.edit')) {
+            session()->flash('error', 'You do not have permission to edit panels.');
+            return;
+        }
 
         $this->panelId = $id;
         $this->name = $panel->user->name;
@@ -134,12 +155,11 @@ class PanelManager extends Component
 
     public function store()
     {
-        // Debug: Check values before validation
-        \Log::info('Store method called', [
-            'college_id' => $this->college_id,
-            'department_id' => $this->department_id,
-            'panel_position' => $this->panel_position
-        ]);
+        // Check permission
+        if (!Auth::user()->can('panel.create')) {
+            session()->flash('error', 'You do not have permission to create panels.');
+            return;
+        }
 
         // Adjust validation for Dean position
         $rules = $this->rules;
@@ -149,28 +169,45 @@ class PanelManager extends Component
         
         $this->validate($rules);
 
-        $user = User::create([
-            'name' => $this->name,
-            'email' => $this->email,
-            'role' => 'panel',
-            'password' => Hash::make($this->password),
-        ]);
+        try {
+            // Create user
+            $user = User::create([
+                'name' => $this->name,
+                'email' => $this->email,
+                'password' => Hash::make($this->password),
+            ]);
 
-        // Create panel with foreign keys
-        Panel::create([
-            'user_id' => $user->id,
-            'panel_position' => $this->panel_position,
-            'college_id' => $this->college_id,
-            'department_id' => $this->department_id,
-        ]);
+            // Assign 'panel' role (NOT panel-head, panel-dean, or panel-senior)
+            $user->assignRole('panel');
 
-        $this->resetForm();
-        $this->showCreateModal = false;
-        session()->flash('success', 'Panel created successfully!');
+            // Create panel with foreign keys
+            // The panel_position field is just for organizational purposes
+            Panel::create([
+                'user_id' => $user->id,
+                'panel_position' => $this->panel_position,
+                'college_id' => $this->college_id,
+                'department_id' => $this->department_id,
+            ]);
+
+            $this->resetForm();
+            $this->showCreateModal = false;
+            session()->flash('success', 'Panel created successfully!');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to create panel: ' . $e->getMessage());
+        }
     }
 
     public function update()
     {
+        $panel = Panel::findOrFail($this->panelId);
+        
+        // Check permission
+        if (!Auth::user()->can('panel.edit')) {
+            session()->flash('error', 'You do not have permission to edit panels.');
+            $this->showEditModal = false;
+            return;
+        }
+
         $rules = $this->editRules;
         if ($this->panel_position === 'Dean') {
             $rules['department_id'] = 'nullable';
@@ -178,38 +215,70 @@ class PanelManager extends Component
         
         $this->validate($rules);
 
-        $panel = Panel::findOrFail($this->panelId);
+        try {
+            // Update user name
+            $panel->user->update([
+                'name' => $this->name,
+            ]);
 
-        $panel->user->update([
-            'name' => $this->name,
-        ]);
+            // Update panel
+            // Note: We don't change roles because all panels have 'panel' role
+            // Only the panel_position field changes for organizational purposes
+            $panel->update([
+                'panel_position' => $this->panel_position,
+                'college_id' => $this->college_id,
+                'department_id' => $this->department_id,
+            ]);
 
-        $panel->update([
-            'panel_position' => $this->panel_position,
-            'college_id' => $this->college_id,
-            'department_id' => $this->department_id,
-        ]);
-
-        $this->resetForm();
-        $this->showEditModal = false;
-        session()->flash('success', 'Panel updated successfully!');
+            $this->resetForm();
+            $this->showEditModal = false;
+            session()->flash('success', 'Panel updated successfully!');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to update panel: ' . $e->getMessage());
+        }
     }
 
     public function confirmDelete($id)
     {
-        $this->dispatch('swal:confirm', id: $id);
+        // Check permission
+        if (!Auth::user()->can('panel.delete')) {
+            session()->flash('error', 'You do not have permission to delete panels.');
+            return;
+        }
+
+        $this->panelToDelete = $id;
+        $this->showDeleteModal = true;
     }
 
-    protected $listeners = ['deleteConfirmed'];
-
-    public function deleteConfirmed($id)
+    public function deletePanel()
     {
-        $panel = Panel::findOrFail($id);
+        // Check permission
+        if (!Auth::user()->can('panel.delete')) {
+            session()->flash('error', 'You do not have permission to delete panels.');
+            $this->showDeleteModal = false;
+            return;
+        }
 
-        User::where('id', $panel->user_id)->delete();
-        $panel->delete();
+        try {
+            $panel = Panel::findOrFail($this->panelToDelete);
 
-        session()->flash('success', 'Panel deleted successfully!');
+            // Delete user (this will cascade delete the panel due to foreign key)
+            User::where('id', $panel->user_id)->delete();
+            $panel->delete();
+
+            $this->showDeleteModal = false;
+            $this->panelToDelete = null;
+            session()->flash('success', 'Panel deleted successfully!');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to delete panel: ' . $e->getMessage());
+            $this->showDeleteModal = false;
+        }
+    }
+
+    public function cancelDelete()
+    {
+        $this->showDeleteModal = false;
+        $this->panelToDelete = null;
     }
 
     public function resetForm()

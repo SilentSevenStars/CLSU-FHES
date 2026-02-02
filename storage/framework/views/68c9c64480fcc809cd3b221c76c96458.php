@@ -3,13 +3,13 @@
         <div class="max-w-7xl mx-auto">
             
             <!-- Flash Messages -->
-            @if (session()->has('success'))
+            <!--[if BLOCK]><![endif]--><?php if(session()->has('success')): ?>
                 <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center justify-between">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                         </svg>
-                        <span>{{ session('success') }}</span>
+                        <span><?php echo e(session('success')); ?></span>
                     </div>
                     <button wire:click="$refresh" class="text-green-700 hover:text-green-900">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -17,15 +17,15 @@
                         </svg>
                     </button>
                 </div>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-            @if (session()->has('error'))
+            <?php if(session()->has('error')): ?>
                 <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center justify-between">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
-                        <span>{{ session('error') }}</span>
+                        <span><?php echo e(session('error')); ?></span>
                     </div>
                     <button wire:click="$refresh" class="text-red-700 hover:text-red-900">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -33,7 +33,7 @@
                         </svg>
                     </button>
                 </div>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
             <!-- Header Section with Enhanced Styling -->
             <div class="mb-8 animate-fadeIn">
@@ -82,18 +82,18 @@
                             <select wire:model.live="filterCollege"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="all">All Colleges</option>
-                                @foreach($colleges as $col)
-                                <option value="{{ $col->id }}">{{ $col->name }}</option>
-                                @endforeach
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $colleges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $col): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($col->id); ?>"><?php echo e($col->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
 
                             <!-- Department Filter -->
                             <select wire:model.live="filterDepartment"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="all">All Departments</option>
-                                @foreach($departments as $dept)
-                                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
-                                @endforeach
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dept): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($dept->id); ?>"><?php echo e($dept->name); ?></option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
 
                             <!-- Per Page -->
@@ -142,14 +142,14 @@
                                         </div>
 
                                         <!-- Create Button - Only show if user has permission -->
-                                        @can('panel.create')
+                                        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('panel.create')): ?>
                                         <div>
                                             <button wire:click="openCreateModal" class="block text-white bg-[#0D7A2F] hover:bg-[#0a6025] focus:ring-4 focus:ring-blue-300 
                                         font-medium rounded-lg text-sm px-5 py-2.5">
                                                 Create Panel
                                             </button>
                                         </div>
-                                        @endcan
+                                        <?php endif; ?>
                                     </div>
                                     <!-- End Header -->
 
@@ -208,40 +208,45 @@
                                         </thead>
 
                                         <tbody class="divide-y divide-gray-200">
-                                            @forelse($positions as $position)
+                                            <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                             <tr class="bg-white hover:bg-gray-50">
                                                 <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                                    {{ $position->user->name }}
+                                                    <?php echo e($position->user->name); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                                    {{ $position->user->email }}
+                                                    <?php echo e($position->user->email); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                                    {{ $position->panel_position }}
+                                                    <?php echo e($position->panel_position); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                                    {{ $position->college->name ?? 'N/A' }}
+                                                    <?php echo e($position->college->name ?? 'N/A'); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                                                    {{ $position->department->name ?? ($position->panel_position === 'Dean' ? 'N/A (Dean)' : 'N/A') }}
+                                                    <?php echo e($position->department->name ?? ($position->panel_position === 'Dean' ? 'N/A (Dean)' : 'N/A')); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
-                                                    @can('panel.edit')
-                                                    <button wire:click="openEditModal({{ $position->id }})"
+                                                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('panel.edit')): ?>
+                                                    <button wire:click="openEditModal(<?php echo e($position->id); ?>)"
                                                         class="text-gray-900 bg-yellow-400 hover:bg-yellow-500 rounded-lg px-3 py-1 text-sm font-medium">
                                                         Edit
                                                     </button>
-                                                    @endcan
+                                                    <?php endif; ?>
                                                     
-                                                    @can('panel.delete')
-                                                    <button wire:click="confirmDelete({{ $position->id }})"
+                                                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('panel.delete')): ?>
+                                                    <button wire:click="confirmDelete(<?php echo e($position->id); ?>)"
                                                         class="px-3 py-1 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
                                                         Delete
                                                     </button>
-                                                    @endcan
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
-                                            @empty
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                             <tr>
                                                 <td colspan="6" class="text-center py-8 text-gray-500 bg-white">
                                                     <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,12 +256,13 @@
                                                     <p class="text-sm mt-1">Create a new panel to get started</p>
                                                 </td>
                                             </tr>
-                                            @endforelse
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                         </tbody>
                                     </table>
                                     <!-- End Table -->
                                     <div class="p-4">
-                                        {{ $positions->links() }}
+                                        <?php echo e($positions->links()); ?>
+
                                     </div>
                                 </div>
                             </div>
@@ -271,7 +277,7 @@
     </div>
 
     <!-- Delete Confirmation Modal -->
-    @if($showDeleteModal)
+    <!--[if BLOCK]><![endif]--><?php if($showDeleteModal): ?>
     <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" wire:click="cancelDelete">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" wire:click.stop>
             <div class="mt-3 text-center">
@@ -299,13 +305,13 @@
             </div>
         </div>
     </div>
-    @endif
+    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-    @if($showCreateModal)
-    @include('livewire.admin.modals.create-panel')
-    @endif
+    <!--[if BLOCK]><![endif]--><?php if($showCreateModal): ?>
+    <?php echo $__env->make('livewire.admin.modals.create-panel', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-    @if($showEditModal)
-    @include('livewire.admin.modals.edit-panel')
-    @endif
-</div>
+    <!--[if BLOCK]><![endif]--><?php if($showEditModal): ?>
+    <?php echo $__env->make('livewire.admin.modals.edit-panel', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/admin/panel-manager.blade.php ENDPATH**/ ?>
