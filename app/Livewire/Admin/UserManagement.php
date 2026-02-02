@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 
 class UserManagement extends Component
 {
@@ -22,17 +23,29 @@ class UserManagement extends Component
 
     protected $paginationTheme = 'tailwind';
 
+    // Roles that must NOT appear in the create/edit dropdown.
+    // These roles have their own dedicated account-creation flows
+    // (e.g. applicant self-registers, panel/nbc are created via their own managers).
+    protected array $excludedRoles = ['applicant', 'nbc', 'panel'];
+
     public function rules()
     {
+        // Dynamically build allowed role names for validation
+        $allowedRoles = Role::whereNotIn('name', $this->excludedRoles)
+                             ->pluck('name')
+                             ->toArray();
+
         return [
-            'name' => 'required|string|max:255',
-            'email' => [
+            'name'     => 'required|string|max:255',
+            'email'    => [
                 'required',
                 'email',
-                Rule::unique('users')->ignore($this->user_id)
+                Rule::unique('users')->ignore($this->user_id),
             ],
-            'password' => $this->isEditMode ? 'nullable|min:8|confirmed' : 'required|min:8|confirmed',
-            'role' => 'required|in:admin,applicant,panel,nbc',
+            'password' => $this->isEditMode
+                ? 'nullable|min:8|confirmed'
+                : 'required|min:8|confirmed',
+            'role'     => ['required', Rule::in($allowedRoles)],
         ];
     }
 
@@ -46,6 +59,9 @@ class UserManagement extends Component
         $this->resetPage();
     }
 
+    // -------------------------------------------------------
+    // MODAL OPENERS
+    // -------------------------------------------------------
     public function openCreateModal()
     {
         $this->resetForm();
@@ -56,14 +72,15 @@ class UserManagement extends Component
     public function openEditModal($id)
     {
         $this->resetForm();
-        $user = User::findOrFail($id);
+        $user = User::with('roles')->findOrFail($id);
 
-        $this->user_id = $user->id;
-        $this->name = $user->name;
-        $this->email = $user->email;
-        $this->role = $user->role;
+        $this->user_id  = $user->id;
+        $this->name     = $user->name;
+        $this->email    = $user->email;
+        // Pull the first role the user currently has via Spatie
+        $this->role     = $user->roles->first()?->name ?? '';
         $this->isEditMode = true;
-        $this->showModal = true;
+        $this->showModal  = true;
     }
 
     public function openDeleteModal($id)
@@ -72,6 +89,9 @@ class UserManagement extends Component
         $this->showDeleteModal = true;
     }
 
+    // -------------------------------------------------------
+    // MODAL CLOSERS
+    // -------------------------------------------------------
     public function closeModal()
     {
         $this->showModal = false;
@@ -84,14 +104,17 @@ class UserManagement extends Component
         $this->deleteUserId = null;
     }
 
+    // -------------------------------------------------------
+    // FORM RESET
+    // -------------------------------------------------------
     public function resetForm()
     {
-        $this->user_id = null;
-        $this->name = '';
-        $this->email = '';
-        $this->password = '';
+        $this->user_id              = null;
+        $this->name                 = '';
+        $this->email                = '';
+        $this->password             = '';
         $this->password_confirmation = '';
-        $this->role = 'applicant';
+        $this->role                 = '';
         $this->resetValidation();
     }
 
@@ -104,27 +127,29 @@ class UserManagement extends Component
                 $user = User::findOrFail($this->user_id);
 
                 $userData = [
-                    'name' => $this->name,
+                    'name'  => $this->name,
                     'email' => $this->email,
-                    'role' => $this->role,
                 ];
 
-                // Only include password if it's provided (model will hash it automatically)
                 if ($this->password) {
                     $userData['password'] = $this->password;
                 }
 
                 $user->update($userData);
 
+                $user->syncRoles([$this->role]);
+
                 session()->flash('success', 'User updated successfully!');
             } else {
-                User::create([
-                    'name' => $this->name,
-                    'email' => $this->email,
-                    'role' => $this->role,
-                    'password' => $this->password,
+                $user = User::create([
+                    'name'              => $this->name,
+                    'email'             => $this->email,
+                    'password'          => $this->password,
                     'email_verified_at' => now(),
                 ]);
+
+                // Assign the selected Spatie role
+                $user->assignRole($this->role);
 
                 session()->flash('success', 'User created successfully!');
             }
@@ -135,12 +160,14 @@ class UserManagement extends Component
         }
     }
 
+    // -------------------------------------------------------
+    // DELETE
+    // -------------------------------------------------------
     public function delete()
     {
         try {
             $user = User::findOrFail($this->deleteUserId);
 
-            // Prevent deleting yourself
             if ($user->id === Auth::id()) {
                 session()->flash('error', 'You cannot delete your own account!');
                 $this->closeDeleteModal();
@@ -155,21 +182,35 @@ class UserManagement extends Component
         }
     }
 
+    // -------------------------------------------------------
+    // RENDER
+    // -------------------------------------------------------
     public function render()
     {
-        $users = User::where('role', 'admin')
-            ->where('id', '!=', Auth::id()) // 👈 exclude current user
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhere('email', 'like', '%' . $this->search . '%');
-                });
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate($this->perPage);
+        // Only list users who hold at least one role that is NOT excluded.
+        // This keeps applicant/nbc/panel users out of this management table —
+        // they are managed through their own dedicated pages.
+        $users = User::whereHas('roles', function ($query) {
+                    $query->whereNotIn('name', $this->excludedRoles);
+                })
+                ->where('id', '!=', Auth::id())
+                ->when($this->search, function ($query) {
+                    $query->where(function ($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%')
+                          ->orWhere('email', 'like', '%' . $this->search . '%');
+                    });
+                })
+                ->orderBy('created_at', 'desc')
+                ->paginate($this->perPage);
+
+        // Roles available for the create/edit dropdown
+        $availableRoles = Role::whereNotIn('name', $this->excludedRoles)
+                               ->orderBy('name')
+                               ->get();
 
         return view('livewire.admin.user-management', [
-            'users' => $users
+            'users'          => $users,
+            'availableRoles' => $availableRoles,
         ]);
     }
 }

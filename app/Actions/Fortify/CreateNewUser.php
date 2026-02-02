@@ -69,6 +69,8 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $input['password'],
         ]);
 
+        $user->assignRole('applicant');
+
         Applicant::create([
             'first_name' => $input['first_name'],
             'middle_name' => $input['middle_name'] ?? null,

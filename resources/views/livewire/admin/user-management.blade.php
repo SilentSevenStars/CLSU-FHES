@@ -114,7 +114,7 @@
                                         <thead class="bg-gray-200">
                                             <tr>
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <span class="text-xs font-semibold uppercase text-black">ID</span>
+                                                    <span class="text-xs font-semibold uppercase text-black">No.</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
                                                     <span class="text-xs font-semibold uppercase text-black">Name</span>
@@ -134,10 +134,23 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
-                                            @forelse($users as $user)
+                                            @forelse($users as $index => $user)
+                                                @php
+                                                    // Get the first role name via Spatie relationship
+                                                    $roleName = $user->roles->first()?->name ?? 'none';
+
+                                                    // Determine badge color based on role name
+                                                    $badgeClass = match($roleName) {
+                                                        'admin'       => 'bg-purple-100 text-purple-800',
+                                                        'super-admin' => 'bg-indigo-100 text-indigo-800',
+                                                        'panel'       => 'bg-blue-100 text-blue-800',
+                                                        'nbc'         => 'bg-green-100 text-green-800',
+                                                        default       => 'bg-amber-100 text-amber-800',  // any custom role
+                                                    };
+                                                @endphp
                                                 <tr class="bg-gray-50 hover:bg-gray-100">
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-medium">
-                                                        {{ $user->id }}
+                                                        {{ $users->firstItem() + $index }}
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
                                                         {{ $user->name }}
@@ -146,13 +159,8 @@
                                                         {{ $user->email }}
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                        <span class="px-2 py-1 rounded-full text-xs font-medium
-                                                            @if($user->role === 'admin') bg-purple-100 text-purple-800
-                                                            @elseif($user->role === 'panel') bg-blue-100 text-blue-800
-                                                            @elseif($user->role === 'nbc') bg-green-100 text-green-800
-                                                            @else bg-gray-100 text-gray-800
-                                                            @endif">
-                                                            {{ ucfirst($user->role) }}
+                                                        <span class="px-2 py-1 rounded-full text-xs font-medium {{ $badgeClass }}">
+                                                            {{ ucfirst(str_replace('-', ' ', $roleName)) }}
                                                         </span>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
@@ -191,7 +199,14 @@
                                     </table>
 
                                     <!-- Pagination -->
-                                    <div class="p-4 bg-white border-t border-gray-300">
+                                    <div class="p-4 bg-white border-t border-gray-300 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                        <span class="text-xs text-gray-500">
+                                            @if ($users->total() > 0)
+                                                Showing {{ $users->firstItem() }} to {{ $users->lastItem() }} of {{ $users->total() }} user{{ $users->total() !== 1 ? 's' : '' }}
+                                            @else
+                                                No users found
+                                            @endif
+                                        </span>
                                         {{ $users->links() }}
                                     </div>
                                 </div>
@@ -203,7 +218,9 @@
         </div>
     </div>
 
-    <!-- Create/Edit Modal -->
+    <!-- ============================================================ -->
+    <!-- CREATE / EDIT MODAL                                            -->
+    <!-- ============================================================ -->
     <div x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <!-- Overlay -->
@@ -239,6 +256,7 @@
 
                 <form wire:submit.prevent="save">
                     <div class="bg-white px-6 pt-5 pb-4">
+                        <!-- Name -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
                             <input wire:model="name" type="text"
@@ -246,6 +264,7 @@
                             @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
+                        <!-- Email -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
                             <input wire:model="email" type="email"
@@ -253,28 +272,35 @@
                             @error('email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
+                        <!-- Role — populated dynamically from DB, excludes applicant / nbc / panel -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
                             <select wire:model="role"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('role') border-red-500 @enderror">
                                 <option value="">Select Role</option>
-                                <option value="admin">Admin</option>
-                                <option value="applicant">Applicant</option>
-                                <option value="panel">Panel</option>
-                                <option value="nbc">NBC</option>
+                                @foreach ($availableRoles as $availableRole)
+                                    <option value="{{ $availableRole->name }}">
+                                        {{ ucfirst(str_replace('-', ' ', $availableRole->name)) }}
+                                    </option>
+                                @endforeach
                             </select>
                             @error('role') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
+                        <!-- Password -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Password {{ $isEditMode ? '(Leave blank to keep current)' : '' }}
+                                Password
+                                @if ($isEditMode)
+                                    <span class="text-gray-400 font-normal">(Leave blank to keep current)</span>
+                                @endif
                             </label>
                             <input wire:model="password" type="password"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('password') border-red-500 @enderror">
                             @error('password') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
+                        <!-- Confirm Password -->
                         <div class="mb-1">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                             <input wire:model="password_confirmation" type="password"
@@ -297,7 +323,9 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- ============================================================ -->
+    <!-- DELETE CONFIRMATION MODAL                                      -->
+    <!-- ============================================================ -->
     <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <!-- Overlay -->

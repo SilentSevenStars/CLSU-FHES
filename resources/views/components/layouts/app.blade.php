@@ -16,11 +16,11 @@
 @include('components.mobile-view')
 
 <!-- Sidebar -->
-@if(Auth::user()->role === 'admin')
+@if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin'))
     @include('components.nav-admin')
-@elseif(Auth::user()->role === 'panel')
+@elseif(Auth::user()->hasRole('panel'))
     @include('components.nav-panel')
-@elseif(Auth::user()->role === 'nbc')
+@elseif(Auth::user()->hasRole('nbc'))
     @include('components.nav-nbc')
 @else
     @include('components.nav-applicant')

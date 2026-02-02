@@ -70,13 +70,13 @@ class FortifyServiceProvider extends ServiceProvider
             return new class implements LoginResponse {
                 public function toResponse($request)
                 {
-                    $role = $request->user()->role;
+                     $user = $request->user();
 
-                    if ($role === 'admin') {
+                    if ($user->hasRole('admin') || $user->hasRole('super-admin')) {
                         return redirect(route('admin.dashboard'));
-                    } elseif ($role === 'panel') {
+                    } elseif ($user->hasRole('panel')) {
                         return redirect(route('panel.dashboard'));
-                    } elseif ($role === 'nbc') {
+                    } elseif ($user->hasRole('nbc')) {
                         return redirect(route('nbc.dashboard'));
                     }
 

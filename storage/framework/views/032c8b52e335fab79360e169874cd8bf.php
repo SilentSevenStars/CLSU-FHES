@@ -17,11 +17,11 @@
 <?php echo $__env->make('components.mobile-view', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <!-- Sidebar -->
-<?php if(Auth::user()->role === 'admin'): ?>
+<?php if(Auth::user()->hasRole('admin') || Auth::user()->hasRole('super-admin')): ?>
     <?php echo $__env->make('components.nav-admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-<?php elseif(Auth::user()->role === 'panel'): ?>
+<?php elseif(Auth::user()->hasRole('panel')): ?>
     <?php echo $__env->make('components.nav-panel', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-<?php elseif(Auth::user()->role === 'nbc'): ?>
+<?php elseif(Auth::user()->hasRole('nbc')): ?>
     <?php echo $__env->make('components.nav-nbc', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php else: ?>
     <?php echo $__env->make('components.nav-applicant', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>

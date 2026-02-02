@@ -169,6 +169,11 @@
                         Users Management
                      </a>
                   </li>
+                  <li>
+                     <a href="{{ route('admin.role-permission') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                        Roles and Permission
+                     </a>
+                  </li>
                </ul>
             </li>
 
