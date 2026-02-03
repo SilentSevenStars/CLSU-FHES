@@ -25,12 +25,12 @@
                 <div class="p-6">
 
                     <!-- Flash Messages -->
-                    <?php if(session()->has('error')): ?>
+                    <!--[if BLOCK]><![endif]--><?php if(session()->has('error')): ?>
                     <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
                         <?php echo e(session('error')); ?>
 
                     </div>
-                    <?php endif; ?>
+                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
                     <!-- Action Buttons -->
                     <div class="flex items-center gap-4 mb-6">
@@ -46,7 +46,7 @@
                         </button>
 
                         <!-- Clear Search Button -->
-                        <?php if(!empty($searchTerm) || !empty($selectedPosition) || !empty($selectedInterviewDate)): ?>
+                        <!--[if BLOCK]><![endif]--><?php if(!empty($searchTerm) || !empty($selectedPosition) || !empty($selectedInterviewDate)): ?>
                         <button wire:click="clearSearch"
                             class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-300">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@
                             </svg>
                             Clear Search
                         </button>
-                        <?php endif; ?>
+                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
                         <!-- Export Button -->
                         <button wire:click="export"
@@ -69,7 +69,7 @@
                     </div>
 
                     <!-- Active Search Display -->
-                    <?php if(!empty($searchTerm) || !empty($selectedPosition) || !empty($selectedInterviewDate)): ?>
+                    <!--[if BLOCK]><![endif]--><?php if(!empty($searchTerm) || !empty($selectedPosition) || !empty($selectedInterviewDate)): ?>
                     <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm">
                         <div class="flex items-center gap-2 text-sm text-emerald-800 flex-wrap">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,27 +78,27 @@
                             <span class="font-medium">Active Search:</span>
                             <?php if(!empty($searchTerm)): ?>
                             <span class="px-3 py-1 bg-emerald-100 rounded-full text-xs font-semibold">Name: <?php echo e($searchTerm); ?></span>
-                            <?php endif; ?>
-                            <?php if(!empty($selectedPosition)): ?>
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+                            <!--[if BLOCK]><![endif]--><?php if(!empty($selectedPosition)): ?>
                             <span class="px-3 py-1 bg-emerald-100 rounded-full text-xs font-semibold">
                                 Position: <?php echo e($selectedPosition); ?>
 
                             </span>
-                            <?php endif; ?>
-                            <?php if(!empty($selectedInterviewDate)): ?>
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+                            <!--[if BLOCK]><![endif]--><?php if(!empty($selectedInterviewDate)): ?>
                             <span class="px-3 py-1 bg-emerald-100 rounded-full text-xs font-semibold">
                                 Interview Date: <?php echo e(\Carbon\Carbon::parse($selectedInterviewDate)->format('M d, Y')); ?>
 
                             </span>
-                            <?php endif; ?>
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                         </div>
                     </div>
-                    <?php endif; ?>
+                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
                     <!-- Display Data -->
                     <?php if(!empty($searchTerm) && !empty($selectedPosition) && !empty($selectedInterviewDate)): ?>
 
-                    <?php if(count($nbcData) > 0): ?>
+                    <!--[if BLOCK]><![endif]--><?php if(count($nbcData) > 0): ?>
                     <!-- Table -->
                     <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -134,12 +134,12 @@
                                 </tr>
                                 <tr>
                                     <th class="px-6 py-1 text-center text-xs font-normal text-white border-r border-white/20" style="border-top: none;">
-                                        <?php if(!empty($nbcData[0]['previous_interview_date'])): ?>
+                                        <!--[if BLOCK]><![endif]--><?php if(!empty($nbcData[0]['previous_interview_date'])): ?>
                                             <?php echo e(\Carbon\Carbon::parse($nbcData[0]['previous_interview_date'])->format('Y')); ?>
 
                                         <?php else: ?>
                                             &nbsp;
-                                        <?php endif; ?>
+                                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                     </th>
                                     <th class="px-6 py-1 text-center text-xs font-normal text-white border-r border-white/20" style="border-top: none;">
                                         <?php echo e(\Carbon\Carbon::parse($nbcData[0]['interview_date'])->format('Y')); ?>
@@ -149,7 +149,7 @@
                             </thead>
 
                             <tbody class="bg-white divide-y divide-gray-200">
-                                <?php $__currentLoopData = $nbcData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $nbcData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <!-- Educational Qualification -->
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-6 py-3 text-sm font-medium border-r border-gray-200">
@@ -248,7 +248,7 @@
 
                                     </td>
                                 </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </tbody>
                         </table>
                     </div>
@@ -295,7 +295,7 @@
                         <p class="text-lg font-medium">No evaluation data found</p>
                         <p class="text-sm mt-1">The applicant may not have been evaluated yet for this position and interview date</p>
                     </div>
-                    <?php endif; ?>
+                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
                     <?php else: ?>
                     <div class="py-12 text-center text-gray-500">
@@ -306,14 +306,14 @@
                         <p class="text-lg font-medium">Click "Search Applicant" to begin</p>
                         <p class="text-sm mt-1">Enter applicant name, select position and interview date to view evaluation data</p>
                     </div>
-                    <?php endif; ?>
+                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Search Modal -->
-    <?php if($showSearchModal): ?>
+    <!--[if BLOCK]><![endif]--><?php if($showSearchModal): ?>
     <div x-data="{ show: <?php if ((object) ('showSearchModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showSearchModal'->value()); ?>')<?php echo e('showSearchModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showSearchModal'); ?>')<?php endif; ?> }" x-show="show"
         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
@@ -355,12 +355,12 @@
                     <div class="px-6 py-5 space-y-5">
 
                         <!-- Flash Messages in Modal -->
-                        <?php if(session()->has('error')): ?>
+                        <!--[if BLOCK]><![endif]--><?php if(session()->has('error')): ?>
                         <div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
                             <?php echo e(session('error')); ?>
 
                         </div>
-                        <?php endif; ?>
+                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
                         <!-- Applicant Name Search -->
                         <div>
@@ -380,10 +380,10 @@
                                 </div>
 
                                 <!-- Dropdown Results -->
-                                <?php if($showDropdown && count($searchResults) > 0 && !$selectedApplicantId): ?>
+                                <!--[if BLOCK]><![endif]--><?php if($showDropdown && count($searchResults) > 0 && !$selectedApplicantId): ?>
                                 <div
                                     class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                                    <?php $__currentLoopData = $searchResults; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $result): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $searchResults; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $result): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div wire:click="selectApplicant(<?php echo e($result['id']); ?>, '<?php echo e($result['full_name']); ?>')"
                                         class="px-4 py-2 hover:bg-green-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition duration-150">
                                         <div class="flex items-center gap-2">
@@ -395,11 +395,11 @@
                                             <span class="text-sm text-gray-700"><?php echo e($result['full_name']); ?></span>
                                         </div>
                                     </div>
-                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                                 </div>
-                                <?php endif; ?>
+                                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-                                <?php if(strlen($tempSearchTerm) >= 2 && count($searchResults) == 0 && !$showDropdown &&
+                                <!--[if BLOCK]><![endif]--><?php if(strlen($tempSearchTerm) >= 2 && count($searchResults) == 0 && !$showDropdown &&
                                 !$selectedApplicantId): ?>
                                 <div
                                     class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4">
@@ -411,7 +411,7 @@
                                         <span>No applicants found</span>
                                     </div>
                                 </div>
-                                <?php endif; ?>
+                                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                             </div>
                             <p class="mt-1 text-xs text-gray-500">Type at least 2 characters to search</p>
                         </div>
@@ -425,18 +425,18 @@
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0a6025] focus:border-transparent"
                                 <?php if(empty($positions)): ?> disabled <?php endif; ?> required>
                                 <option value="">-- Select Position --</option>
-                                <?php $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($position); ?>">
                                     <?php echo e($position); ?>
 
                                 </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
                             <?php if(empty($positions) && !empty($tempSearchTerm) && $selectedApplicantId): ?>
                             <p class="mt-2 text-sm text-amber-600">
                                 No approved positions found for this applicant
                             </p>
-                            <?php endif; ?>
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                         </div>
 
                         <!-- Interview Date Selection -->
@@ -448,18 +448,18 @@
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0a6025] focus:border-transparent"
                                 <?php if(empty($interviewDates)): ?> disabled <?php endif; ?> required>
                                 <option value="">-- Select Interview Date --</option>
-                                <?php $__currentLoopData = $interviewDates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $interviewDates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($date); ?>">
                                     <?php echo e(\Carbon\Carbon::parse($date)->format('F d, Y')); ?>
 
                                 </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
                             <?php if(empty($interviewDates) && !empty($tempSelectedPosition)): ?>
                             <p class="mt-2 text-sm text-amber-600">
                                 No interview dates found for this position
                             </p>
-                            <?php endif; ?>
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                         </div>
 
                     </div>
@@ -490,6 +490,6 @@
             </div>
         </div>
     </div>
-    <?php endif; ?>
+    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views\livewire\admin\nbc.blade.php ENDPATH**/ ?>
+</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/admin/nbc.blade.php ENDPATH**/ ?>

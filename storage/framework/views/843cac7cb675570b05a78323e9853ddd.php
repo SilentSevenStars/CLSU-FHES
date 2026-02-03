@@ -98,11 +98,11 @@
             </div>
 
             
-            <?php if(session()->has('success')): ?>
+            <!--[if BLOCK]><![endif]--><?php if(session()->has('success')): ?>
             <div class="mx-6 mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                 <p class="text-sm text-green-800 leading-5 tracking-wide"><?php echo e(session('success')); ?></p>
             </div>
-            <?php endif; ?>
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
             <?php if(session()->has('error')): ?>
             <div class="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -110,7 +110,7 @@
 
                 </p>
             </div>
-            <?php endif; ?>
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
             <!-- Enhanced Table Card -->
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn" style="animation-delay: 0.4s;">
@@ -140,10 +140,10 @@
                             <select wire:model.live="college_id"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700">
                                 <option value="">All Colleges</option>
-                                <?php $__currentLoopData = $colleges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $college): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $colleges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $college): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 
                                 <option value="<?php echo e($college->id); ?>"><?php echo e($college->name); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
 
                             <!-- Department Filter (using department_id, dynamic) -->
@@ -152,10 +152,10 @@
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" 
                                 <?php if(!$college_id): ?> disabled <?php endif; ?>>
                                 <option value="">All Departments</option>
-                                <?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dept): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dept): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 
                                 <option value="<?php echo e($dept->id); ?>"><?php echo e($dept->name); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
 
                             <!-- Position Filter (still uses name) -->
@@ -163,9 +163,9 @@
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" 
                                 <?php if(!$department_id): ?> disabled <?php endif; ?>>
                                 <option value="">All Positions</option>
-                                <?php $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pos): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pos): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($pos->name); ?>"><?php echo e($pos->name); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
 
                             <!-- Per Page -->
@@ -253,7 +253,7 @@
                                         </thead>
 
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
-                                            <?php $__empty_1 = true; $__currentLoopData = $applications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $application): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                            <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $applications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $application): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                             <tr class="bg-gray-50 hover:bg-gray-100">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-medium">
                                                     <?php echo e($applications->firstItem() ? $applications->firstItem() +
@@ -317,7 +317,7 @@
                                                         once submitted</p>
                                                 </td>
                                             </tr>
-                                            <?php endif; ?>
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                         </tbody>
                                     </table>
                                     <!-- End Table -->
@@ -336,4 +336,4 @@
 
         </div>
     </div>
-</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views\livewire\admin\applicant.blade.php ENDPATH**/ ?>
+</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/admin/applicant.blade.php ENDPATH**/ ?>
