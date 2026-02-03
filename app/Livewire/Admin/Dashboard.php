@@ -42,11 +42,12 @@ class Dashboard extends Component
         $this->positionLabels = $positionData->keys()->values();
         $this->positionCounts = $positionData->values();
 
-        $collegeData = JobApplication::with('position')
+        // Load college relationship properly
+        $collegeData = JobApplication::with('position.college')
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->get()
-            ->groupBy(fn($app) => $app->position->college)
+            ->groupBy(fn($app) => $app->position->college->name ?? 'Unknown')
             ->map->count();
 
         $this->collegeLabels = $collegeData->keys()->values();
