@@ -145,14 +145,28 @@ unset($__errorArgs, $__bag); ?>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Education <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" wire:model="education"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                placeholder="e.g., Master's Degree">
+
+                            <input
+                                type="text"
+                                wire:model.defer="education"
+                                list="educationOptions"
+                                placeholder="e.g., Master of Science in Information Technology"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg
+               focus:ring-2 focus:ring-green-500 focus:border-green-500">
+
+                            <datalist id="educationOptions">
+                                <?php $__currentLoopData = $educationOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($option); ?>">
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </datalist>
+
                             <?php $__errorArgs = ['education'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> <span class="text-red-500 text-xs"><?php echo e($message); ?></span> <?php unset($message);
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <span class="text-red-500 text-xs"><?php echo e($message); ?></span>
+                            <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>

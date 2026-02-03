@@ -89,6 +89,12 @@
                         Assign Position
                      </a>
                   </li>
+                  <li>
+                     <a href="<?php echo e(route('admin.applicant.archive')); ?>"
+                        class="block p-2 rounded hover:bg-[#0A6025] text-white">
+                        Archived Applicants Management
+                     </a>
+                  </li>
                </ul>
             </li>
             <li>
@@ -190,7 +196,7 @@
                   </li>
                   <?php endif; ?>
                   <li>
-                     <a href="<?php echo e(route('admin.user.archive')); ?>"
+                     <a href="<?php echo e(route('admin.user.archive.view')); ?>"
                         class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         Archive User Management
                      </a>

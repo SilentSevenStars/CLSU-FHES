@@ -3,12 +3,12 @@
     <h1 class="text-3xl font-bold mb-6">Admin Dashboard</h1>
 
     <div class="bg-white p-5 rounded-lg shadow mb-10">
-        <h2 class="text-xl font-semibold mb-3">Applicants per Position (This Month)</h2>
+        <h2 class="text-xl font-semibold mb-3">Applicants per Position ({{ $currentMonthName }}, {{ $currentYear }})</h2>
         <canvas id="positionChart" height="120"></canvas>
     </div>
 
     <div class="bg-white p-5 rounded-lg shadow mb-10">
-        <h2 class="text-xl font-semibold mb-3">Applicants per College (This Month)</h2>
+        <h2 class="text-xl font-semibold mb-3">Applicants per College ({{ $currentMonthName }}, {{ $currentYear }})</h2>
         <canvas id="collegeChart" height="120"></canvas>
     </div>
 

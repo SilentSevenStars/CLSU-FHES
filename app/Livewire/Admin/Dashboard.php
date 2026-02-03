@@ -14,6 +14,9 @@ class Dashboard extends Component
     public $collegeLabels = [];
     public $collegeCounts = [];
 
+    public $currentMonthName = '';
+    public $currentYear = '';
+
     public function mount()
     {
         $this->loadCharts();
@@ -21,8 +24,13 @@ class Dashboard extends Component
 
     public function loadCharts()
     {
-        $month = Carbon::now()->month;
-        $year  = Carbon::now()->year;
+        $now = Carbon::now();
+        $month = $now->month;
+        $year  = $now->year;
+
+        // Set month name and year for display
+        $this->currentMonthName = $now->format('F'); // Full month name (e.g., "January")
+        $this->currentYear = $now->format('Y'); // Year (e.g., "2026")
 
         $positionData = JobApplication::with('position')
             ->whereYear('created_at', $year)

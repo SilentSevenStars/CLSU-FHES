@@ -137,9 +137,9 @@
                 </button>
 
                                         <!-- Active Filters Display -->
-                                        <?php if($search || $positionFilter): ?>
+                                        <!--[if BLOCK]><![endif]--><?php if($search || $positionFilter): ?>
                                         <div class="flex items-center gap-2 flex-wrap">
-                                            <?php if($search): ?>
+                                            <!--[if BLOCK]><![endif]--><?php if($search): ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">
                                                 Name: <?php echo e($search); ?>
 
@@ -151,8 +151,8 @@
                                                     </svg>
                                                 </button>
                                             </span>
-                                            <?php endif; ?>
-                                            <?php if($positionFilter): ?>
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+                                            <!--[if BLOCK]><![endif]--><?php if($positionFilter): ?>
                                             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                                                 Position: <?php echo e($positionFilter); ?>
 
@@ -164,9 +164,9 @@
                                                     </svg>
                                                 </button>
                                             </span>
-                                            <?php endif; ?>
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                         </div>
-                                        <?php endif; ?>
+                                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                     </div>
                                 </div>
 
@@ -192,15 +192,15 @@
                     </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-300 bg-gray-50">
-                    <?php $__empty_1 = true; $__currentLoopData = $applicants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $applicant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                    <?php $__currentLoopData = $applicant->jobApplications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $application): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <?php if($application->evaluation && ($application->archive == $showArchived)): ?>
+                    <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $applicants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $applicant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $applicant->jobApplications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $application): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <!--[if BLOCK]><![endif]--><?php if($application->evaluation && ($application->archive == $showArchived)): ?>
                     <?php
                         // Only show if: not hired OR (hired but applying for different position)
                         $shouldShow = !$applicant->hired || 
                                      ($applicant->hired && $applicant->position != $application->position->name);
                     ?>
-                    <?php if($shouldShow): ?>
+                    <!--[if BLOCK]><![endif]--><?php if($shouldShow): ?>
                     <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">
@@ -235,7 +235,7 @@
                                 $isComplete = $hasPanelComplete || $hasNbcComplete;
                             ?>
                             
-                            <?php if($isComplete): ?>
+                            <!--[if BLOCK]><![endif]--><?php if($isComplete): ?>
                                 <span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                     ✓ Complete
                                 </span>
@@ -243,11 +243,11 @@
                                 <span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-600">
                                     Pending
                                 </span>
-                            <?php endif; ?>
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex items-center gap-2">
-                                <?php if(!$showArchived): ?>
+                                <!--[if BLOCK]><![endif]--><?php if(!$showArchived): ?>
                                 <button
                                     wire:click="openConfirmModal(<?php echo e($applicant->id); ?>, <?php echo e($application->evaluation->id); ?>)"
                                     class="bg-[#1E7F3E] hover:bg-[#156B2D] text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
@@ -276,13 +276,13 @@
                                     </svg>
                                     Unarchive
                                 </button>
-                                <?php endif; ?>
+                                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                             </div>
                         </td>
                     </tr>
-                    <?php endif; ?>
-                    <?php endif; ?>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <tr>
                         <td colspan="5" class="px-6 py-8 text-center text-gray-500">
@@ -298,7 +298,7 @@
                             </div>
                         </td>
                     </tr>
-                    <?php endif; ?>
+                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                     </tbody>
                                 </table>
 
@@ -362,8 +362,8 @@
                             <!-- Dropdown -->
                             <div x-show="open" x-cloak
                                 class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
-                                <?php if(!empty($filteredNames)): ?>
-                                <?php $__currentLoopData = $filteredNames; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $name): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php if(!empty($filteredNames)): ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $filteredNames; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $name): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div wire:click="selectName('<?php echo e($name); ?>')"
                                      class="px-4 py-2 hover:bg-emerald-50 cursor-pointer transition-colors duration-150">
                                     <div class="flex items-center">
@@ -376,12 +376,12 @@
                                         <span class="text-sm text-gray-900"><?php echo e($name); ?></span>
                                     </div>
                                 </div>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                                 <?php else: ?>
                                 <div class="px-4 py-3 text-sm text-gray-500 text-center">
                                     No matching names found
                                 </div>
-                                <?php endif; ?>
+                                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                             </div>
                         </div>
 
@@ -393,9 +393,9 @@
                             <select wire:model="tempPositionFilter" id="tempPositionFilter"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E7F3E] focus:border-transparent">
                                 <option value="">All Positions</option>
-                                <?php $__currentLoopData = $availablePositions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $availablePositions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($position); ?>"><?php echo e($position); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
                         </div>
                     </div>
@@ -455,7 +455,7 @@
                             <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
                                 Confirm Position Assignment
                             </h3>
-                            <?php if($selectedApplicant && $selectedEvaluation): ?>
+                            <!--[if BLOCK]><![endif]--><?php if($selectedApplicant && $selectedEvaluation): ?>
                             <div class="mt-2">
                                 <p class="text-sm text-gray-500 mb-3">
                                     Are you sure you want to assign the following position?
@@ -478,7 +478,7 @@
                                     * This will mark the applicant as hired and send an email notification
                                 </p>
                             </div>
-                            <?php endif; ?>
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                         </div>
                     </div>
                 </div>
@@ -536,7 +536,7 @@
                             <h3 class="text-lg leading-6 font-medium text-gray-900" id="archive-modal-title">
                                 Archive Job Application
                             </h3>
-                            <?php if($selectedJobApplication): ?>
+                            <!--[if BLOCK]><![endif]--><?php if($selectedJobApplication): ?>
                             <div class="mt-2">
                                 <p class="text-sm text-gray-500 mb-3">
                                     Are you sure you want to archive this job application?
@@ -555,7 +555,7 @@
                                     * Archived applications will not be visible in this list and cannot be assigned a position
                                 </p>
                             </div>
-                            <?php endif; ?>
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                         </div>
                     </div>
                 </div>
@@ -586,4 +586,4 @@
         }
     </style>
     </div>
-</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views\livewire\admin\assign-position.blade.php ENDPATH**/ ?>
+</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/admin/assign-position.blade.php ENDPATH**/ ?>

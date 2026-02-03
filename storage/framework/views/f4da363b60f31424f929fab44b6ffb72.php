@@ -386,9 +386,15 @@ unset($__errorArgs, $__bag); ?>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Education <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" wire:model="education"
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Education <span class="text-red-500">*</span>
+                                </label>
+
+                                <input
+                                    type="text"
+                                    wire:model.defer="education"
+                                    list="educationOptions"
+                                    placeholder="e.g., Master of Science in Information Technology"
                                     class="block w-full px-4 py-3 bg-gray-50 border <?php $__errorArgs = ['education'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -397,11 +403,20 @@ $message = $__bag->first($__errorArgs[0]); ?> input-error border-red-500 <?php e
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?> rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+
+                                <datalist id="educationOptions">
+                                    <?php $__currentLoopData = $educationOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($option); ?>"></option>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </datalist>
+
                                 <?php $__errorArgs = ['education'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?><span class="text-red-500 text-sm mt-1 block"><?php echo e($message); ?></span><?php unset($message);
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <span class="text-red-500 text-sm mt-1 block"><?php echo e($message); ?></span>
+                                <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>

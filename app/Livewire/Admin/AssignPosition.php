@@ -131,12 +131,23 @@ class AssignPosition extends Component
     public function openConfirmModal($applicantId, $evaluationId)
     {
         $this->selectedApplicant = Applicant::with(['user', 'jobApplications.position'])->findOrFail($applicantId);
-        $this->selectedEvaluation = Evaluation::with('jobApplication.position')->findOrFail($evaluationId);
+        $this->selectedEvaluation = Evaluation::with([
+            'jobApplication.position',
+            'panelAssignments',
+            'nbcAssignments'
+        ])->findOrFail($evaluationId);
 
-        // Check if interview date is in the past
-        $interviewDate = $this->selectedEvaluation->interview_date;
-        if (!$interviewDate || $interviewDate >= now()->toDateString()) {
-            $this->showAlert('error', 'Cannot assign position. Interview date must be in the past.');
+        // Check if either panel assignment or NBC assignment is complete
+        $hasPanelComplete = $this->selectedEvaluation->panelAssignments()
+            ->where('status', 'complete')
+            ->exists();
+        
+        $hasNbcComplete = $this->selectedEvaluation->nbcAssignments()
+            ->where('status', 'complete')
+            ->exists();
+        
+        if (!$hasPanelComplete && !$hasNbcComplete) {
+            $this->showAlert('error', 'Cannot assign position. Either Panel Assignment or NBC Assignment must be marked as complete.');
             $this->reset(['selectedApplicant', 'selectedEvaluation']);
             return;
         }
@@ -163,13 +174,23 @@ class AssignPosition extends Component
             return;
         }
 
-        // Verify interview date again
-        $interviewDate = $this->selectedEvaluation->interview_date;
-        Log::info('Interview date check', ['interview_date' => $interviewDate, 'now' => now()->toDateString()]);
+        // Verify status again
+        $hasPanelComplete = $this->selectedEvaluation->panelAssignments()
+            ->where('status', 'complete')
+            ->exists();
         
-        if (!$interviewDate || $interviewDate >= now()->toDateString()) {
-            Log::warning('Interview date validation failed');
-            $this->showAlert('error', 'Cannot assign position. Interview date must be in the past.');
+        $hasNbcComplete = $this->selectedEvaluation->nbcAssignments()
+            ->where('status', 'complete')
+            ->exists();
+        
+        Log::info('Status check', [
+            'has_panel_complete' => $hasPanelComplete,
+            'has_nbc_complete' => $hasNbcComplete
+        ]);
+        
+        if (!$hasPanelComplete && !$hasNbcComplete) {
+            Log::warning('Status validation failed');
+            $this->showAlert('error', 'Cannot assign position. Either Panel Assignment or NBC Assignment must be marked as complete.');
             $this->closeConfirmModal();
             return;
         }
@@ -410,21 +431,55 @@ class AssignPosition extends Component
                 'jobApplications' => function ($q) {
                     $q->with([
                         'position',
-                        'evaluation'
+                        'evaluation.panelAssignments',
+                        'evaluation.nbcAssignments'
                     ])
                     // Include or exclude archived job applications based on showArchived
-                    ->where('archive', $this->showArchived ? true : false);
+                    ->where('archive', $this->showArchived ? true : false)
+                    // Only show job applications where the position is different from current position
+                    // OR applicant is not hired yet
+                    ->where(function($query) {
+                        $query->whereHas('applicant', function($a) {
+                            // Not hired yet
+                            $a->where('hired', false);
+                        })
+                        ->orWhere(function($subQuery) {
+                            // OR hired but applying for different position (promotion)
+                            $subQuery->whereHas('applicant', function($a) {
+                                $a->where('hired', true);
+                            })
+                            ->whereRaw('(SELECT position FROM applicants WHERE id = job_applications.applicant_id) != (SELECT name FROM positions WHERE id = job_applications.position_id)');
+                        });
+                    });
                 }
             ])
             // Must have a job application WITH evaluation and matching archive status
             ->whereHas('jobApplications', function ($q) {
                 $q->where('archive', $this->showArchived ? true : false)
                     ->whereHas('evaluation', function ($e) {
-                        $e->whereDate('interview_date', '<=', now());
+                        // Either panel assignment OR NBC assignment must be complete
+                        $e->where(function($query) {
+                            $query->whereHas('panelAssignments', function ($panel) {
+                                $panel->where('status', 'complete');
+                            })
+                            ->orWhereHas('nbcAssignments', function ($nbc) {
+                                $nbc->where('status', 'complete');
+                            });
+                        });
+                    })
+                    // Only show job applications where position is different from current OR not hired
+                    ->where(function($query) {
+                        $query->whereHas('applicant', function($a) {
+                            $a->where('hired', false);
+                        })
+                        ->orWhere(function($subQuery) {
+                            $subQuery->whereHas('applicant', function($a) {
+                                $a->where('hired', true);
+                            })
+                            ->whereRaw('(SELECT position FROM applicants WHERE id = job_applications.applicant_id) != (SELECT name FROM positions WHERE id = job_applications.position_id)');
+                        });
                     });
-            })
-            // NOT YET HIRED
-            ->where('hired', false);
+            });
 
         // Search by user name
         if (!empty($this->search)) {

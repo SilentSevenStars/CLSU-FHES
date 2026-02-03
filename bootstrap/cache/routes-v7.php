@@ -536,7 +536,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::1kJugZrCN7HDkHxr',
+            '_route' => 'generated::xaDV04aq15mC0IhT',
           ),
           1 => NULL,
           2 => 
@@ -556,7 +556,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::c38OIuLrwXEpO2Un',
+            '_route' => 'generated::FuxgEju5H1qDF6vb',
           ),
           1 => NULL,
           2 => 
@@ -595,7 +595,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::g1hMbO9kjb4mGYi1',
+            '_route' => 'generated::fzr5BBoxQONl0wkK',
           ),
           1 => NULL,
           2 => 
@@ -615,7 +615,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::lylAJnGtRy9OqtKb',
+            '_route' => 'generated::orwdVIp1OO9qKeGK',
           ),
           1 => NULL,
           2 => 
@@ -1009,6 +1009,26 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
+      '/admin/archive-applicants' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'admin.applicant.archive',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
       '/admin/nbc-comittee' => 
       array (
         0 => 
@@ -1115,7 +1135,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'admin.user.archive',
+            '_route' => 'admin.user.archive.view',
           ),
           1 => NULL,
           2 => 
@@ -1355,7 +1375,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::aGH5Hw2JXEuUWPTD',
+            '_route' => 'generated::LZzM9KSZu0NuGFWk',
           ),
           1 => NULL,
           2 => 
@@ -2965,7 +2985,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::1kJugZrCN7HDkHxr' => 
+    'generated::xaDV04aq15mC0IhT' => 
     array (
       'methods' => 
       array (
@@ -2977,7 +2997,7 @@ app('router')->setCompiledRoutes(
       array (
         'uses' => 'Livewire\\Mechanisms\\FrontendAssets\\FrontendAssets@returnJavaScriptAsFile',
         'controller' => 'Livewire\\Mechanisms\\FrontendAssets\\FrontendAssets@returnJavaScriptAsFile',
-        'as' => 'generated::1kJugZrCN7HDkHxr',
+        'as' => 'generated::xaDV04aq15mC0IhT',
       ),
       'fallback' => false,
       'defaults' => 
@@ -2993,7 +3013,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::c38OIuLrwXEpO2Un' => 
+    'generated::FuxgEju5H1qDF6vb' => 
     array (
       'methods' => 
       array (
@@ -3005,7 +3025,7 @@ app('router')->setCompiledRoutes(
       array (
         'uses' => 'Livewire\\Mechanisms\\FrontendAssets\\FrontendAssets@maps',
         'controller' => 'Livewire\\Mechanisms\\FrontendAssets\\FrontendAssets@maps',
-        'as' => 'generated::c38OIuLrwXEpO2Un',
+        'as' => 'generated::FuxgEju5H1qDF6vb',
       ),
       'fallback' => false,
       'defaults' => 
@@ -3076,7 +3096,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::g1hMbO9kjb4mGYi1' => 
+    'generated::fzr5BBoxQONl0wkK' => 
     array (
       'methods' => 
       array (
@@ -3099,7 +3119,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::g1hMbO9kjb4mGYi1',
+        'as' => 'generated::fzr5BBoxQONl0wkK',
       ),
       'fallback' => false,
       'defaults' => 
@@ -3115,7 +3135,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::lylAJnGtRy9OqtKb' => 
+    'generated::orwdVIp1OO9qKeGK' => 
     array (
       'methods' => 
       array (
@@ -3144,7 +3164,7 @@ app('router')->setCompiledRoutes(
                         \'exception\' => $exception,
                     ]), status: $exception ? 500 : 200);
                 }";s:5:"scope";s:54:"Illuminate\\Foundation\\Configuration\\ApplicationBuilder";s:4:"this";N;s:4:"self";s:32:"00000000000008aa0000000000000000";}}',
-        'as' => 'generated::lylAJnGtRy9OqtKb',
+        'as' => 'generated::orwdVIp1OO9qKeGK',
       ),
       'fallback' => false,
       'defaults' => 
@@ -4159,6 +4179,46 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'admin.applicant.archive' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'admin/archive-applicants',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'role:admin|super-admin',
+          3 => 'permission:assign.position.archive.view',
+        ),
+        'uses' => 'App\\Livewire\\Admin\\ArchiveApplicantManagement@__invoke',
+        'controller' => 'App\\Livewire\\Admin\\ArchiveApplicantManagement',
+        'as' => 'admin.applicant.archive',
+        'namespace' => NULL,
+        'prefix' => '/admin',
+        'where' => 
+        array (
+        ),
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'admin.nbc.comittee' => 
     array (
       'methods' => 
@@ -4359,7 +4419,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'admin.user.archive' => 
+    'admin.user.archive.view' => 
     array (
       'methods' => 
       array (
@@ -4374,10 +4434,11 @@ app('router')->setCompiledRoutes(
           0 => 'web',
           1 => 'auth',
           2 => 'role:admin|super-admin',
+          3 => 'permission:user.archive.view',
         ),
         'uses' => 'App\\Livewire\\Admin\\ArchiveUserManagement@__invoke',
         'controller' => 'App\\Livewire\\Admin\\ArchiveUserManagement',
-        'as' => 'admin.user.archive',
+        'as' => 'admin.user.archive.view',
         'namespace' => NULL,
         'prefix' => '/admin',
         'where' => 
@@ -5100,7 +5161,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::aGH5Hw2JXEuUWPTD' => 
+    'generated::LZzM9KSZu0NuGFWk' => 
     array (
       'methods' => 
       array (
@@ -5121,7 +5182,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::aGH5Hw2JXEuUWPTD',
+        'as' => 'generated::LZzM9KSZu0NuGFWk',
       ),
       'fallback' => false,
       'defaults' => 

@@ -111,14 +111,14 @@
                         </select>
 
                         <!-- Toggle Archived/Active -->
-                        <button wire:click="$set('showArchived', !$showArchived)"
+                        {{-- <button wire:click="$set('showArchived', !$showArchived)"
                                 class="inline-flex items-center px-4 py-2 {{ $showArchived ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700' }} text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $showArchived ? 'focus:ring-yellow-300' : 'focus:ring-blue-300' }}">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                             </svg>
                             {{ $showArchived ? 'Show Active' : 'Show Archived' }}
-                        </button>
+                        </button> --}}
                     </div>
                 </div>
             </div>
@@ -178,32 +178,33 @@
                                 <table class="min-w-full divide-y divide-gray-300">
                                     <thead class="bg-gray-200">
                     <tr>
-                        <th scope="col"
-                                            class="px-6 py-3 text-start">
-                                            <span class="text-xs font-semibold uppercase text-black">Applicant Name</span>
-                                        </th>
-                        <th scope="col"
-                                            class="px-6 py-3 text-start">
-                                            <span class="text-xs font-semibold uppercase text-black">Current Position</span>
-                                        </th>
-                        <th scope="col"
-                                            class="px-6 py-3 text-start">
-                                            <span class="text-xs font-semibold uppercase text-black">Applied Position</span>
-                                        </th>
-                        <th scope="col"
-                                            class="px-6 py-3 text-start">
-                                            <span class="text-xs font-semibold uppercase text-black">Interview Date</span>
-                                        </th>
-                        <th scope="col"
-                                            class="px-6 py-3 text-start">
-                                            <span class="text-xs font-semibold uppercase text-black">Actions</span>
-                                        </th>
+                        <th scope="col" class="px-6 py-3 text-start">
+                            <span class="text-xs font-semibold uppercase text-black">Applicant Name</span>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-start">
+                            <span class="text-xs font-semibold uppercase text-black">Current Position</span>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-start">
+                            <span class="text-xs font-semibold uppercase text-black">Applied Position</span>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-start">
+                            <span class="text-xs font-semibold uppercase text-black">Evaluation Status</span>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-start">
+                            <span class="text-xs font-semibold uppercase text-black">Actions</span>
+                        </th>
                     </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-300 bg-gray-50">
                     @forelse($applicants as $applicant)
                     @foreach($applicant->jobApplications as $application)
                     @if($application->evaluation && ($application->archive == $showArchived))
+                    @php
+                        // Only show if: not hired OR (hired but applying for different position)
+                        $shouldShow = !$applicant->hired || 
+                                     ($applicant->hired && $applicant->position != $application->position->name);
+                    @endphp
+                    @if($shouldShow)
                     <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">
@@ -214,19 +215,35 @@
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span
-                                class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
                                 {{ $applicant->position ?? 'None' }}
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span
-                                class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
                                 {{ $application->position->name }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ \Carbon\Carbon::parse($application->evaluation->interview_date)->format('M d, Y') }}
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @php
+                                $hasPanelComplete = $application->evaluation->panelAssignments()
+                                    ->where('status', 'complete')->exists();
+                                $hasNbcComplete = $application->evaluation->nbcAssignments()
+                                    ->where('status', 'complete')->exists();
+                                
+                                // Overall evaluation is complete if either panel or NBC is complete
+                                $isComplete = $hasPanelComplete || $hasNbcComplete;
+                            @endphp
+                            
+                            @if($isComplete)
+                                <span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    ✓ Complete
+                                </span>
+                            @else
+                                <span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-600">
+                                    Pending
+                                </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex items-center gap-2">
@@ -234,7 +251,7 @@
                                 <button
                                     wire:click="openConfirmModal({{ $applicant->id }}, {{ $application->evaluation->id }})"
                                     class="bg-[#1E7F3E] hover:bg-[#156B2D] text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
-                                    Assign Position
+                                    {{ $applicant->hired ? 'Promote' : 'Assign Position' }}
                                 </button>
                                 <button
                                     wire:click="openArchiveModal({{ $application->id }})"
@@ -262,6 +279,7 @@
                             </div>
                         </td>
                     </tr>
+                    @endif
                     @endif
                     @endforeach
                     @empty
@@ -447,13 +465,11 @@
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-sm font-medium text-gray-700">Current Position:</span>
-                                        <span class="text-sm text-gray-900">{{ $selectedApplicant->position ?? 'None'
-                                            }}</span>
+                                        <span class="text-sm text-gray-900">{{ $selectedApplicant->position ?? 'None' }}</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-sm font-medium text-gray-700">New Position:</span>
-                                        <span class="text-sm font-bold text-green-700">{{
-                                            $selectedEvaluation->jobApplication->position->name }}</span>
+                                        <span class="text-sm font-bold text-green-700">{{ $selectedEvaluation->jobApplication->position->name }}</span>
                                     </div>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-3">

@@ -205,4 +205,29 @@ class Evaluation extends Model
             $q->whereIn('name', $allowedPositions);
         });
     }
+
+    /**
+     * Check if this evaluation has at least one complete panel assignment
+     */
+    public function hasPanelComplete()
+    {
+        return $this->panelAssignments()->where('status', 'complete')->exists();
+    }
+
+    /**
+     * Check if this evaluation has at least one complete NBC assignment
+     */
+    public function hasNbcComplete()
+    {
+        return $this->nbcAssignments()->where('status', 'complete')->exists();
+    }
+
+    /**
+     * Check if this evaluation is ready for position assignment
+     * (either panel or NBC assignment is complete)
+     */
+    public function isReadyForAssignment()
+    {
+        return $this->hasPanelComplete() || $this->hasNbcComplete();
+    }
 }
