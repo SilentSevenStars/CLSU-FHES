@@ -40,7 +40,7 @@
                             <select wire:model.live="selectedPosition"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
                                 <option value="">Filter by Position</option>
-                                <?php $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pos): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pos): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($pos->id); ?>">
                                     <?php echo e($pos->name); ?>
 
@@ -49,10 +49,10 @@
                                     -
                                     <?php echo e(\Carbon\Carbon::parse($pos->end_date)->format('M j, Y')); ?>)
                                 </option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
 
-                            <?php if($selectedPosition): ?>
+                            <!--[if BLOCK]><![endif]--><?php if($selectedPosition): ?>
                             <!-- Export Buttons -->
                             <button wire:click="exportExcel"
                                 class="bg-green-600 hover:bg-green-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition shadow-sm">
@@ -65,7 +65,7 @@
                                 <i class="fa-solid fa-file-pdf mr-2"></i>
                                 Export PDF
                             </button>
-                            <?php endif; ?>
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                         </div>
                     </div>
                 </div>
@@ -80,17 +80,17 @@
                                     class="bg-gray-50 border border-gray-300 rounded-xl shadow-2xs overflow-hidden">
                                     
                                     
-                                    <?php if(session()->has('success')): ?>
+                                    <!--[if BLOCK]><![endif]--><?php if(session()->has('success')): ?>
                                     <div class="mx-6 mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                                         <p class="text-sm text-green-800 leading-5 tracking-wide"><?php echo e(session('success')); ?></p>
                                     </div>
-                                    <?php endif; ?>
+                                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
                                     <?php if(session()->has('error')): ?>
                                     <div class="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                                         <p class="text-sm text-red-800 leading-5 tracking-wide"><?php echo e(session('error')); ?></p>
                                     </div>
-                                    <?php endif; ?>
+                                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
                                     <!-- Table -->
                                     <table class="min-w-full divide-y divide-gray-300">
@@ -135,7 +135,7 @@
                                         </thead>
 
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
-                                            <?php $__empty_1 = true; $__currentLoopData = $applications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $application): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                            <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $applications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $application): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                             <tr
                                                 class="bg-gray-50 hover:bg-gray-100">
                                                 <td class="size-px whitespace-nowrap align-top">
@@ -158,12 +158,12 @@
                                                 </td>
                                                 <td class="size-px whitespace-nowrap align-top">
                                                     <div class="text-sm font-medium text-black">
-                                                        <?php if($application->evaluation && $application->evaluation->interview_date): ?>
+                                                        <!--[if BLOCK]><![endif]--><?php if($application->evaluation && $application->evaluation->interview_date): ?>
                                                             <?php echo e(\Carbon\Carbon::parse($application->evaluation->interview_date)->format('M j, Y')); ?>
 
                                                         <?php else: ?>
                                                             <span class="text-gray-600">Not scheduled</span>
-                                                        <?php endif; ?>
+                                                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                                     </div>
                                                 </td>
                                             </tr>
@@ -177,24 +177,24 @@
                                                     </svg>
                                                     <p class="text-black text-lg font-medium">No scheduled applicants found</p>
                                                     <p class="text-gray-600 text-sm mt-1">
-                                                        <?php if($selectedPosition): ?>
+                                                        <!--[if BLOCK]><![endif]--><?php if($selectedPosition): ?>
                                                             No applicants scheduled for this position yet
                                                         <?php else: ?>
                                                             Please select a position to view scheduled applicants
-                                                        <?php endif; ?>
+                                                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                                     </p>
                                                 </td>
                                             </tr>
-                                            <?php endif; ?>
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                         </tbody>
                                     </table>
                                     <!-- End Table -->
-                                    <?php if($applications->hasPages()): ?>
+                                    <!--[if BLOCK]><![endif]--><?php if($applications->hasPages()): ?>
                                     <div class="p-4">
                                         <?php echo e($applications->links()); ?>
 
                                     </div>
-                                    <?php endif; ?>
+                                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                 </div>
                             </div>
                         </div>
@@ -207,4 +207,4 @@
         </div>
     </div>
 </div>
-<?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views\livewire\admin\scheduled-applicant.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/admin/scheduled-applicant.blade.php ENDPATH**/ ?>

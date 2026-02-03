@@ -100,20 +100,20 @@
                             <select wire:model.live="filterCollege"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="">All Colleges</option>
-                                <?php $__currentLoopData = $colleges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $college): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $colleges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $college): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 
                                 <option value="<?php echo e($college->id); ?>"><?php echo e($college->name); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
 
                             <!-- Department Filter (dynamic based on college) -->
                             <select wire:model.live="filterDepartment"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white">
                                 <option value="">All Departments</option>
-                                <?php $__currentLoopData = $filterDepartments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dept): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $filterDepartments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dept): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 
                                 <option value="<?php echo e($dept->id); ?>"><?php echo e($dept->name); ?></option>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
 
                             <!-- Per Page -->
@@ -196,7 +196,7 @@
                                         </thead>
 
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
-                                            <?php $__empty_1 = true; $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                            <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                             <tr class="bg-gray-50 hover:bg-gray-100">
                                                 <td class="px-6 py-4 whitespace-nowrap text-black"><?php echo e($position->name); ?></td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">
@@ -241,7 +241,7 @@
                                                     <p class="mt-2">No positions found</p>
                                                 </td>
                                             </tr>
-                                            <?php endif; ?>
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                         </tbody>
                                     </table>
 
@@ -258,4 +258,4 @@
             </div>
         </div>
     </div>
-</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views\livewire\admin\position\position-index.blade.php ENDPATH**/ ?>
+</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/admin/position/position-index.blade.php ENDPATH**/ ?>

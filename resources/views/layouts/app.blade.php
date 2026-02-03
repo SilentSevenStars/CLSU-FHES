@@ -4,6 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{{ config('app.name', 'Laravel') }}</title>
+@if(request()->routeIs('assign.position'))
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('image/clsu-logo-green.png') }}">
+<link rel="shortcut icon" href="{{ asset('image/clsu-logo-green.png') }}">
+@endif
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
 @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
     @vite(['resources/css/app.css', 'resources/js/app.js'])
