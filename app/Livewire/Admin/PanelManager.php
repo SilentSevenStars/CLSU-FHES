@@ -6,6 +6,7 @@ use App\Models\College;
 use App\Models\Department;
 use App\Models\Panel;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
@@ -175,6 +176,7 @@ class PanelManager extends Component
                 'name' => $this->name,
                 'email' => $this->email,
                 'password' => Hash::make($this->password),
+                'email_verified_at' => Carbon::now(),
             ]);
 
             // Assign 'panel' role (NOT panel-head, panel-dean, or panel-senior)
