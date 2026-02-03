@@ -5,6 +5,7 @@ namespace App\Livewire\Applicant;
 use App\Models\Applicant;
 use App\Models\JobApplication as ModelsJobApplication;
 use App\Models\Position;
+use App\Models\EducationalBackground;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -31,6 +32,7 @@ class JobApplication extends Component
 
     public string $present_position = "";
     public string $education = "";
+    public $educationOptions = [];
     public $experience;
     public string $training = "";
     public string $eligibility = "";
@@ -137,6 +139,10 @@ class JobApplication extends Component
 
         $deadline = Carbon::parse($position->end_date)->addDay()->startOfDay();
         $this->deadlineTimestamp = $deadline->timestamp;
+
+        $this->educationOptions = EducationalBackground::orderBy('name')
+        ->pluck('name')
+        ->toArray();
     }
 
     public function loadRegions()

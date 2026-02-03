@@ -272,12 +272,28 @@ use Illuminate\Support\Facades\Storage;
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Education <span
-                                        class="text-red-500">*</span></label>
-                                <input type="text" wire:model="education"
-                                    class="block w-full px-4 py-3 bg-gray-50 border @error('education') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
-                                @error('education')<span class="text-red-500 text-sm mt-1 block">{{ $message
-                                    }}</span>@enderror
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                    Education <span class="text-red-500">*</span>
+                                </label>
+
+                                <input
+                                    type="text"
+                                    wire:model.defer="education"
+                                    list="educationOptions"
+                                    placeholder="e.g., Master of Science in Information Technology"
+                                    class="block w-full px-4 py-3 bg-gray-50 border 
+            @error('education') input-error border-red-500 @else border-gray-300 @enderror
+            rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+
+                                <datalist id="educationOptions">
+                                    @foreach($educationOptions as $option)
+                                    <option value="{{ $option }}"></option>
+                                    @endforeach
+                                </datalist>
+
+                                @error('education')
+                                <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>
+                                @enderror
                             </div>
 
                             <div>

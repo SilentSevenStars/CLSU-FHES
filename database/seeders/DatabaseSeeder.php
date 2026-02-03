@@ -98,5 +98,11 @@ class DatabaseSeeder extends Seeder
         );
 
         $admin->syncRoles(['super-admin']);
+
+        $this->call([
+            CollegeSeeder::class,
+            DepartmentSeeder::class,
+            EducationalBackgroundSeeder::class,
+        ]);
     }
 }

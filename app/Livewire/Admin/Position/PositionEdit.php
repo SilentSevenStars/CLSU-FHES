@@ -9,6 +9,7 @@ use App\Models\PositionRank;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use App\Models\EducationalBackground;
 
 class PositionEdit extends Component
 {
@@ -24,6 +25,7 @@ class PositionEdit extends Component
     public int $experience = 0;
     public int $training = 0;
     public string $eligibility = "";
+    public $educationOptions = [];
 
     public $colleges = [];
     public $departments = [];
@@ -57,6 +59,10 @@ class PositionEdit extends Component
                 ->orderBy('name')
                 ->get();
         }
+
+        $this->educationOptions = EducationalBackground::orderBy('name')
+        ->pluck('name')
+        ->toArray();
         
         // Set department_id after departments are loaded
         $this->department_id = (string) $position->department_id;
