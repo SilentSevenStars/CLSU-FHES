@@ -110,9 +110,6 @@
                             <option value="50">50 / page</option>
                             <option value="100">100 / page</option>
                         </select>
-
-                        <!-- Toggle Archived/Active -->
-                        
                     </div>
                 </div>
             </div>
@@ -194,13 +191,7 @@
                                     <tbody class="divide-y divide-gray-300 bg-gray-50">
                     <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $applicants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $applicant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                     <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $applicant->jobApplications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $application): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <!--[if BLOCK]><![endif]--><?php if($application->evaluation && ($application->archive == $showArchived)): ?>
-                    <?php
-                        // Only show if: not hired OR (hired but applying for different position)
-                        $shouldShow = !$applicant->hired || 
-                                     ($applicant->hired && $applicant->position != $application->position->name);
-                    ?>
-                    <!--[if BLOCK]><![endif]--><?php if($shouldShow): ?>
+                    <!--[if BLOCK]><![endif]--><?php if($application->evaluation && ($application->archive == $showArchived) && $application->status !== 'hired'): ?>
                     <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">
@@ -280,7 +271,6 @@
                             </div>
                         </td>
                     </tr>
-                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                     <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>

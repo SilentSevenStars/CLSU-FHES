@@ -109,16 +109,6 @@
                             <option value="50">50 / page</option>
                             <option value="100">100 / page</option>
                         </select>
-
-                        <!-- Toggle Archived/Active -->
-                        {{-- <button wire:click="$set('showArchived', !$showArchived)"
-                                class="inline-flex items-center px-4 py-2 {{ $showArchived ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-blue-600 hover:bg-blue-700' }} text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 {{ $showArchived ? 'focus:ring-yellow-300' : 'focus:ring-blue-300' }}">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                            </svg>
-                            {{ $showArchived ? 'Show Active' : 'Show Archived' }}
-                        </button> --}}
                     </div>
                 </div>
             </div>
@@ -198,13 +188,7 @@
                                     <tbody class="divide-y divide-gray-300 bg-gray-50">
                     @forelse($applicants as $applicant)
                     @foreach($applicant->jobApplications as $application)
-                    @if($application->evaluation && ($application->archive == $showArchived))
-                    @php
-                        // Only show if: not hired OR (hired but applying for different position)
-                        $shouldShow = !$applicant->hired || 
-                                     ($applicant->hired && $applicant->position != $application->position->name);
-                    @endphp
-                    @if($shouldShow)
+                    @if($application->evaluation && ($application->archive == $showArchived) && $application->status !== 'hired')
                     <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">
@@ -279,7 +263,6 @@
                             </div>
                         </td>
                     </tr>
-                    @endif
                     @endif
                     @endforeach
                     @empty

@@ -208,7 +208,7 @@ class AssignPosition extends Component
                 'job_application_id' => $this->selectedEvaluation->jobApplication->id
             ]);
 
-            // Update applicant position and set hired to true
+            // Update applicant: set position and hired to true
             $this->selectedApplicant->update([
                 'position' => $newPosition,
                 'hired' => true,
@@ -216,13 +216,14 @@ class AssignPosition extends Component
 
             Log::info('Applicant updated successfully');
 
-            // Update job application status to hired AND archive it
+            // Update job application: set status to hired and archive to true
+            // The 'status' field is the source of truth for whether this application was used for hiring
             $this->selectedEvaluation->jobApplication->update([
                 'status' => 'hired',
-                'archive' => true, // Archive the job application after assignment
+                'archive' => true,
             ]);
 
-            Log::info('Job application updated successfully (hired and archived)');
+            Log::info('Job application updated successfully (status: hired, archive: true)');
 
             // Send email notification
             $this->sendPromotionEmail($this->selectedApplicant, $oldPosition, $newPosition);
@@ -249,8 +250,16 @@ class AssignPosition extends Component
     // Archive functionality methods
     public function openArchiveModal($jobApplicationId)
     {
-        $this->selectedJobApplication = \App\Models\JobApplication::with(['applicant.user', 'position'])
+        $jobApplication = \App\Models\JobApplication::with(['applicant.user', 'position'])
             ->findOrFail($jobApplicationId);
+        
+        // Check if this job application has status 'hired'
+        if ($jobApplication->status === 'hired') {
+            $this->showAlert('error', 'Cannot archive this application. It was used to hire/promote this applicant and must be kept for records.');
+            return;
+        }
+        
+        $this->selectedJobApplication = $jobApplication;
         $this->showArchiveModal = true;
     }
 
@@ -267,6 +276,13 @@ class AssignPosition extends Component
             return;
         }
 
+        // Double-check: cannot archive if status is 'hired'
+        if ($this->selectedJobApplication->status === 'hired') {
+            $this->showAlert('error', 'Cannot archive this application. It was used to hire/promote this applicant.');
+            $this->closeArchiveModal();
+            return;
+        }
+
         try {
             Log::info('Archiving job application', [
                 'job_application_id' => $this->selectedJobApplication->id,
@@ -274,7 +290,7 @@ class AssignPosition extends Component
                 'position' => $this->selectedJobApplication->position->name
             ]);
 
-            // Update archive column to true
+            // Update archive to true
             $this->selectedJobApplication->update([
                 'archive' => true,
             ]);
@@ -298,6 +314,12 @@ class AssignPosition extends Component
     {
         $jobApplication = \App\Models\JobApplication::findOrFail($jobApplicationId);
 
+        // Check if this job application has status 'hired'
+        if ($jobApplication->status === 'hired') {
+            $this->showAlert('error', 'Cannot restore this application. It was used to hire/promote this applicant and must be kept for records.');
+            return;
+        }
+
         try {
             Log::info('Unarchiving job application', [
                 'job_application_id' => $jobApplication->id,
@@ -305,7 +327,7 @@ class AssignPosition extends Component
                 'position' => $jobApplication->position->name
             ]);
 
-            // Update archive column to false
+            // Update archive to false
             $jobApplication->update([
                 'archive' => false,
             ]);
@@ -434,28 +456,17 @@ class AssignPosition extends Component
                         'evaluation.panelAssignments',
                         'evaluation.nbcAssignments'
                     ])
-                    // Include or exclude archived job applications based on showArchived
+                    // Filter based on archive status
                     ->where('archive', $this->showArchived ? true : false)
-                    // Only show job applications where the position is different from current position
-                    // OR applicant is not hired yet
-                    ->where(function($query) {
-                        $query->whereHas('applicant', function($a) {
-                            // Not hired yet
-                            $a->where('hired', false);
-                        })
-                        ->orWhere(function($subQuery) {
-                            // OR hired but applying for different position (promotion)
-                            $subQuery->whereHas('applicant', function($a) {
-                                $a->where('hired', true);
-                            })
-                            ->whereRaw('(SELECT position FROM applicants WHERE id = job_applications.applicant_id) != (SELECT name FROM positions WHERE id = job_applications.position_id)');
-                        });
-                    });
+                    // Exclude job applications with status 'hired'
+                    ->where('status', '!=', 'hired');
                 }
             ])
-            // Must have a job application WITH evaluation and matching archive status
+            // Must have a job application WITH evaluation and matching criteria
             ->whereHas('jobApplications', function ($q) {
                 $q->where('archive', $this->showArchived ? true : false)
+                    // Exclude job applications with status 'hired'
+                    ->where('status', '!=', 'hired')
                     ->whereHas('evaluation', function ($e) {
                         // Either panel assignment OR NBC assignment must be complete
                         $e->where(function($query) {
@@ -465,18 +476,6 @@ class AssignPosition extends Component
                             ->orWhereHas('nbcAssignments', function ($nbc) {
                                 $nbc->where('status', 'complete');
                             });
-                        });
-                    })
-                    // Only show job applications where position is different from current OR not hired
-                    ->where(function($query) {
-                        $query->whereHas('applicant', function($a) {
-                            $a->where('hired', false);
-                        })
-                        ->orWhere(function($subQuery) {
-                            $subQuery->whereHas('applicant', function($a) {
-                                $a->where('hired', true);
-                            })
-                            ->whereRaw('(SELECT position FROM applicants WHERE id = job_applications.applicant_id) != (SELECT name FROM positions WHERE id = job_applications.position_id)');
                         });
                     });
             });
@@ -492,6 +491,7 @@ class AssignPosition extends Component
         if (!empty($this->positionFilter)) {
             $applicantsQuery->whereHas('jobApplications', function ($q) {
                 $q->where('archive', $this->showArchived ? true : false)
+                    ->where('status', '!=', 'hired')
                     ->whereHas('position', function ($p) {
                         $p->where('name', $this->positionFilter);
                     });

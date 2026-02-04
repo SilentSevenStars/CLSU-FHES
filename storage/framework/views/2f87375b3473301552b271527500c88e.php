@@ -1,25 +1,27 @@
 <div
     x-data="{
-        showRestoreModal: @entangle('showRestoreModal'),
-        showDeleteModal: @entangle('showDeleteModal')
+        showRestoreModal: <?php if ((object) ('showRestoreModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showRestoreModal'->value()); ?>')<?php echo e('showRestoreModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showRestoreModal'); ?>')<?php endif; ?>,
+        showDeleteModal: <?php if ((object) ('showDeleteModal') instanceof \Livewire\WireDirective) : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showDeleteModal'->value()); ?>')<?php echo e('showDeleteModal'->hasModifier('live') ? '.live' : ''); ?><?php else : ?>window.Livewire.find('<?php echo e($__livewire->getId()); ?>').entangle('<?php echo e('showDeleteModal'); ?>')<?php endif; ?>
     }">
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-7xl mx-auto">
 
             <!-- ================= FLASH MESSAGES ================= -->
-            @if (session()->has('success'))
+            <!--[if BLOCK]><![endif]--><?php if(session()->has('success')): ?>
             <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
                 class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                {{ session('success') }}
-            </div>
-            @endif
+                <?php echo e(session('success')); ?>
 
-            @if (session()->has('error'))
+            </div>
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+
+            <?php if(session()->has('error')): ?>
             <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
                 class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                {{ session('error') }}
+                <?php echo e(session('error')); ?>
+
             </div>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
             <!-- ================= HEADER ================= -->
             <div class="mb-8">
@@ -57,7 +59,8 @@
                             placeholder="Search applicant...">
 
                         <span class="text-sm bg-orange-100 border border-orange-300 px-4 py-2 rounded-lg">
-                            {{ $archivedApplicants->total() }} Archived Applicant{{ $archivedApplicants->total() !== 1 ? 's' : '' }}
+                            <?php echo e($archivedApplicants->total()); ?> Archived Applicant<?php echo e($archivedApplicants->total() !== 1 ? 's' : ''); ?>
+
                         </span>
                     </div>
 
@@ -75,19 +78,23 @@
                         </thead>
 
                         <tbody class="bg-gray-50 divide-y divide-gray-300">
-                            @forelse($archivedApplicants as $index => $applicant)
+                            <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $archivedApplicants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $applicant): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                             <tr class="hover:bg-gray-100">
                                 <td class="px-6 py-4">
-                                    {{ $archivedApplicants->firstItem() + $index }}
+                                    <?php echo e($archivedApplicants->firstItem() + $index); ?>
+
                                 </td>
                                 <td class="px-6 py-4 font-medium">
-                                    {{ $applicant->applicant->user->name ?? 'No Name' }}
+                                    <?php echo e($applicant->applicant->user->name ?? 'No Name'); ?>
+
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ $applicant->applicant->user->email ?? 'No Email' }}
+                                    <?php echo e($applicant->applicant->user->email ?? 'No Email'); ?>
+
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ $applicant->position->name ?? '—' }}
+                                    <?php echo e($applicant->position->name ?? '—'); ?>
+
                                 </td>
                                 <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
@@ -96,22 +103,23 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ $applicant->updated_at->format('M d, Y') }}
+                                    <?php echo e($applicant->updated_at->format('M d, Y')); ?>
+
                                 </td>
                                 <td class="px-6 py-4 flex gap-2">
-                                    <button wire:click="openRestoreModal({{ $applicant->id }})"
+                                    <button wire:click="openRestoreModal(<?php echo e($applicant->id); ?>)"
                                         class="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition-colors duration-200">
                                         <i class="fa-solid fa-rotate-left mr-1"></i>
                                         Restore
                                     </button>
-                                    <button wire:click="openDeleteModal({{ $applicant->id }})"
+                                    <button wire:click="openDeleteModal(<?php echo e($applicant->id); ?>)"
                                         class="bg-red-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-700 transition-colors duration-200">
                                         <i class="fa-solid fa-trash mr-1"></i>
                                         Delete
                                     </button>
                                 </td>
                             </tr>
-                            @empty
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="7" class="text-center py-10 text-gray-500">
                                     <div class="flex flex-col items-center">
@@ -123,18 +131,21 @@
                                     </div>
                                 </td>
                             </tr>
-                            @endforelse
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                         </tbody>
                     </table>
 
                     <!-- PAGINATION -->
                     <div class="mt-4 flex justify-between items-center">
                         <span class="text-xs text-gray-500">
-                            Showing {{ $archivedApplicants->firstItem() ?? 0 }}
-                            to {{ $archivedApplicants->lastItem() ?? 0 }}
-                            of {{ $archivedApplicants->total() }} applicants
+                            Showing <?php echo e($archivedApplicants->firstItem() ?? 0); ?>
+
+                            to <?php echo e($archivedApplicants->lastItem() ?? 0); ?>
+
+                            of <?php echo e($archivedApplicants->total()); ?> applicants
                         </span>
-                        {{ $archivedApplicants->links() }}
+                        <?php echo e($archivedApplicants->links()); ?>
+
                     </div>
                 </div>
             </div>
@@ -273,4 +284,4 @@
             display: none !important;
         }
     </style>
-</div>
+</div><?php /**PATH C:\xampp\htdocs\CLSU-FHES\resources\views/livewire/admin/archive-applicant-management.blade.php ENDPATH**/ ?>

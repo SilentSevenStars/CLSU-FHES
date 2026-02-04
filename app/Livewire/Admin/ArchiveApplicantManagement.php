@@ -42,6 +42,14 @@ class ArchiveApplicantManagement extends Component
     ======================== */
     public function openRestoreModal($id)
     {
+        $jobApplication = JobApplication::with('applicant')->findOrFail($id);
+        
+        // Check if this job application has status 'hired'
+        if ($jobApplication->status === 'hired') {
+            session()->flash('error', 'Cannot restore this application. It was used to hire/promote this applicant and must be kept for records.');
+            return;
+        }
+
         $this->selectedJobApplicationId = $id;
         $this->showRestoreModal = true;
     }
@@ -53,6 +61,15 @@ class ArchiveApplicantManagement extends Component
 
     public function restore()
     {
+        $jobApplication = JobApplication::with('applicant')->findOrFail($this->selectedJobApplicationId);
+        
+        // Double-check before restoring: cannot restore if status is 'hired'
+        if ($jobApplication->status === 'hired') {
+            session()->flash('error', 'Cannot restore this application. It was used to hire/promote this applicant and must be kept for records.');
+            $this->closeRestoreModal();
+            return;
+        }
+
         JobApplication::where('id', $this->selectedJobApplicationId)
             ->update(['archive' => false]);
 
@@ -66,6 +83,14 @@ class ArchiveApplicantManagement extends Component
     ======================== */
     public function openDeleteModal($id)
     {
+        $jobApplication = JobApplication::with('applicant')->findOrFail($id);
+        
+        // Check if this job application has status 'hired'
+        if ($jobApplication->status === 'hired') {
+            session()->flash('error', 'Cannot delete this application. It was used to hire/promote this applicant and must be kept for records.');
+            return;
+        }
+
         $this->selectedJobApplicationId = $id;
         $this->showDeleteModal = true;
     }
@@ -77,7 +102,16 @@ class ArchiveApplicantManagement extends Component
 
     public function delete()
     {
-        JobApplication::findOrFail($this->selectedJobApplicationId)->delete();
+        $jobApplication = JobApplication::with('applicant')->findOrFail($this->selectedJobApplicationId);
+        
+        // Double-check before deleting: cannot delete if status is 'hired'
+        if ($jobApplication->status === 'hired') {
+            session()->flash('error', 'Cannot delete this application. It was used to hire/promote this applicant and must be kept for records.');
+            $this->closeDeleteModal();
+            return;
+        }
+
+        $jobApplication->delete();
 
         session()->flash('success', 'Applicant permanently deleted.');
 
@@ -92,9 +126,8 @@ class ArchiveApplicantManagement extends Component
         $archivedApplicants = JobApplication::query()
             ->with(['applicant.user', 'position'])
             ->where('archive', true)
-            ->whereHas('applicant', function ($q) {
-                $q->where('hired', false);
-            })
+            // Exclude job applications with status 'hired' from archived list
+            ->where('status', '!=', 'hired')
             ->when($this->search, function ($q) {
                 $q->whereHas('applicant.user', function ($u) {
                     $u->where('name', 'like', "%{$this->search}%")
