@@ -63,11 +63,12 @@
                         class="py-2 px-3 block w-full border-gray-200 rounded-lg text-sm focus:border-[#1E7F3E] focus:ring-[#1E7F3E]"
                     >
                         <option value="">Select Position</option>
-                        @foreach($positions as $position)
-                            <option value="{{ $position }}">
-                                {{ $position }}
+                        <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $position): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($position); ?>">
+                                <?php echo e($position); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                     </select>
                 </div>
 
@@ -76,18 +77,20 @@
                     <select 
                         wire:model.live="selectedDate"
                         class="py-2 px-3 block w-full border-gray-200 rounded-lg text-sm focus:border-[#1E7F3E] focus:ring-[#1E7F3E] disabled:opacity-50 disabled:cursor-not-allowed"
-                        {{ !$selectedPosition ? 'disabled' : '' }}
+                        <?php echo e(!$selectedPosition ? 'disabled' : ''); ?>
+
                     >
                         <option value="">Select Interview Date</option>
-                        @foreach($interviewDates as $date)
-                            <option value="{{ $date }}">
-                                {{ date('M d, Y', strtotime($date)) }}
+                        <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $interviewDates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($date); ?>">
+                                <?php echo e(date('M d, Y', strtotime($date))); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                     </select>
-                    @if(!$selectedPosition)
+                    <!--[if BLOCK]><![endif]--><?php if(!$selectedPosition): ?>
                         <p class="text-xs text-gray-500 mt-1">Please select a position first</p>
-                    @endif
+                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                 </div>
 
                 <!-- Export -->
@@ -95,7 +98,8 @@
                     <button 
                         wire:click="export"
                         class="block text-white bg-[#156B2D] hover:bg-[#125A26] focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                        {{ !$selectedPosition || !$selectedDate ? 'disabled' : '' }}
+                        <?php echo e(!$selectedPosition || !$selectedDate ? 'disabled' : ''); ?>
+
                     >
                         <i class="fa-solid fa-file-export mr-2"></i>Export PDF
                     </button>
@@ -135,33 +139,40 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-300 bg-gray-50">
-                                        @forelse($screeningData as $data)
+                                        <!--[if BLOCK]><![endif]--><?php $__empty_1 = true; $__currentLoopData = $screeningData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                             <tr class="bg-gray-50 hover:bg-gray-100">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-semibold">
-                                                    {{ $data['name'] }}
+                                                    <?php echo e($data['name']); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                                    {{ $data['specialization'] }}
+                                                    <?php echo e($data['specialization']); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black text-center">
-                                                    {{ $data['performance'] }}
+                                                    <?php echo e($data['performance']); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black text-center">
-                                                    {{ $data['credentials_experience'] }}
+                                                    <?php echo e($data['credentials_experience']); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black text-center">
-                                                    {{ $data['interview'] }}
+                                                    <?php echo e($data['interview']); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-bold text-center">
-                                                    {{ $data['total'] }}
+                                                    <?php echo e($data['total']); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
                                                     <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#1E7F3E] text-white font-bold">
-                                                        {{ $data['rank'] }}
+                                                        <?php echo e($data['rank']); ?>
+
                                                     </span>
                                                 </td>
                                             </tr>
-                                        @empty
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                             <tr>
                                                 <td colspan="7" class="text-center py-12 text-gray-500">
                                                     <div class="flex flex-col items-center justify-center">
@@ -170,20 +181,20 @@
                                                                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z">
                                                             </path>
                                                         </svg>
-                                                        @if(!$selectedPosition)
+                                                        <!--[if BLOCK]><![endif]--><?php if(!$selectedPosition): ?>
                                                             <p class="text-lg font-medium">Please select a position</p>
                                                             <p class="text-sm mt-1">Choose a position from the filter above</p>
-                                                        @elseif(!$selectedDate)
+                                                        <?php elseif(!$selectedDate): ?>
                                                             <p class="text-lg font-medium">Please select an interview date</p>
                                                             <p class="text-sm mt-1">Choose a date from the filter above</p>
-                                                        @else
+                                                        <?php else: ?>
                                                             <p class="text-lg font-medium">No completed evaluations found</p>
                                                             <p class="text-sm mt-1">All panel assignments must be completed</p>
-                                                        @endif
+                                                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                                     </div>
                                                 </td>
                                             </tr>
-                                        @endforelse
+                                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                     </tbody>
                                 </table>
                             </div>
@@ -192,16 +203,17 @@
                 </div>
             </div>
 
-            @if(count($screeningData) > 0)
+            <!--[if BLOCK]><![endif]--><?php if(count($screeningData) > 0): ?>
                 <div class="px-6 py-4 border-t border-gray-300 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <div class="text-sm text-gray-600">
-                        Showing <span class="font-semibold">{{ count($screeningData) }}</span> result{{ count($screeningData) !== 1 ? 's' : '' }}
+                        Showing <span class="font-semibold"><?php echo e(count($screeningData)); ?></span> result<?php echo e(count($screeningData) !== 1 ? 's' : ''); ?>
+
                     </div>
                     <div class="text-xs text-gray-500">
                         * Only applicants with completed panel evaluations are shown
                     </div>
                 </div>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
         </div>
     </div>
-</div>
+</div><?php /**PATH C:\Users\Owner\Desktop\projects\CLSU CAPS\resources\views/livewire/admin/screening.blade.php ENDPATH**/ ?>

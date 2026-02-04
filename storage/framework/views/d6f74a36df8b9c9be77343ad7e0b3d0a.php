@@ -1,35 +1,35 @@
 <div>
-    {{-- ============================================================ --}}
-    {{-- FLASH MESSAGES                                                 --}}
-    {{-- ============================================================ --}}
-    @if (session()->has('success'))
+    
+    
+    
+    <!--[if BLOCK]><![endif]--><?php if(session()->has('success')): ?>
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
              class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('success') }}</span>
+            <span class="block sm:inline"><?php echo e(session('success')); ?></span>
             <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
                 <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                     <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
                 </svg>
             </button>
         </div>
-    @endif
+    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-    @if (session()->has('error'))
+    <?php if(session()->has('error')): ?>
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
              class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span class="block sm:inline">{{ session('error') }}</span>
+            <span class="block sm:inline"><?php echo e(session('error')); ?></span>
             <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
                 <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                     <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 0 0 1 0 1.698z"/>
                 </svg>
             </button>
         </div>
-    @endif
+    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-7xl mx-auto">
 
-            {{-- PAGE HEADER --}}
+            
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
@@ -48,29 +48,29 @@
                 </div>
             </div>
 
-            {{-- TABS --}}
+            
             <div class="flex gap-1 bg-white rounded-xl border border-gray-200 p-1 w-fit mb-6 shadow-sm">
                 <button wire:click="switchTab('roles')"
                     class="px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200
-                           {{ $activeTab === 'roles' ? 'bg-[#1E7F3E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                           <?php echo e($activeTab === 'roles' ? 'bg-[#1E7F3E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'); ?>">
                     Roles
-                    <span class="ml-2 text-xs opacity-70">({{ $roles->total() }})</span>
+                    <span class="ml-2 text-xs opacity-70">(<?php echo e($roles->total()); ?>)</span>
                 </button>
                 <button wire:click="switchTab('permissions')"
                     class="px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200
-                           {{ $activeTab === 'permissions' ? 'bg-[#1E7F3E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100' }}">
+                           <?php echo e($activeTab === 'permissions' ? 'bg-[#1E7F3E] text-white shadow-sm' : 'text-gray-600 hover:bg-gray-100'); ?>">
                     Permissions
-                    <span class="ml-2 text-xs opacity-70">({{ $permissions->total() }})</span>
+                    <span class="ml-2 text-xs opacity-70">(<?php echo e($permissions->total()); ?>)</span>
                 </button>
             </div>
 
-            {{-- ============================================================ --}}
-            {{-- ROLES TAB                                                      --}}
-            {{-- ============================================================ --}}
-            @if ($activeTab === 'roles')
+            
+            
+            
+            <!--[if BLOCK]><![endif]--><?php if($activeTab === 'roles'): ?>
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn">
 
-                {{-- TABLE HEADER --}}
+                
                 <div class="bg-[#1E7F3E] p-6">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
@@ -83,15 +83,15 @@
                         <div class="flex flex-wrap items-center gap-3">
                             <select wire:model.live="rolePerPage"
                                     class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
-                                @foreach ($perPageOptions as $option)
-                                    <option value="{{ $option }}">{{ $option }} / page</option>
-                                @endforeach
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $perPageOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($option); ?>"><?php echo e($option); ?> / page</option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
                         </div>
                     </div>
                 </div>
 
-                {{-- TOOLBAR --}}
+                
                 <div class="px-6 py-4 flex flex-wrap items-center justify-between border-b border-gray-300 gap-3">
                     <div class="flex-1 min-w-[200px] max-w-md">
                         <label class="sr-only">Search</label>
@@ -109,14 +109,14 @@
                         </div>
                     </div>
 
-                    {{-- CREATE BUTTON --}}
+                    
                     <button wire:click="openCreateRole"
                         class="block text-white bg-[#156B2D] hover:bg-[#125A26] focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5">
                         <i class="fa-solid fa-plus mr-2"></i>Create Role
                     </button>
                 </div>
 
-                {{-- TABLE --}}
+                
                 <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
                     <div class="flex flex-col">
                         <div class="-m-1.5 overflow-x-auto">
@@ -143,46 +143,49 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
-                                            @foreach ($roles as $index => $role)
+                                            <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <tr class="bg-gray-50 hover:bg-gray-100">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-medium">
-                                                    {{ $roles->firstItem() + $index }}
+                                                    <?php echo e($roles->firstItem() + $index); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-semibold">
-                                                    {{ $role->name }}
+                                                    <?php echo e($role->name); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                                    {{ $role->permissions_count }} permission{{ $role->permissions_count !== 1 ? 's' : '' }}
+                                                    <?php echo e($role->permissions_count); ?> permission<?php echo e($role->permissions_count !== 1 ? 's' : ''); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                    @if ($this->isSystemRole($role->name))
+                                                    <!--[if BLOCK]><![endif]--><?php if($this->isSystemRole($role->name)): ?>
                                                         <span class="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
                                                             System
                                                         </span>
-                                                    @else
+                                                    <?php else: ?>
                                                         <span class="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                                             Custom
                                                         </span>
-                                                    @endif
+                                                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                    @if ($this->isSystemRole($role->name))
+                                                    <!--[if BLOCK]><![endif]--><?php if($this->isSystemRole($role->name)): ?>
                                                         <span class="text-xs text-gray-400 italic">Protected</span>
-                                                    @else
-                                                        <button wire:click="openEditRole({{ $role->id }})"
+                                                    <?php else: ?>
+                                                        <button wire:click="openEditRole(<?php echo e($role->id); ?>)"
                                                             class="text-white bg-yellow-500 hover:bg-yellow-600 rounded-lg px-3 py-1 text-sm font-medium mr-2">
                                                             Edit
                                                         </button>
-                                                        <button wire:click="confirmDeleteRole({{ $role->id }})"
+                                                        <button wire:click="confirmDeleteRole(<?php echo e($role->id); ?>)"
                                                             class="px-3 py-1 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
                                                             Delete
                                                         </button>
-                                                    @endif
+                                                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                                 </td>
                                             </tr>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
 
-                                            @if ($roles->isEmpty())
+                                            <!--[if BLOCK]><![endif]--><?php if($roles->isEmpty()): ?>
                                             <tr>
                                                 <td colspan="5" class="text-center py-8 text-gray-500">
                                                     <div class="flex flex-col items-center justify-center">
@@ -199,7 +202,7 @@
                                                     </div>
                                                 </td>
                                             </tr>
-                                            @endif
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                         </tbody>
                                     </table>
                                 </div>
@@ -208,27 +211,29 @@
                     </div>
                 </div>
 
-                {{-- PAGINATION + INFO --}}
-                @if ($roles->hasPages() || $roles->total() > 0)
+                
+                <!--[if BLOCK]><![endif]--><?php if($roles->hasPages() || $roles->total() > 0): ?>
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-gray-300">
                     <span class="text-xs text-gray-500">
-                        Showing {{ $roles->firstItem() }} to {{ $roles->lastItem() }} of {{ $roles->total() }} role{{ $roles->total() !== 1 ? 's' : '' }}
+                        Showing <?php echo e($roles->firstItem()); ?> to <?php echo e($roles->lastItem()); ?> of <?php echo e($roles->total()); ?> role<?php echo e($roles->total() !== 1 ? 's' : ''); ?>
+
                     </span>
                     <div>
-                        {{ $roles->links() }}
+                        <?php echo e($roles->links()); ?>
+
                     </div>
                 </div>
-                @endif
+                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
             </div>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-            {{-- ============================================================ --}}
-            {{-- PERMISSIONS TAB                                                --}}
-            {{-- ============================================================ --}}
-            @if ($activeTab === 'permissions')
+            
+            
+            
+            <!--[if BLOCK]><![endif]--><?php if($activeTab === 'permissions'): ?>
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn">
 
-                {{-- TABLE HEADER --}}
+                
                 <div class="bg-[#1E7F3E] p-6">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
@@ -241,15 +246,15 @@
                         <div class="flex flex-wrap items-center gap-3">
                             <select wire:model.live="permissionPerPage"
                                     class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
-                                @foreach ($perPageOptions as $option)
-                                    <option value="{{ $option }}">{{ $option }} / page</option>
-                                @endforeach
+                                <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $perPageOptions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $option): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($option); ?>"><?php echo e($option); ?> / page</option>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
                             </select>
                         </div>
                     </div>
                 </div>
 
-                {{-- TOOLBAR --}}
+                
                 <div class="px-6 py-4 flex flex-wrap items-center justify-between border-b border-gray-300 gap-3">
                     <div class="flex-1 min-w-[200px] max-w-md">
                         <label class="sr-only">Search</label>
@@ -267,14 +272,14 @@
                         </div>
                     </div>
 
-                    {{-- CREATE BUTTON --}}
+                    
                     <button wire:click="openCreatePermission"
                         class="block text-white bg-[#156B2D] hover:bg-[#125A26] focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5">
                         <i class="fa-solid fa-plus mr-2"></i>Create Permission
                     </button>
                 </div>
 
-                {{-- TABLE --}}
+                
                 <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
                     <div class="flex flex-col">
                         <div class="-m-1.5 overflow-x-auto">
@@ -301,40 +306,44 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
-                                            @foreach ($permissions as $index => $permission)
+                                            <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $permissions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $permission): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                             <tr class="bg-gray-50 hover:bg-gray-100">
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-medium">
-                                                    {{ $permissions->firstItem() + $index }}
+                                                    <?php echo e($permissions->firstItem() + $index); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-semibold">
-                                                    {{ $permission->name }}
+                                                    <?php echo e($permission->name); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                    @php
+                                                    <?php
                                                         $parts = explode('.', $permission->name);
                                                         $module = $parts[0] ?? $permission->name;
-                                                    @endphp
+                                                    ?>
                                                     <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                                                        {{ $module }}
+                                                        <?php echo e($module); ?>
+
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                                    {{ $permission->roles_count }} role{{ $permission->roles_count !== 1 ? 's' : '' }}
+                                                    <?php echo e($permission->roles_count); ?> role<?php echo e($permission->roles_count !== 1 ? 's' : ''); ?>
+
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                    <button wire:click="openEditPermission({{ $permission->id }})"
+                                                    <button wire:click="openEditPermission(<?php echo e($permission->id); ?>)"
                                                         class="text-white bg-yellow-500 hover:bg-yellow-600 rounded-lg px-3 py-1 text-sm font-medium mr-2">
                                                         Edit
                                                     </button>
-                                                    <button wire:click="confirmDeletePermission({{ $permission->id }})"
+                                                    <button wire:click="confirmDeletePermission(<?php echo e($permission->id); ?>)"
                                                         class="px-3 py-1 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">
                                                         Delete
                                                     </button>
                                                 </td>
                                             </tr>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
 
-                                            @if ($permissions->isEmpty())
+                                            <!--[if BLOCK]><![endif]--><?php if($permissions->isEmpty()): ?>
                                             <tr>
                                                 <td colspan="5" class="text-center py-8 text-gray-500">
                                                     <div class="flex flex-col items-center justify-center">
@@ -351,7 +360,7 @@
                                                     </div>
                                                 </td>
                                             </tr>
-                                            @endif
+                                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                         </tbody>
                                     </table>
                                 </div>
@@ -360,40 +369,44 @@
                     </div>
                 </div>
 
-                {{-- PAGINATION + INFO --}}
-                @if ($permissions->hasPages() || $permissions->total() > 0)
+                
+                <!--[if BLOCK]><![endif]--><?php if($permissions->hasPages() || $permissions->total() > 0): ?>
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-gray-300">
                     <span class="text-xs text-gray-500">
-                        Showing {{ $permissions->firstItem() }} to {{ $permissions->lastItem() }} of {{ $permissions->total() }} permission{{ $permissions->total() !== 1 ? 's' : '' }}
+                        Showing <?php echo e($permissions->firstItem()); ?> to <?php echo e($permissions->lastItem()); ?> of <?php echo e($permissions->total()); ?> permission<?php echo e($permissions->total() !== 1 ? 's' : ''); ?>
+
                     </span>
                     <div>
-                        {{ $permissions->links() }}
+                        <?php echo e($permissions->links()); ?>
+
                     </div>
                 </div>
-                @endif
+                <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
             </div>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-            {{-- ============================================================ --}}
-            {{-- CREATE / EDIT MODAL                                            --}}
-            {{-- ============================================================ --}}
-            @if ($showModal)
+            
+            
+            
+            <!--[if BLOCK]><![endif]--><?php if($showModal): ?>
             <div class="fixed inset-0 z-50 flex items-center justify-center">
                 <div class="fixed inset-0 bg-black bg-opacity-40" wire:click="closeModal"></div>
 
                 <div class="relative bg-white rounded-2xl shadow-2xl w-full mx-4 overflow-hidden
-                            {{ $modalTarget === 'role' ? 'max-w-xl' : 'max-w-lg' }}">
+                            <?php echo e($modalTarget === 'role' ? 'max-w-xl' : 'max-w-lg'); ?>">
 
-                    {{-- MODAL HEADER --}}
+                    
                     <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gray-50">
                         <div>
                             <h3 class="text-base font-bold text-gray-800">
-                                {{ $modalMode === 'create' ? 'Create' : 'Edit' }} {{ ucfirst($modalTarget) }}
+                                <?php echo e($modalMode === 'create' ? 'Create' : 'Edit'); ?> <?php echo e(ucfirst($modalTarget)); ?>
+
                             </h3>
                             <p class="text-xs text-gray-500 mt-0.5">
-                                {{ $modalMode === 'create'
+                                <?php echo e($modalMode === 'create'
                                     ? 'Fill in the details to create a new ' . $modalTarget . '.'
-                                    : 'Update the details for this ' . $modalTarget . '.' }}
+                                    : 'Update the details for this ' . $modalTarget . '.'); ?>
+
                             </p>
                         </div>
                         <button wire:click="closeModal" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors">
@@ -403,37 +416,44 @@
                         </button>
                     </div>
 
-                    {{-- MODAL BODY --}}
+                    
                     <div class="p-6 space-y-5">
 
-                        {{-- ─── ROLE FORM ─── --}}
-                        @if ($modalTarget === 'role')
+                        
+                        <!--[if BLOCK]><![endif]--><?php if($modalTarget === 'role'): ?>
 
-                        {{-- Role Name --}}
+                        
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Role Name</label>
                             <input wire:model="roleName"
                                    type="text"
                                    placeholder="e.g. department-head"
                                    class="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] focus:border-transparent bg-gray-50 transition-colors">
-                            @error('roleName')
-                                <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
-                            @enderror
+                            <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['roleName'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <p class="mt-1.5 text-xs text-red-500"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
                             <p class="mt-1.5 text-xs text-gray-400">Spaces are converted to hyphens automatically.</p>
                         </div>
 
-                        {{-- Permissions Block --}}
+                        
                         <div>
                             <div class="flex items-center justify-between mb-2">
                                 <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                     Permissions
-                                    <span class="normal-case font-normal text-gray-400 ml-1">({{ count($rolePermissions) }} selected)</span>
+                                    <span class="normal-case font-normal text-gray-400 ml-1">(<?php echo e(count($rolePermissions)); ?> selected)</span>
                                 </label>
                             </div>
 
                             <div class="border border-gray-200 rounded-lg overflow-hidden">
 
-                                {{-- Permission Search --}}
+                                
                                 <div class="p-3 border-b border-gray-100 bg-gray-50">
                                     <div class="relative">
                                         <svg class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -446,80 +466,89 @@
                                     </div>
                                 </div>
 
-                                {{-- Select All / Deselect All --}}
+                                
                                 <div class="flex items-center justify-between px-3 py-2 bg-green-50 border-b border-green-100">
                                     <div class="flex items-center gap-2">
                                         <input type="checkbox"
                                                :checked="$allFilteredSelected"
-                                               wire:click="{{ $allFilteredSelected ? 'deselectAllPermissions' : 'selectAllPermissions' }}"
+                                               wire:click="<?php echo e($allFilteredSelected ? 'deselectAllPermissions' : 'selectAllPermissions'); ?>"
                                                class="w-4 h-4 rounded border-gray-300 text-[#1E7F3E] focus:ring-[#1E7F3E] cursor-pointer">
                                         <span class="text-xs font-semibold text-[#1E7F3E]">
-                                            {{ $allFilteredSelected ? 'Deselect All' : 'Select All' }}
+                                            <?php echo e($allFilteredSelected ? 'Deselect All' : 'Select All'); ?>
+
                                         </span>
                                     </div>
                                     <span class="text-xs text-[#1E7F3E]">
-                                        {{ $allPermissions->count() }} permission{{ $allPermissions->count() !== 1 ? 's' : '' }} shown
+                                        <?php echo e($allPermissions->count()); ?> permission<?php echo e($allPermissions->count() !== 1 ? 's' : ''); ?> shown
                                     </span>
                                 </div>
 
-                                {{-- Checkbox List --}}
+                                
                                 <div class="max-h-52 overflow-y-auto divide-y divide-gray-50">
-                                    @foreach ($allPermissions as $perm)
+                                    <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $allPermissions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $perm): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <label class="flex items-center gap-3 px-3 py-2 hover:bg-green-50 cursor-pointer transition-colors duration-100">
                                         <input type="checkbox"
                                                wire:model="rolePermissions"
-                                               value="{{ $perm->id }}"
+                                               value="<?php echo e($perm->id); ?>"
                                                class="w-4 h-4 rounded border-gray-300 text-[#1E7F3E] focus:ring-[#1E7F3E]">
-                                        <span class="text-xs text-gray-700">{{ $perm->name }}</span>
+                                        <span class="text-xs text-gray-700"><?php echo e($perm->name); ?></span>
                                     </label>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><!--[if ENDBLOCK]><![endif]-->
 
-                                    @if ($allPermissions->isEmpty())
+                                    <!--[if BLOCK]><![endif]--><?php if($allPermissions->isEmpty()): ?>
                                     <div class="px-3 py-4 text-center text-xs text-gray-400">No permissions match your search.</div>
-                                    @endif
+                                    <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                                 </div>
                             </div>
                         </div>
 
-                        @endif
-                        {{-- ─── END ROLE FORM ─── --}}
+                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+                        
 
-                        {{-- ─── PERMISSION FORM ─── --}}
-                        @if ($modalTarget === 'permission')
+                        
+                        <!--[if BLOCK]><![endif]--><?php if($modalTarget === 'permission'): ?>
                         <div>
                             <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2">Permission Name</label>
                             <input wire:model="permissionName"
                                    type="text"
                                    placeholder="e.g. department.create"
                                    class="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] focus:border-transparent bg-gray-50 transition-colors">
-                            @error('permissionName')
-                                <p class="mt-1.5 text-xs text-red-500">{{ $message }}</p>
-                            @enderror
+                            <!--[if BLOCK]><![endif]--><?php $__errorArgs = ['permissionName'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <p class="mt-1.5 text-xs text-red-500"><?php echo e($message); ?></p>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><!--[if ENDBLOCK]><![endif]-->
                             <p class="mt-1.5 text-xs text-gray-400">Use dot notation for module grouping (e.g. <code class="bg-gray-100 px-1 rounded">module.action</code>).</p>
                         </div>
-                        @endif
-                        {{-- ─── END PERMISSION FORM ─── --}}
+                        <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
+                        
                     </div>
 
-                    {{-- MODAL FOOTER --}}
+                    
                     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
                         <button wire:click="closeModal"
                             class="px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150">
                             Cancel
                         </button>
-                        <button wire:click="{{ $modalTarget === 'role' ? 'saveRole' : 'savePermission' }}"
+                        <button wire:click="<?php echo e($modalTarget === 'role' ? 'saveRole' : 'savePermission'); ?>"
                             class="px-5 py-2 text-sm font-semibold text-white bg-[#1E7F3E] rounded-lg hover:bg-[#156B2D] transition-colors duration-150 shadow-sm">
-                            {{ $modalMode === 'create' ? 'Create' : 'Save Changes' }}
+                            <?php echo e($modalMode === 'create' ? 'Create' : 'Save Changes'); ?>
+
                         </button>
                     </div>
                 </div>
             </div>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
-            {{-- ============================================================ --}}
-            {{-- DELETE CONFIRMATION MODAL                                      --}}
-            {{-- ============================================================ --}}
-            @if ($showDeleteConfirm)
+            
+            
+            
+            <!--[if BLOCK]><![endif]--><?php if($showDeleteConfirm): ?>
             <div class="fixed inset-0 z-50 flex items-center justify-center">
                 <div class="fixed inset-0 bg-black bg-opacity-40" wire:click="cancelDelete"></div>
 
@@ -533,14 +562,14 @@
                     </div>
 
                     <div class="px-6 pt-4 pb-2 text-center">
-                        <h3 class="text-base font-bold text-gray-800">Delete {{ ucfirst($deleteTarget) }}</h3>
+                        <h3 class="text-base font-bold text-gray-800">Delete <?php echo e(ucfirst($deleteTarget)); ?></h3>
                         <p class="text-sm text-gray-500 mt-1">
-                            This action cannot be undone. The {{ $deleteTarget }} will be permanently removed
-                            @if ($deleteTarget === 'role')
+                            This action cannot be undone. The <?php echo e($deleteTarget); ?> will be permanently removed
+                            <!--[if BLOCK]><![endif]--><?php if($deleteTarget === 'role'): ?>
                                 and all users assigned to it will lose this role.
-                            @else
+                            <?php else: ?>
                                 from all roles that currently have it.
-                            @endif
+                            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
                         </p>
                     </div>
 
@@ -549,15 +578,15 @@
                             class="px-4 py-2 text-sm font-semibold text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150">
                             Cancel
                         </button>
-                        <button wire:click="{{ $deleteTarget === 'role' ? 'deleteRole' : 'deletePermission' }}"
+                        <button wire:click="<?php echo e($deleteTarget === 'role' ? 'deleteRole' : 'deletePermission'); ?>"
                             class="px-5 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-150 shadow-sm">
                             Delete
                         </button>
                     </div>
                 </div>
             </div>
-            @endif
+            <?php endif; ?><!--[if ENDBLOCK]><![endif]-->
 
         </div>
     </div>
-</div>
+</div><?php /**PATH C:\Users\Owner\Desktop\projects\CLSU CAPS\resources\views/livewire/admin/role-permission-manager.blade.php ENDPATH**/ ?>
