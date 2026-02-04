@@ -19,7 +19,6 @@ class JobApplication extends Model
         'status',
         'reviewed_at',
         'archive',
-        'hired',
     ];
 
     protected $casts = [

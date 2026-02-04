@@ -19,15 +19,12 @@ return new class extends Migration
             $table->string('training');
             $table->string('eligibility');
             $table->text('other_involvement');
+            $table->timestamp('reviewed_at')->nullable();
             $table->string('requirements_file');
             $table->enum('status', ['decline', 'approve', 'hired', 'pending'])->default('pending');
-            $table->date('interview_date')->nullable();
-            $table->time('interview_time')->nullable();
-            $table->string('interview_location')->nullable();
             $table->foreignId('position_id')->constrained()->cascadeOnDelete();
             $table->foreignId('applicant_id')->constrained('applicants')->onDelete('cascade');
             $table->boolean('archive')->default(false);
-            $table->boolean('hired')->default(false);
             $table->timestamps();
         });
     }
