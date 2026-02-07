@@ -15,8 +15,8 @@ class Applicant extends Component
     use WithPagination;
 
     public $status = 'pending';
-    public $college_id = '';        // Now stores college ID
-    public $department_id = '';     // Now stores department ID
+    public $college_id = '';        
+    public $department_id = '';     
     public $departments = [];
     public $perPage = 10;
     public $search = '';

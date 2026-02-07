@@ -14,9 +14,6 @@ class ProfileView extends Component
 
     public function mount()
     {
-        if (Auth::user()->role !== 'applicant') {
-            abort(403, 'Unauthorized access.');
-        }
 
         $this->applicant = Applicant::where('user_id', Auth::id())->first();
         

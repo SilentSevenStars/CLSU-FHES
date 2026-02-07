@@ -6,10 +6,10 @@ use App\Models\Applicant;
 use App\Models\JobApplication as ModelsJobApplication;
 use App\Models\Position;
 use App\Models\EducationalBackground;
+use App\Services\FileEncryptionService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -70,12 +70,13 @@ class EditJobApplication extends Component
         'training' => 'required|string|max:255',
         'eligibility' => 'required|string|max:255',
         'other_involvement' => 'required|string|max:255',
-        'requirements_file' => 'nullable|mimes:pdf|max:2048',
+        'requirements_file' => 'nullable|mimes:pdf|max:102400',
     ];
 
     protected $messages = [
         'phone_number.regex' => 'Phone number must start with 09 and contain exactly 11 digits.',
         'phone_number.size' => 'Phone number must be exactly 11 digits.',
+        'requirements_file.max' => 'The file size must not exceed 100MB.',
     ];
 
     public function mount($application_id)
@@ -313,6 +314,32 @@ class EditJobApplication extends Component
         $this->dispatch('show-swal-confirm');
     }
 
+    /**
+     * Generate base64 encoded PDF for viewing in new tab
+     */
+    public function getFileDataUrl()
+    {
+        $encryptionService = new FileEncryptionService();
+
+        // Check if file exists
+        if (!$this->existing_file_path || !$encryptionService->fileExists($this->existing_file_path)) {
+            return null;
+        }
+
+        try {
+            // Decrypt file
+            $decryptedContents = $encryptionService->decryptFile($this->existing_file_path);
+            
+            // Convert to base64
+            $base64 = base64_encode($decryptedContents);
+            
+            // Return data URL
+            return 'data:application/pdf;base64,' . $base64;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
     public function save()
     {
         try {
@@ -324,14 +351,17 @@ class EditJobApplication extends Component
 
         $this->isSubmitting = true;
 
+        $encryptionService = new FileEncryptionService();
+
         // Handle file upload
-        $pdfPath = $this->existing_file_path;
+        $encryptedPath = $this->existing_file_path;
         if ($this->requirements_file) {
-            // Delete old file
+            // Delete old encrypted file
             if ($this->existing_file_path) {
-                Storage::disk('public')->delete($this->existing_file_path);
+                $encryptionService->deleteEncryptedFile($this->existing_file_path);
             }
-            $pdfPath = $this->requirements_file->store('requirements', 'public');
+            // Encrypt and store new file
+            $encryptedPath = $encryptionService->encryptAndStore($this->requirements_file);
         }
 
         // Update applicant
@@ -360,7 +390,7 @@ class EditJobApplication extends Component
             'training' => $this->training,
             'eligibility' => $this->eligibility,
             'other_involvement' => $this->other_involvement,
-            'requirements_file' => $pdfPath,
+            'requirements_file' => $encryptedPath,
         ]);
 
         $this->dispatch('job-application-submitted');

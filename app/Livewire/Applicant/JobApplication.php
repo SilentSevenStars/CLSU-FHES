@@ -6,6 +6,7 @@ use App\Models\Applicant;
 use App\Models\JobApplication as ModelsJobApplication;
 use App\Models\Position;
 use App\Models\EducationalBackground;
+use App\Services\FileEncryptionService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
@@ -67,12 +68,13 @@ class JobApplication extends Component
         'training' => 'required|string|max:255',
         'eligibility' => 'required|string|max:255',
         'other_involvement' => 'required|string|max:255',
-        'requirements_file' => 'required|mimes:pdf|max:2048',
+        'requirements_file' => 'required|mimes:pdf|max:102400', 
     ];
 
     protected $messages = [
         'phone_number.regex' => 'Phone number must start with 09 and contain exactly 11 digits.',
         'phone_number.size' => 'Phone number must be exactly 11 digits.',
+        'requirements_file.max' => 'The file size must not exceed 100MB.',
     ];
 
     public function mount($position_id)
@@ -320,7 +322,9 @@ class JobApplication extends Component
 
         $this->isSubmitting = true;
 
-        $pdfPath = $this->requirements_file->store('requirements', 'public');
+        // Encrypt and store the file
+        $encryptionService = new FileEncryptionService();
+        $encryptedPath = $encryptionService->encryptAndStore($this->requirements_file);
 
         $applicant = Applicant::updateOrCreate(
             ['user_id' => Auth::id()],
@@ -346,7 +350,7 @@ class JobApplication extends Component
             'training' => $this->training,
             'eligibility' => $this->eligibility,
             'other_involvement' => $this->other_involvement,
-            'requirements_file' => $pdfPath,
+            'requirements_file' => $encryptedPath,
             'applicant_id' => $applicant->id,
             'position_id' => $this->position_id,
         ]);

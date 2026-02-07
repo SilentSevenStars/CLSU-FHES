@@ -12,9 +12,7 @@
                      class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
                     <span class="block sm:inline">{{ session('success') }}</span>
                     <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                        <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
-                        </svg>
+                        <i class="fa-solid fa-xmark text-green-500 text-xl"></i>
                     </button>
                 </div>
             @endif
@@ -24,9 +22,7 @@
                      class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                     <span class="block sm:inline">{{ session('error') }}</span>
                     <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                        <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                            <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 0 0 1 0 1.698z"/>
-                        </svg>
+                        <i class="fa-solid fa-xmark text-red-500 text-xl"></i>
                     </button>
                 </div>
             @endif
@@ -39,13 +35,95 @@
                             Archived Users
                         </h1>
                         <p class="text-gray-600 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-[#1E7F3E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
-                                </path>
-                            </svg>
-                            Manage Archived Users
+                            <i class="fa-solid fa-box-archive w-5 h-5 text-[#1E7F3E]"></i>
+                            Manage Archived Users - All Types
                         </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8 animate-fadeIn">
+                <!-- Total Archived -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 hover:shadow-xl transition-shadow">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 uppercase">Archived</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ $totalArchived }}</h3>
+                        </div>
+                        <div class="bg-orange-100 rounded-full p-4">
+                            <i class="fa-solid fa-box-archive text-orange-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archived Admin -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition-shadow cursor-pointer"
+                     wire:click="$set('filterRole', 'admin')">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 uppercase">Admins</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ $archivedAdminCount }}</h3>
+                        </div>
+                        <div class="bg-purple-100 rounded-full p-4">
+                            <i class="fa-solid fa-user-shield text-purple-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archived Super Admin -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-indigo-500 hover:shadow-xl transition-shadow cursor-pointer"
+                     wire:click="$set('filterRole', 'super-admin')">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 uppercase">Super Admins</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ $archivedSuperAdminCount }}</h3>
+                        </div>
+                        <div class="bg-indigo-100 rounded-full p-4">
+                            <i class="fa-solid fa-user-tie text-indigo-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archived Panel -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow cursor-pointer"
+                     wire:click="$set('filterRole', 'panel')">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 uppercase">Panel</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ $archivedPanelCount }}</h3>
+                        </div>
+                        <div class="bg-green-100 rounded-full p-4">
+                            <i class="fa-solid fa-people-group text-green-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archived NBC -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500 hover:shadow-xl transition-shadow cursor-pointer"
+                     wire:click="$set('filterRole', 'nbc')">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 uppercase">NBC</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ $archivedNbcCount }}</h3>
+                        </div>
+                        <div class="bg-emerald-100 rounded-full p-4">
+                            <i class="fa-solid fa-clipboard-check text-emerald-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archived Applicants -->
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500 hover:shadow-xl transition-shadow cursor-pointer"
+                     wire:click="$set('filterRole', 'applicant')">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600 uppercase">Applicants</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-2">{{ $archivedApplicantCount }}</h3>
+                        </div>
+                        <div class="bg-yellow-100 rounded-full p-4">
+                            <i class="fa-solid fa-user-graduate text-yellow-600 text-2xl"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -59,10 +137,45 @@
                             <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
                                 <i class="fa-solid fa-box-archive text-white text-lg"></i>
                             </div>
-                            <h2 class="text-2xl font-bold text-white">Archived Users List</h2>
+                            <div>
+                                <h2 class="text-2xl font-bold text-white">
+                                    @if($filterRole === 'all')
+                                        All Archived Users
+                                    @elseif($filterRole === 'admin')
+                                        Archived Admin Users
+                                    @elseif($filterRole === 'super-admin')
+                                        Archived Super Admin Users
+                                    @elseif($filterRole === 'panel')
+                                        Archived Panel Members
+                                    @elseif($filterRole === 'nbc')
+                                        Archived NBC Committee
+                                    @elseif($filterRole === 'applicant')
+                                        Archived Applicants
+                                    @endif
+                                </h2>
+                                @if($filterRole !== 'all')
+                                    <button wire:click="$set('filterRole', 'all')" 
+                                            class="text-white/80 hover:text-white text-sm flex items-center gap-1 mt-1">
+                                        <i class="fa-solid fa-xmark"></i>
+                                        Clear Filter
+                                    </button>
+                                @endif
+                            </div>
                         </div>
 
                         <div class="flex flex-wrap items-center gap-3">
+                            <!-- Role Filter -->
+                            <select wire:model.live="filterRole"
+                                    class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
+                                <option value="all">All Users</option>
+                                <option value="admin">Admin</option>
+                                <option value="super-admin">Super Admin</option>
+                                <option value="panel">Panel</option>
+                                <option value="nbc">NBC Committee</option>
+                                <option value="applicant">Applicant</option>
+                            </select>
+
+                            <!-- Per Page -->
                             <select wire:model.live="perPage"
                                     class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
                                 <option value="5">5 / page</option>
@@ -91,22 +204,14 @@
                                                        class="py-2 px-3 ps-11 block w-full border-gray-200 rounded-lg text-sm focus:border-[#1E7F3E] focus:ring-[#1E7F3E]"
                                                        placeholder="Search by name or email...">
                                                 <div class="absolute inset-y-0 start-0 flex items-center pointer-events-none ps-4">
-                                                    <svg class="shrink-0 size-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                        <circle cx="11" cy="11" r="8" />
-                                                        <path d="m21 21-4.3-4.3" />
-                                                    </svg>
+                                                    <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <!-- Info Badge -->
                                         <div class="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-4 py-2">
-                                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                                                </path>
-                                            </svg>
+                                            <i class="fa-solid fa-info-circle w-5 h-5 text-orange-600"></i>
                                             <span class="text-sm font-medium text-orange-800">
                                                 {{ $archivedUsers->total() }} Archived User{{ $archivedUsers->total() !== 1 ? 's' : '' }}
                                             </span>
@@ -130,6 +235,9 @@
                                                     <span class="text-xs font-semibold uppercase text-black">Role</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
+                                                    <span class="text-xs font-semibold uppercase text-black">Details</span>
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-start">
                                                     <span class="text-xs font-semibold uppercase text-black">Archived Date</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
@@ -140,17 +248,33 @@
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
                                             @forelse($archivedUsers as $index => $user)
                                                 @php
-                                                    // Get the first role name via Spatie relationship
                                                     $roleName = $user->roles->first()?->name ?? 'none';
-
-                                                    // Determine badge color based on role name
                                                     $badgeClass = match($roleName) {
                                                         'admin'       => 'bg-purple-100 text-purple-800',
                                                         'super-admin' => 'bg-indigo-100 text-indigo-800',
                                                         'panel'       => 'bg-blue-100 text-blue-800',
                                                         'nbc'         => 'bg-green-100 text-green-800',
-                                                        default       => 'bg-amber-100 text-amber-800',  // any custom role
+                                                        'applicant'   => 'bg-yellow-100 text-yellow-800',
+                                                        default       => 'bg-amber-100 text-amber-800',
                                                     };
+
+                                                    // Get display name
+                                                    if ($roleName === 'applicant' && $user->applicant) {
+                                                        $displayName = trim($user->applicant->first_name . ' ' . ($user->applicant->middle_name ?? '') . ' ' . $user->applicant->last_name . ' ' . ($user->applicant->suffix ?? ''));
+                                                    } else {
+                                                        $displayName = $user->name;
+                                                    }
+
+                                                    // Get details based on role
+                                                    $details = '';
+                                                    if ($roleName === 'panel' && $user->panel) {
+                                                        $details = ucfirst($user->panel->panel_position) . ' - ' . ($user->panel->college->name ?? 'N/A');
+                                                        if ($user->panel->department) {
+                                                            $details .= ' (' . $user->panel->department->name . ')';
+                                                        }
+                                                    } elseif ($roleName === 'nbc' && $user->nbcCommittee) {
+                                                        $details = ucfirst($user->nbcCommittee->position);
+                                                    }
                                                 @endphp
                                                 <tr class="bg-gray-50 hover:bg-gray-100">
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-medium">
@@ -159,13 +283,9 @@
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
                                                         <div class="flex items-center gap-2">
                                                             <span class="inline-flex items-center justify-center w-6 h-6 bg-orange-100 text-orange-600 rounded-full text-xs font-medium">
-                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                          d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
-                                                                    </path>
-                                                                </svg>
+                                                                <i class="fa-solid fa-box-archive"></i>
                                                             </span>
-                                                            {{ $user->name }}
+                                                            {{ $displayName }}
                                                         </div>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
@@ -175,6 +295,9 @@
                                                         <span class="px-2 py-1 rounded-full text-xs font-medium {{ $badgeClass }}">
                                                             {{ ucfirst(str_replace('-', ' ', $roleName)) }}
                                                         </span>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-sm text-black">
+                                                        {{ $details ?: '-' }}
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
                                                         {{ $user->updated_at->format('M d, Y') }}
@@ -192,13 +315,9 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="6" class="text-center py-8 text-gray-500">
+                                                    <td colspan="7" class="text-center py-8 text-gray-500">
                                                         <div class="flex flex-col items-center justify-center">
-                                                            <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                      d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4">
-                                                                </path>
-                                                            </svg>
+                                                            <i class="fa-solid fa-box-open text-gray-400 text-6xl mb-4"></i>
                                                             <p class="text-lg font-medium">No archived users found</p>
                                                             <p class="text-sm text-gray-400 mt-2">All users are active</p>
                                                         </div>
@@ -228,43 +347,26 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- RESTORE CONFIRMATION MODAL                                     -->
-    <!-- ============================================================ -->
+    <!-- RESTORE CONFIRMATION MODAL -->
     <div x-show="showRestoreModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Overlay -->
-            <div
-                x-show="showRestoreModal"
-                x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-                @click="$wire.closeRestoreModal()"
-            ></div>
+            <div x-show="showRestoreModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" @click="$wire.closeRestoreModal()"></div>
 
-            <!-- Modal panel -->
-            <div
-                x-show="showRestoreModal"
-                x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-                @click.away="$wire.closeRestoreModal()"
-            >
+            <div x-show="showRestoreModal" x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                 @click.away="$wire.closeRestoreModal()">
                 <div class="bg-white px-6 pt-5 pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
+                            <i class="fa-solid fa-rotate-left text-blue-600 text-2xl"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                             <h3 class="text-lg leading-6 font-medium text-gray-900">Restore User</h3>
@@ -291,43 +393,26 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- DELETE CONFIRMATION MODAL                                      -->
-    <!-- ============================================================ -->
+    <!-- DELETE CONFIRMATION MODAL -->
     <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Overlay -->
-            <div
-                x-show="showDeleteModal"
-                x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
-                @click="$wire.closeDeleteModal()"
-            ></div>
+            <div x-show="showDeleteModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" @click="$wire.closeDeleteModal()"></div>
 
-            <!-- Modal panel -->
-            <div
-                x-show="showDeleteModal"
-                x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-                @click.away="$wire.closeDeleteModal()"
-            >
+            <div x-show="showDeleteModal" x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                 @click.away="$wire.closeDeleteModal()">
                 <div class="bg-white px-6 pt-5 pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
+                            <i class="fa-solid fa-triangle-exclamation text-red-600 text-2xl"></i>
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                             <h3 class="text-lg leading-6 font-medium text-gray-900">Delete User Permanently</h3>

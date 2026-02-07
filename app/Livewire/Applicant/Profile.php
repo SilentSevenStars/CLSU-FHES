@@ -48,9 +48,6 @@ class Profile extends Component
 
     public function mount()
     {
-        if (Auth::user()->role !== 'applicant') {
-            abort(403, 'Unauthorized access.');
-        }
 
         $applicant = Applicant::where('user_id', Auth::id())->first();
         

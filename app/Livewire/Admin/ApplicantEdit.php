@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\JobApplication;
 use App\Models\Notification;
 use App\Mail\NotificationMail;
+use App\Services\FileEncryptionService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,30 +27,24 @@ class ApplicantEdit extends Component
         $this->application = JobApplication::with(['applicant.user', 'position', 'evaluation'])
             ->findOrFail($job_application_id);
 
-        // Only allow editing if status is 'approve' or 'decline'
         if (!in_array($this->application->status, ['approve', 'decline'])) {
             session()->flash('error', 'You can only edit applications that have been approved or declined.');
             return $this->redirect(route('admin.applicant'));
         }
 
-        // Store original status
         $this->originalStatus = $this->application->status;
         $this->status = $this->application->status;
 
-        // Load interview details if status is 'approve' and evaluation exists
         if ($this->status === 'approve' && $this->application->evaluation) {
-            // Format date properly
             $this->interview_date = $this->application->evaluation->interview_date 
                 ? $this->application->evaluation->interview_date->format('Y-m-d') 
                 : null;
             $this->interview_room = $this->application->evaluation->interview_room ?? null;
         } else {
-            // Initialize as null for declined applications
             $this->interview_date = null;
             $this->interview_room = null;
         }
         
-        // Store original interview details (after they're set)
         $this->originalInterviewDate = $this->interview_date;
         $this->originalInterviewRoom = $this->interview_room;
 
@@ -60,6 +55,29 @@ class ApplicantEdit extends Component
             'interview_date' => $this->interview_date,
             'interview_room' => $this->interview_room,
         ]);
+    }
+
+    /**
+     * Generate base64 encoded PDF for viewing in modal
+     */
+    public function getFileDataUrl()
+    {
+        $encryptionService = new FileEncryptionService();
+
+        if (!$this->application->requirements_file || 
+            !$encryptionService->fileExists($this->application->requirements_file)) {
+            $this->dispatch('show-error', message: 'File not found.');
+            return null;
+        }
+
+        try {
+            $decryptedContents = $encryptionService->decryptFile($this->application->requirements_file);
+            $base64 = base64_encode($decryptedContents);
+            return 'data:application/pdf;base64,' . $base64;
+        } catch (\Exception $e) {
+            $this->dispatch('show-error', message: 'Error loading file: ' . $e->getMessage());
+            return null;
+        }
     }
 
     public function updateReview()
@@ -82,13 +100,9 @@ class ApplicantEdit extends Component
         DB::beginTransaction();
 
         try {
-            // Detect what changed
             $statusChanged = $this->originalStatus !== $this->status;
-            
-            // Use strict comparison and handle null values properly
             $interviewDateChanged = ($this->status === 'approve') && 
                                    ($this->originalInterviewDate !== $this->interview_date);
-            
             $interviewRoomChanged = ($this->status === 'approve') && 
                                    (trim($this->originalInterviewRoom ?? '') !== trim($this->interview_room ?? ''));
 
@@ -98,17 +112,12 @@ class ApplicantEdit extends Component
                 'interviewRoomChanged' => $interviewRoomChanged,
             ]);
 
-            // Update Job Application
             $this->application->update([
                 'status' => $this->status,
                 'reviewed_at' => now(),
             ]);
 
-            /**
-             * APPROVE STATUS
-             */
             if ($this->status === 'approve') {
-                // Create or update evaluation
                 $this->application->evaluation()->updateOrCreate(
                     ['job_application_id' => $this->application->id],
                     [
@@ -119,23 +128,17 @@ class ApplicantEdit extends Component
                     ]
                 );
 
-                // Send email if status changed from decline to approve
                 if ($statusChanged && $this->originalStatus === 'decline') {
                     Log::info('Sending approval email due to status change');
                     $this->sendApprovalEmail();
                 }
-                // Send email if interview details changed (and status didn't change)
                 elseif (!$statusChanged && ($interviewDateChanged || $interviewRoomChanged)) {
                     Log::info('Sending interview update email');
                     $this->sendInterviewUpdateEmail($interviewDateChanged, $interviewRoomChanged);
                 }
             }
 
-            /**
-             * DECLINE STATUS
-             */
             if ($this->status === 'decline') {
-                // Delete evaluation and send email if status changed from approve to decline
                 if ($statusChanged && $this->originalStatus === 'approve') {
                     Log::info('Deleting evaluation and sending decline email');
                     $this->application->evaluation()?->delete();
@@ -143,7 +146,6 @@ class ApplicantEdit extends Component
                 }
             }
 
-            // Sync Livewire state with new values
             $this->originalStatus = $this->status;
             $this->originalInterviewDate = $this->interview_date;
             $this->originalInterviewRoom = $this->interview_room;
@@ -151,7 +153,6 @@ class ApplicantEdit extends Component
 
             DB::commit();
 
-            // Set appropriate success message
             if ($statusChanged) {
                 session()->flash('success', 'Application status updated successfully. Email notification has been sent.');
             } elseif ($interviewDateChanged || $interviewRoomChanged) {

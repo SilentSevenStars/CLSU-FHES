@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
         <div class="max-w-4xl mx-auto">
 
             <!-- COUNTDOWN TIMER -->
-            <div class="mb-8 p-4 bg-white shadow-md rounded-xl border-l-4 border-[#0A6025]" x-data="{
+            <div class="mb-8 p-6 bg-white shadow-md rounded-xl border-l-4 border-[#0A6025]" x-data="{
                     deadline: {{ $deadlineTimestamp }} * 1000,
                     now: Date.now(),
                     remaining: 0,
@@ -29,14 +29,14 @@ use Illuminate\Support\Facades\Storage;
                         }, 1000);
                     }
                 }">
-                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
                     <svg class="w-6 h-6 text-[#0A6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     Application Deadline Countdown
                 </h2>
-                <p class="mt-2 text-3xl font-extrabold text-[#0A6025]"
+                <p class="mt-2 text-4xl font-extrabold text-[#0A6025]"
                     x-text="remaining > 0 ? format(remaining) : 'Closed'"></p>
             </div>
 
@@ -44,9 +44,9 @@ use Illuminate\Support\Facades\Storage;
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <h1 class="text-4xl font-extrabold bg-[#0A6025] bg-clip-text text-transparent mb-2">Edit Job
+                        <h1 class="text-5xl font-extrabold bg-[#0A6025] bg-clip-text text-transparent mb-2">Edit Job
                             Application</h1>
-                        <p class="text-gray-600 flex items-center gap-2">
+                        <p class="text-lg text-gray-600 flex items-center gap-2">
                             <svg class="w-5 h-5 text-[#0A6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -340,7 +340,7 @@ use Illuminate\Support\Facades\Storage;
 
                         <div>
                             <p class="block text-sm font-semibold text-gray-700 mb-2">
-                                Upload Requirements (PDF only, max 2MB)
+                                Upload Requirements (PDF only, max 100MB)
                                 <span class="text-gray-500">(Leave empty to keep current file)</span>
                             </p>
 
@@ -355,20 +355,21 @@ use Illuminate\Support\Facades\Storage;
                                                 clip-rule="evenodd" />
                                         </svg>
                                         <div>
-                                            <span class="text-sm font-medium text-blue-700">Current file: {{
-                                                basename($existing_file_path) }}</span>
+                                            <span class="text-sm font-medium text-blue-700">Current file uploaded (encrypted)</span>
                                             <p class="text-xs text-blue-600">Upload a new file to replace this one</p>
                                         </div>
                                     </div>
-                                    <a href="{{ Storage::url($existing_file_path) }}" target="_blank"
-                                        class="text-blue-600 hover:text-blue-800 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <button type="button"
+                                        wire:click="$dispatch('open-pdf-viewer')"
+                                        class="inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
-                                    </a>
+                                        View File
+                                    </button>
                                 </div>
                             </div>
                             @endif
@@ -422,7 +423,7 @@ use Illuminate\Support\Facades\Storage;
                                                 class="font-semibold">Click to upload</span> or drag and drop</p>
                                         <p class="mt-2 text-sm font-semibold text-[#0A6025]" x-show="isUploading">
                                             Uploading file...</p>
-                                        <p class="text-xs text-gray-500" x-show="!isUploading">PDF (MAX. 2MB)</p>
+                                        <p class="text-xs text-gray-500" x-show="!isUploading">PDF (MAX. 100MB)</p>
                                     </div>
                                     <input type="file" wire:model="requirements_file" accept="application/pdf"
                                         class="hidden" x-ref="fileInput" @change="isUploading = true">
@@ -516,6 +517,68 @@ use Illuminate\Support\Facades\Storage;
         </div>
     </div>
 
+    <!-- PDF VIEWER MODAL -->
+    <div x-data="{ 
+        open: false,
+        loading: false,
+        pdfUrl: null,
+        async openPdfViewer() {
+            this.loading = true;
+            this.open = true;
+            try {
+                const dataUrl = await @this.call('getFileDataUrl');
+                if (dataUrl) {
+                    this.pdfUrl = dataUrl;
+                }
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF file');
+                this.open = false;
+            } finally {
+                this.loading = false;
+            }
+        }
+    }"
+    x-on:open-pdf-viewer.window="openPdfViewer()"
+    x-show="open"
+    x-cloak
+    class="fixed inset-0 z-50 overflow-hidden"
+    style="display: none;">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full h-full flex items-center justify-center">
+            <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-6 py-4 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
+                    <button @click="open = false; pdfUrl = null;" 
+                        class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- PDF Viewer -->
+                <div class="flex-1 overflow-hidden">
+                    <div x-show="loading" class="flex items-center justify-center h-full">
+                        <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
+                        </svg>
+                    </div>
+                    <iframe x-show="!loading && pdfUrl" 
+                        :src="pdfUrl" 
+                        class="w-full h-full"
+                        frameborder="0">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SWEETALERT2 INTEGRATION -->
     <div x-data x-on:show-swal-confirm.window="
             Swal.fire({
@@ -540,7 +603,20 @@ use Illuminate\Support\Facades\Storage;
             }).then(() => {
                 window.location.href = '{{ route('apply-job') }}';
             });
+        "
+        x-on:show-error.window="
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: $event.detail.message,
+                confirmButtonColor: '#d33'
+            });
         ">
     </div>
 
+    <style>
+    [x-cloak] {
+        display: none !important;
+    }
+    </style>
 </div>

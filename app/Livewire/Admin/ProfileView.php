@@ -11,10 +11,6 @@ class ProfileView extends Component
 
     public function mount()
     {
-        if (Auth::user()->role !== 'admin') {
-            abort(403, 'Unauthorized access.');
-        }
-
         $this->admin = Auth::user();
     }
 

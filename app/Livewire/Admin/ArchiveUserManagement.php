@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Spatie\Permission\Models\Role;
 
 class ArchiveUserManagement extends Component
 {
@@ -18,10 +17,9 @@ class ArchiveUserManagement extends Component
     public $showDeleteModal = false;
     public $perPage = 10;
     public $search = '';
+    public $filterRole = 'all';
 
     protected $paginationTheme = 'tailwind';
-
-    protected array $excludedRoles = ['applicant', 'nbc', 'panel'];
 
     public function updatingSearch()
     {
@@ -29,6 +27,11 @@ class ArchiveUserManagement extends Component
     }
 
     public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterRole()
     {
         $this->resetPage();
     }
@@ -101,22 +104,49 @@ class ArchiveUserManagement extends Component
 
     public function render()
     {
-        $archivedUsers = User::whereHas('roles', function ($query) {
-                    $query->whereNotIn('name', $this->excludedRoles);
-                })
-                ->where('id', '!=', Auth::id())
-                ->where('archive', true) 
-                ->when($this->search, function ($query) {
-                    $query->where(function ($q) {
-                        $q->where('name', 'like', '%' . $this->search . '%')
-                          ->orWhere('email', 'like', '%' . $this->search . '%');
-                    });
-                })
-                ->orderBy('updated_at', 'desc') 
-                ->paginate($this->perPage);
+        $query = User::with(['roles', 'panel.college', 'panel.department', 'nbcCommittee', 'applicant'])
+            ->where('id', '!=', Auth::id())
+            ->where('archive', true);
+
+        // Filter by role if not 'all'
+        if ($this->filterRole !== 'all') {
+            $query->whereHas('roles', function ($q) {
+                $q->where('name', $this->filterRole);
+            });
+        }
+
+        // Search functionality
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                  ->orWhere('email', 'like', '%' . $this->search . '%')
+                  ->orWhereHas('applicant', function ($subQ) {
+                      $subQ->where('first_name', 'like', '%' . $this->search . '%')
+                           ->orWhere('last_name', 'like', '%' . $this->search . '%');
+                  });
+            });
+        }
+
+        $archivedUsers = $query->orderBy('updated_at', 'desc')->paginate($this->perPage);
+
+        // Get statistics counts for archived users
+        $baseQuery = User::where('id', '!=', Auth::id())->where('archive', true);
+        
+        $totalArchived = $baseQuery->count();
+        $archivedAdminCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'admin'))->count();
+        $archivedSuperAdminCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'super-admin'))->count();
+        $archivedPanelCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'panel'))->count();
+        $archivedNbcCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'nbc'))->count();
+        $archivedApplicantCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'applicant'))->count();
 
         return view('livewire.admin.archive-user-management', [
             'archivedUsers' => $archivedUsers,
+            'totalArchived' => $totalArchived,
+            'archivedAdminCount' => $archivedAdminCount,
+            'archivedSuperAdminCount' => $archivedSuperAdminCount,
+            'archivedPanelCount' => $archivedPanelCount,
+            'archivedNbcCount' => $archivedNbcCount,
+            'archivedApplicantCount' => $archivedApplicantCount,
         ]);
     }
 }

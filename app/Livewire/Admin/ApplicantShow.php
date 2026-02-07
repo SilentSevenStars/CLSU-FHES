@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\JobApplication;
 use App\Models\Notification;
 use App\Mail\NotificationMail;
+use App\Services\FileEncryptionService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -53,6 +54,35 @@ class ApplicantShow extends Component
         return $today >= $position->start_date && $today <= $position->end_date;
     }
 
+    /**
+     * Generate base64 encoded PDF for viewing in modal
+     */
+    public function getFileDataUrl()
+    {
+        $encryptionService = new FileEncryptionService();
+
+        // Check if file exists
+        if (!$this->application->requirements_file || 
+            !$encryptionService->fileExists($this->application->requirements_file)) {
+            $this->dispatch('show-error', message: 'File not found.');
+            return null;
+        }
+
+        try {
+            // Decrypt file
+            $decryptedContents = $encryptionService->decryptFile($this->application->requirements_file);
+            
+            // Convert to base64
+            $base64 = base64_encode($decryptedContents);
+            
+            // Return data URL
+            return 'data:application/pdf;base64,' . $base64;
+        } catch (\Exception $e) {
+            $this->dispatch('show-error', message: 'Error loading file: ' . $e->getMessage());
+            return null;
+        }
+    }
+
     public function submitReview()
     {
         Log::info('submitReview called', [
@@ -78,29 +108,21 @@ class ApplicantShow extends Component
         DB::beginTransaction();
 
         try {
-            $newStatus = $this->status; // enum already correct
+            $newStatus = $this->status;
 
             Log::info('Updating application status', [
                 'from' => $this->application->status,
                 'to' => $newStatus
             ]);
 
-            // ✅ ORM update
             $this->application->update([
                 'status' => $newStatus,
                 'reviewed_at' => now(),
             ]);
 
-            /**
-             * ==========================
-             * APPROVE
-             * ==========================
-             */
             if ($this->status === 'approve') {
-
                 Log::info('Creating evaluation record');
 
-                // ✅ ORM create evaluation
                 $this->application->evaluation()->create([
                     'interview_date' => $this->interview_date,
                     'interview_room' => $this->interview_room,
@@ -108,25 +130,15 @@ class ApplicantShow extends Component
                     'rank' => null,
                 ]);
 
-                // Reload relation
                 $this->application->load('evaluation');
-
-                // Send approval email
                 $this->sendApprovalEmail();
             }
 
-            /**
-             * ==========================
-             * DECLINE
-             * ==========================
-             */
             if ($this->status === 'decline') {
                 $this->sendDeclineEmail();
             }
 
             DB::commit();
-
-            // Sync Livewire state
             $this->application->refresh();
 
             Log::info('Transaction committed successfully');
@@ -147,7 +159,6 @@ class ApplicantShow extends Component
         }
     }
 
-
     protected function sendApprovalEmail()
     {
         try {
@@ -165,7 +176,6 @@ class ApplicantShow extends Component
                 'interview_room' => $this->interview_room
             ]);
 
-            // Format the message
             $messageContent = "
                 <div style='font-family: Arial, sans-serif;'>
                     <h2 style='color: #0D7A2F;'>Congratulations!</h2>
@@ -208,7 +218,6 @@ class ApplicantShow extends Component
                 </div>
             ";
 
-            // Create notification record
             $notification = Notification::create([
                 'applicant_id' => $applicant->id,
                 'subject' => "Application Approved - Interview Scheduled for {$position->name}",
@@ -220,11 +229,9 @@ class ApplicantShow extends Component
 
             Log::info("Notification created", ['notification_id' => $notification->id]);
 
-            // Send email
             Mail::to($applicant->user->email)
                 ->send(new NotificationMail($notification));
 
-            // Mark notification as sent
             $notification->update([
                 'email_sent' => true,
                 'email_sent_at' => now(),
