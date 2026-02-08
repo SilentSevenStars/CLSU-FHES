@@ -16,6 +16,7 @@ class Screening extends Component
     public $positions = [];
     public $interviewDates = [];
     public $screeningData = [];
+    public $vacancies = null;
 
     // Define allowed faculty positions in the correct order
     private $allowedPositions = [
@@ -208,18 +209,32 @@ class Screening extends Component
 
         // Get position name
         $positionName = $this->selectedPosition;
+        $exportCollection = collect($this->screeningData)->sortBy('rank');
+
+        // LIMIT ONLY IF vacancies IS SET
+        if ($this->vacancies && $this->vacancies > 0) {
+            $exportCollection = $exportCollection->take((int) $this->vacancies);
+        }
+
+        $exportData = $exportCollection->values()->toArray();
 
         // Get panel members from Representative model
         $panelMembers = $this->getPanelMembersFromRepresentatives();
 
+        $rowsPerPage = $this->vacancies && $this->vacancies > 0
+        ? (int) $this->vacancies
+        : count($exportData);
+
         $pdf = Pdf::loadView('pdf.screening-report', [
-            'screeningData' => $this->screeningData->toArray(),
+            'screeningData' => $exportData,
+            'rowsPerPage' => $rowsPerPage,
             'positionName' => $positionName,
             'college' => 'All Colleges',
             'department' => 'All Departments',
             'interviewDate' => date('M d, Y', strtotime($this->selectedDate)),
             'panelMembers' => $panelMembers,
             'generatedDate' => now()->format('F d, Y'),
+            'vacancies' => $this->vacancies, // optional (for header use)
         ]);
 
         // Set to legal size (long bond paper) in landscape orientation

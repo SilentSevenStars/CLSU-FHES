@@ -159,13 +159,13 @@
 </head>
 
 <body>
-    @php
+    <?php
     $rowsPerPage = $rowsPerPage ?? count($screeningData);
     $dataChunks = array_chunk($screeningData, $rowsPerPage);
     $totalPages = count($dataChunks);
-    @endphp
+    ?>
 
-    @foreach($dataChunks as $pageIndex => $pageData)
+    <?php $__currentLoopData = $dataChunks; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pageIndex => $pageData): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
     <div class="page">
         <!-- Header -->
         <div class="header">
@@ -174,7 +174,7 @@
             <table style="border: none; margin-bottom: 2px;">
                 <tr style="border: none;">
                     <td style="border: none; width: 15%; text-align: right; vertical-align: top; padding-right: 5px;">
-                        <img src="{{ public_path('image/clsu.png') }}" alt="CLSU Logo"
+                        <img src="<?php echo e(public_path('image/clsu.png')); ?>" alt="CLSU Logo"
                             style="height: 50px; width: auto; margin-top: 0;">
                     </td>
                     <td style="border: none; text-align: center; vertical-align: middle;">
@@ -193,7 +193,7 @@
         </div>
 
         <!-- Position Name -->
-        <div class="position-name">{{ $positionName }}</div>
+        <div class="position-name"><?php echo e($positionName); ?></div>
 
         <!-- Main Table -->
         <table>
@@ -212,19 +212,19 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($pageData as $data)
+                <?php $__currentLoopData = $pageData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <tr>
-                    <td class="text-left">{{ $data['name'] }}</td>
-                    <td class="text-left">{{ $data['specialization'] }}</td>
-                    <td>{{ number_format($data['performance'], 2) }}</td>
-                    <td>{{ number_format($data['credentials_experience'], 2) }}</td>
-                    <td>{{ number_format($data['interview'], 2) }}</td>
-                    <td style="font-weight: bold;">{{ number_format($data['total'], 2) }}</td>
-                    <td><span class="rank-number">{{ $data['rank'] }}</span></td>
+                    <td class="text-left"><?php echo e($data['name']); ?></td>
+                    <td class="text-left"><?php echo e($data['specialization']); ?></td>
+                    <td><?php echo e(number_format($data['performance'], 2)); ?></td>
+                    <td><?php echo e(number_format($data['credentials_experience'], 2)); ?></td>
+                    <td><?php echo e(number_format($data['interview'], 2)); ?></td>
+                    <td style="font-weight: bold;"><?php echo e(number_format($data['total'], 2)); ?></td>
+                    <td><span class="rank-number"><?php echo e($data['rank']); ?></span></td>
                 </tr>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
-                @if($pageIndex === $totalPages - 1)
+                <?php if($pageIndex === $totalPages - 1): ?>
                 <!-- Empty Row and Prepared By (only on last page) -->
                 <tr>
                     <td>&nbsp;</td>
@@ -244,9 +244,9 @@
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                 </tr>
-                @else
+                <?php else: ?>
                 <!-- Fill remaining rows with empty rows if less than 5 -->
-                @for($i = count($pageData); $i < 5; $i++) <tr>
+                <?php for($i = count($pageData); $i < 5; $i++): ?> <tr>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
@@ -255,8 +255,8 @@
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                     </tr>
-                    @endfor
-                    @endif
+                    <?php endfor; ?>
+                    <?php endif; ?>
             </tbody>
         </table>
 
@@ -266,22 +266,22 @@
             <div class="signature-section">
                 <div class="signature-row">
                     <div class="signature-cell" style="width: 25%;">
-                        <div class="signature-name">{{ $panelMembers['supervising_admin'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['supervising_admin']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Member, Supervising Admin. Officer, HRMO</div>
                     </div>
                     <div class="signature-cell" style="width: 25%;">
-                        <div class="signature-name">{{ $panelMembers['fai_president'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['fai_president']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Member, FAI President/Representative</div>
                     </div>
                     <div class="signature-cell" style="width: 25%;">
-                        <div class="signature-name">{{ $panelMembers['glutches_preside'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['glutches_preside']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Member, GLUTCHES Preside</div>
                     </div>
                     <div class="signature-cell" style="width: 25%;">
-                        <div class="signature-name">{{ $panelMembers['ranking_faculty'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['ranking_faculty']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Member, Ranking Faculty</div>
                     </div>
@@ -292,32 +292,32 @@
             <div class="signature-section">
                 <div class="signature-row">
                     <div class="signature-cell" style="width: 16.66%;">
-                        <div class="signature-name">{{ $panelMembers['dean_cass'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['dean_cass']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Dean, CASS</div>
                     </div>
                     <div class="signature-cell" style="width: 16.66%;">
-                        <div class="signature-name">{{ $panelMembers['dean_cen'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['dean_cen']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Dean, CEN Representative</div>
                     </div>
                     <div class="signature-cell" style="width: 16.66%;">
-                        <div class="signature-name">{{ $panelMembers['dean_cos'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['dean_cos']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Dean, COS</div>
                     </div>
                     <div class="signature-cell" style="width: 16.66%;">
-                        <div class="signature-name">{{ $panelMembers['dean_ced'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['dean_ced']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Dean, CED</div>
                     </div>
                     <div class="signature-cell" style="width: 16.66%;">
-                        <div class="signature-name">{{ $panelMembers['dean_cf'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['dean_cf']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Dean, CF</div>
                     </div>
                     <div class="signature-cell" style="width: 16.66%;">
-                        <div class="signature-name">{{ $panelMembers['dean_cba'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['dean_cba']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Dean, CBA</div>
                     </div>
@@ -328,27 +328,27 @@
             <div class="signature-section">
                 <div class="signature-row">
                     <div class="signature-cell" style="width: 20%;">
-                        <div class="signature-name">{{ $panelMembers['senior_faculty'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['senior_faculty']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Senior Faculty</div>
                     </div>
                     <div class="signature-cell" style="width: 20%;">
-                        <div class="signature-name">{{ $panelMembers['head_dabe'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['head_dabe']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Head, Dept DABE, Representative</div>
                     </div>
                     <div class="signature-cell" style="width: 20%;">
-                        <div class="signature-name">{{ $panelMembers['head_business'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['head_business']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Head, Dept Business</div>
                     </div>
                     <div class="signature-cell" style="width: 20%;">
-                        <div class="signature-name">{{ $panelMembers['head_ispels'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['head_ispels']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Head, ISPELS</div>
                     </div>
                     <div class="signature-cell" style="width: 20%;">
-                        <div class="signature-name">{{ $panelMembers['chairman_fsb'] }}</div>
+                        <div class="signature-name"><?php echo e($panelMembers['chairman_fsb']); ?></div>
                         <div class="signature-line"></div>
                         <div class="signature-title">Chairman, Faculty Selection Board & VPAA</div>
                     </div>
@@ -357,7 +357,7 @@
 
             <!-- 4th Row - University President (Centered) -->
             <div class="center-text" style="margin-top: 8px;">
-                <div class="signature-name" style="font-weight: bold;">{{ $panelMembers['university_president'] }}</div>
+                <div class="signature-name" style="font-weight: bold;"><?php echo e($panelMembers['university_president']); ?></div>
                 <div class="signature-line" style="width: 250px; margin: 3px auto;"></div>
                 <div class="signature-title" style="font-size: 7pt;">University President</div>
             </div>
@@ -370,7 +370,7 @@
             </div>
         </div>
     </div>
-    @endforeach
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 </body>
 
-</html>
+</html><?php /**PATH C:\Users\admin\Documents\GitHub\Git Uploads\CLSU-FHES\resources\views/pdf/screening-report.blade.php ENDPATH**/ ?>
