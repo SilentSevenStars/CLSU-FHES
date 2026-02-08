@@ -41,7 +41,7 @@
                 </div>
                 <div>
                     <p class="text-sm font-medium text-gray-500">Department</p>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->department ?? 'N/A' }}</p>
+                    <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->department->name ?? 'N/A' }}</p>
                 </div>
             </div>
         </div>
@@ -347,17 +347,20 @@
                         </div>
                         <div class="col-span-2">
                             <p class="text-sm font-medium text-gray-500">Requirements File</p>
-                            @if($jobApplication->requirements_file)
-                                <a 
-                                    href="{{ Storage::url($jobApplication->requirements_file) }}" 
-                                    target="_blank"
-                                    class="mt-1 inline-flex items-center text-blue-600 hover:text-blue-800"
+                            @if($existing_file_path)
+                                <button 
+                                    type="button"
+                                    wire:click="$dispatch('open-pdf-viewer')"
+                                    class="mt-1 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
                                 >
-                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
-                                    View Requirements Document
-                                </a>
+                                    View File
+                                </button>
                             @else
                                 <p class="mt-1 text-base text-gray-500">No file uploaded</p>
                             @endif
@@ -377,4 +380,66 @@
             </div>
         </div>
     @endif
+
+    <!-- PDF VIEWER MODAL -->
+    <div x-data="{ 
+        open: false,
+        loading: false,
+        pdfUrl: null,
+        async openPdfViewer() {
+            this.loading = true;
+            this.open = true;
+            try {
+                const dataUrl = await @this.call('getFileDataUrl');
+                if (dataUrl) {
+                    this.pdfUrl = dataUrl;
+                }
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF file');
+                this.open = false;
+            } finally {
+                this.loading = false;
+            }
+        }
+    }"
+    x-on:open-pdf-viewer.window="openPdfViewer()"
+    x-show="open"
+    x-cloak
+    class="fixed inset-0 z-50 overflow-hidden"
+    style="display: none;">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full h-full flex items-center justify-center">
+            <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-6 py-4 border-b">
+                    <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
+                    <button @click="open = false; pdfUrl = null;" 
+                        class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- PDF Viewer -->
+                <div class="flex-1 overflow-hidden">
+                    <div x-show="loading" class="flex items-center justify-center h-full">
+                        <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
+                        </svg>
+                    </div>
+                    <iframe x-show="!loading && pdfUrl" 
+                        :src="pdfUrl" 
+                        class="w-full h-full"
+                        frameborder="0">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

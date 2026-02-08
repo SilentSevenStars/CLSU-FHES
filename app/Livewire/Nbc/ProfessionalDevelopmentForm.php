@@ -7,6 +7,7 @@ use App\Models\NbcAssignment;
 use App\Models\ProfessionalDevelopment;
 use App\Models\NbcCommittee;
 use App\Models\Evaluation;
+use App\Services\FileEncryptionService;
 use Illuminate\Support\Facades\Auth;
 
 class ProfessionalDevelopmentForm extends Component
@@ -19,6 +20,8 @@ class ProfessionalDevelopmentForm extends Component
     public $jobApplication;
     public $evaluationId;
     public $currentPage = 1;
+    public $requirements_file;
+    public $existing_file_path = null;
 
     // Section 3.1 - Inventions and Publications
     public $rs_3_1_1 = 0;
@@ -99,6 +102,7 @@ class ProfessionalDevelopmentForm extends Component
         $this->jobApplication = $this->evaluation->jobApplication;
         $this->applicant = $this->jobApplication->applicant;
         $this->position = $this->jobApplication->position;
+        $this->existing_file_path = $this->jobApplication->requirements_file;
 
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->firstOrFail();
 
@@ -368,6 +372,32 @@ class ProfessionalDevelopmentForm extends Component
 
         session()->flash('message', 'Professional development evaluation completed successfully.');
         return redirect()->route('nbc.dashboard');
+    }
+
+    /**
+     * Generate base64 encoded PDF for viewing in new tab
+     */
+    public function getFileDataUrl()
+    {
+        $encryptionService = new FileEncryptionService();
+
+        // Check if file exists
+        if (!$this->existing_file_path || !$encryptionService->fileExists($this->existing_file_path)) {
+            return null;
+        }
+
+        try {
+            // Decrypt file
+            $decryptedContents = $encryptionService->decryptFile($this->existing_file_path);
+            
+            // Convert to base64
+            $base64 = base64_encode($decryptedContents);
+            
+            // Return data URL
+            return 'data:application/pdf;base64,' . $base64;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function render()

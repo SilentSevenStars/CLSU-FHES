@@ -7,6 +7,7 @@ use App\Models\NbcAssignment;
 use App\Models\ExperienceService;
 use App\Models\NbcCommittee;
 use App\Models\Evaluation;
+use App\Services\FileEncryptionService;
 use Illuminate\Support\Facades\Auth;
 
 class ExperienceServiceForm extends Component
@@ -25,6 +26,8 @@ class ExperienceServiceForm extends Component
     public $rs_2_2_1 = 0;
     public $rs_2_3_1 = 0;
     public $rs_2_3_2 = 0;
+    public $requirements_file;
+    public $existing_file_path = null;
     
     public $showApplicantModal = false;
 
@@ -56,6 +59,7 @@ class ExperienceServiceForm extends Component
         $this->jobApplication = $this->evaluation->jobApplication;
         $this->applicant = $this->jobApplication->applicant;
         $this->position = $this->jobApplication->position;
+        $this->existing_file_path = $this->jobApplication->requirements_file;
         
         // Get or create NBC committee for current user
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
@@ -133,6 +137,32 @@ class ExperienceServiceForm extends Component
 
         // Update NBC scores
         $this->assignment->updateNbcScores();
+    }
+
+    /**
+     * Generate base64 encoded PDF for viewing in new tab
+     */
+    public function getFileDataUrl()
+    {
+        $encryptionService = new FileEncryptionService();
+
+        // Check if file exists
+        if (!$this->existing_file_path || !$encryptionService->fileExists($this->existing_file_path)) {
+            return null;
+        }
+
+        try {
+            // Decrypt file
+            $decryptedContents = $encryptionService->decryptFile($this->existing_file_path);
+            
+            // Convert to base64
+            $base64 = base64_encode($decryptedContents);
+            
+            // Return data URL
+            return 'data:application/pdf;base64,' . $base64;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function toggleApplicantModal()

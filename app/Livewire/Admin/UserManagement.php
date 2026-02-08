@@ -246,7 +246,7 @@ class UserManagement extends Component
 
         // Add password if provided
         if ($this->password) {
-            $userData['password'] = $this->password;
+            $userData['password'] = bcrypt($this->password); // <-- ADD bcrypt here!
         }
 
         // Regular users and panel/nbc need name field
@@ -260,7 +260,7 @@ class UserManagement extends Component
         switch ($this->filterRole) {
             case 'applicant':
                 $user->assignRole('applicant');
-                
+
                 // Create applicant record
                 Applicant::create([
                     'user_id' => $user->id,
@@ -273,6 +273,8 @@ class UserManagement extends Component
 
             case 'panel':
                 $user->assignRole('panel');
+
+                // FIXED: Ensure all panel data is being saved
                 Panel::create([
                     'user_id' => $user->id,
                     'panel_position' => $this->panel_position,
@@ -308,7 +310,7 @@ class UserManagement extends Component
 
         // Update password if provided
         if ($this->password) {
-            $userData['password'] = $this->password;
+            $userData['password'] = bcrypt($this->password); // <-- ADD bcrypt here!
         }
 
         // Regular users and panel/nbc need name field
@@ -336,6 +338,14 @@ class UserManagement extends Component
                 $panel = Panel::where('user_id', $user->id)->first();
                 if ($panel) {
                     $panel->update([
+                        'panel_position' => $this->panel_position,
+                        'college_id' => $this->college_id,
+                        'department_id' => $this->panel_position === 'dean' ? null : $this->department_id,
+                    ]);
+                } else {
+                    // If panel record doesn't exist, create it
+                    Panel::create([
+                        'user_id' => $user->id,
                         'panel_position' => $this->panel_position,
                         'college_id' => $this->college_id,
                         'department_id' => $this->panel_position === 'dean' ? null : $this->department_id,
@@ -370,7 +380,7 @@ class UserManagement extends Component
             }
 
             $user->update(['archive' => true]);
-            
+
             session()->flash('success', 'User archived successfully!');
             $this->closeArchiveModal();
         } catch (\Exception $e) {
@@ -395,11 +405,11 @@ class UserManagement extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('email', 'like', '%' . $this->search . '%')
-                  ->orWhereHas('applicant', function ($subQ) {
-                      $subQ->where('first_name', 'like', '%' . $this->search . '%')
-                           ->orWhere('last_name', 'like', '%' . $this->search . '%');
-                  });
+                    ->orWhere('email', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('applicant', function ($subQ) {
+                        $subQ->where('first_name', 'like', '%' . $this->search . '%')
+                            ->orWhere('last_name', 'like', '%' . $this->search . '%');
+                    });
             });
         }
 
@@ -407,7 +417,7 @@ class UserManagement extends Component
 
         // Get statistics counts
         $baseQuery = User::where('id', '!=', Auth::id())->where('archive', false);
-        
+
         $totalUsers = $baseQuery->count();
         $adminCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'admin'))->count();
         $superAdminCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'super-admin'))->count();
@@ -419,7 +429,7 @@ class UserManagement extends Component
         $availableRoles = Role::whereNotIn('name', ['applicant', 'nbc', 'panel'])
             ->orderBy('name')
             ->get();
-        
+
         $colleges = College::orderBy('name')->get();
         $departments = Department::orderBy('name')->get();
 

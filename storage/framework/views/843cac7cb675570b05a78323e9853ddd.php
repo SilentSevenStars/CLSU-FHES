@@ -37,10 +37,7 @@
                         </div>
                         <div
                             class="bg-gradient-to-br from-amber-500 to-yellow-600 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300 relative">
-                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                            <span class="text-white text-3xl">⏳</span>
                             <span class="absolute -top-1 -right-1 flex h-3 w-3">
                                 <span
                                     class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
@@ -65,10 +62,7 @@
                         </div>
                         <div
                             class="bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                            <span class="text-white text-3xl">✅</span>
                         </div>
                     </div>
                 </div>
@@ -88,10 +82,7 @@
                         </div>
                         <div
                             class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
+                            <span class="text-white text-3xl">❌</span>
                         </div>
                     </div>
                 </div>
@@ -149,7 +140,7 @@
                             <!-- Department Filter (using department_id, dynamic) -->
                             
                             <select wire:model.live="department_id"
-                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" 
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700"
                                 <?php if(!$college_id): ?> disabled <?php endif; ?>>
                                 <option value="">All Departments</option>
                                 <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $departments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $dept): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -160,7 +151,7 @@
 
                             <!-- Position Filter (still uses name) -->
                             <select wire:model.live="position"
-                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700" 
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700"
                                 <?php if(!$department_id): ?> disabled <?php endif; ?>>
                                 <option value="">All Positions</option>
                                 <!--[if BLOCK]><![endif]--><?php $__currentLoopData = $positions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pos): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -260,7 +251,8 @@
                                                     $loop->index : $loop->iteration); ?>
 
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-black font-semibold">
+                                                <td
+                                                    class="px-6 py-4 whitespace-nowrap text-sm text-black font-semibold">
                                                     <?php echo e($application->applicant->user->name); ?>
 
                                                 </td>

@@ -12,7 +12,7 @@ class ApplicantSeeder extends Seeder
     public function run(): void
     {
         $faker = Faker::create();
-        $password = Hash::make('Scriptures22!');
+        $password = '12345678';
 
         for ($i = 1; $i <= 21; $i++) {
 

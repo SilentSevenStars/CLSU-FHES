@@ -5,6 +5,7 @@ namespace App\Livewire\Panel;
 use App\Models\Evaluation;
 use App\Models\Experience as ModelsExperience;
 use App\Models\PanelAssignment;
+use App\Services\FileEncryptionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -91,6 +92,29 @@ class Experience extends Component
     public function toggleApplicantModal()
     {
         $this->showApplicantModal = !$this->showApplicantModal;
+    }
+
+    /**
+     * Generate base64 encoded PDF for viewing in modal
+     */
+    public function getFileDataUrl()
+    {
+        $encryptionService = new FileEncryptionService();
+
+        if (!$this->jobApplication->requirements_file || 
+            !$encryptionService->fileExists($this->jobApplication->requirements_file)) {
+            $this->dispatch('show-error', message: 'File not found.');
+            return null;
+        }
+
+        try {
+            $decryptedContents = $encryptionService->decryptFile($this->jobApplication->requirements_file);
+            $base64 = base64_encode($decryptedContents);
+            return 'data:application/pdf;base64,' . $base64;
+        } catch (\Exception $e) {
+            $this->dispatch('show-error', message: 'Error loading file: ' . $e->getMessage());
+            return null;
+        }
     }
 
     public function updated($propertyName)
