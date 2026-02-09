@@ -140,7 +140,7 @@
                                 </div>
                                 <div class="col-span-3">
                                     <input type="number" wire:model.live="licensure_examination" min="3" max="5"
-                                        step="0.01" placeholder="Input here"
+                                        step="0.01" placeholder="Input here" value="3"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] transition-all">
                                     @error('licensure_examination')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>

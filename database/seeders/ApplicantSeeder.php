@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -12,7 +13,7 @@ class ApplicantSeeder extends Seeder
     public function run(): void
     {
         $faker = Faker::create();
-        $password = '12345678';
+        $password = Hash::make('12345678');
 
         for ($i = 1; $i <= 21; $i++) {
 
@@ -21,6 +22,7 @@ class ApplicantSeeder extends Seeder
                 'name'       => $faker->firstName . ' ' . $faker->lastName,
                 'email'      => "applicant{$i}@example.com",
                 'password'   => $password,
+                'email_verified_at' => Carbon::now(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

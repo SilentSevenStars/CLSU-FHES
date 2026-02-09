@@ -17,14 +17,11 @@
                     @endphp
 
                     <div>
-                        <h1 class="text-4xl font-extrabold bg-[#0A6025] bg-clip-text text-transparent mb-2">
+                        <h1 class="text-4xl font-extrabold text-green-800 mb-2">
                             Available Positions
                         </h1>
                         <p class="text-gray-600 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-[#0A6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
+                            <span class="text-xl">💼</span>
                             Browse and apply for available job positions
                         </p>
                     </div>
@@ -35,13 +32,10 @@
             <div class="mb-6 animate-fadeIn">
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                        <span class="text-gray-400 text-xl">🔍</span>
                     </div>
                     <input type="text" wire:model.live.debounce.300ms="search"
-                        class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] sm:text-sm transition duration-150 ease-in-out shadow-sm"
+                        class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-green-700 focus:border-green-700 sm:text-sm transition duration-150 ease-in-out shadow-sm"
                         placeholder="Search by position, department, college, or specialization..." />
                 </div>
             </div>
@@ -51,12 +45,8 @@
             <!-- Empty State -->
             <div class="bg-white rounded-xl shadow-xl p-12 text-center animate-fadeIn">
                 <div class="max-w-md mx-auto">
-                    <div
-                        class="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
+                    <div class="bg-gray-100 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                        <span class="text-5xl">💼</span>
                     </div>
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">No Available Positions</h3>
                     <p class="text-gray-500">
@@ -74,40 +64,29 @@
             <!-- Positions Grid -->
             <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
                 @foreach($positions as $index => $position)
-                <div class="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 animate-slideInLeft border-l-4 border-[#0A6025]"
+                <div class="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 animate-slideInLeft border-l-4 border-green-700"
                     style="animation-delay: {{ $index * 0.1 }}s;">
                     <div class="p-6">
 
                         <!-- Icon -->
-                        <div
-                            class="bg-gradient-to-br from-yellow-500 to-[#0A6025] rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300 w-16 h-16 flex items-center justify-center mb-4">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
+                        <div class="bg-yellow-400 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                            <span class="text-3xl">💼</span>
                         </div>
 
                         <!-- Job Title with Department -->
-                        <h5
-                            class="text-xl font-bold text-gray-800 mb-3 group-hover:text-[#0A6025] transition-colors duration-300 leading-tight">
+                        <h5 class="text-xl font-bold text-gray-800 mb-3 group-hover:text-green-700 transition-colors duration-300 leading-tight">
                             {{ $position->name }} - {{ $position->department->name }}
                         </h5>
 
                         <!-- College -->
                         <div class="flex items-center gap-2 mb-3">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
+                            <span class="text-xl">🏛️</span>
                             <p class="text-sm font-medium text-gray-600">{{ $position->college->name }}</p>
                         </div>
 
                         <!-- Date Range -->
                         <div class="flex items-center gap-2 mb-4">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                            <span class="text-xl">📅</span>
                             <p class="text-xs text-gray-500">
                                 {{ \Carbon\Carbon::parse($position->start_date)->format('M d, Y') }} -
                                 {{ \Carbon\Carbon::parse($position->end_date)->format('M d, Y') }}
@@ -116,8 +95,7 @@
 
                         <!-- View Details Button -->
                         <button wire:click="viewDetails({{ $position->id }})"
-                            class="block w-full text-center text-white bg-[#0A6025] hover:bg-[#0B712C] focus:ring-4 focus:ring-[#0A6025] 
-                                            font-semibold rounded-lg text-sm px-4 py-3 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
+                            class="block w-full text-center text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-semibold rounded-lg text-sm px-4 py-3 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
                             View Details
                         </button>
 
@@ -155,17 +133,14 @@
                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
                 @if($selectedPosition)
                 <!-- Modal Header (Fixed) -->
-                <div class="bg-gradient-to-r from-[#0A6025] to-[#0B712C] px-6 py-4 sticky top-0 z-10">
+                <div class="bg-green-700 px-6 py-4 sticky top-0 z-10">
                     <div class="flex items-center justify-between">
                         <h3 class="text-2xl font-bold text-white" id="modal-title">
                             {{ $selectedPosition->name }}
                         </h3>
                         <button @click="$wire.closeModal()"
-                            class="text-white hover:text-gray-200 transition-colors duration-200">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                            class="text-white hover:text-gray-200 transition-colors duration-200 text-2xl font-bold leading-none">
+                            ✕
                         </button>
                     </div>
                 </div>
@@ -223,11 +198,7 @@
                             <div class="space-y-4">
                                 <!-- Education -->
                                 <div class="flex items-start gap-3">
-                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                    </svg>
+                                    <span class="text-2xl mt-1">📚</span>
                                     <div>
                                         <h5 class="font-semibold text-gray-800">Education</h5>
                                         <p class="text-gray-600">{{ $selectedPosition->education }}</p>
@@ -236,39 +207,25 @@
 
                                 <!-- Experience -->
                                 <div class="flex items-start gap-3">
-                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                    </svg>
+                                    <span class="text-2xl mt-1">💼</span>
                                     <div>
                                         <h5 class="font-semibold text-gray-800">Experience</h5>
-                                        <p class="text-gray-600">{{ $selectedPosition->experience }} years of relevant
-                                            experience</p>
+                                        <p class="text-gray-600">{{ $selectedPosition->experience }} years of relevant experience</p>
                                     </div>
                                 </div>
 
                                 <!-- Training -->
                                 <div class="flex items-start gap-3">
-                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
+                                    <span class="text-2xl mt-1">✅</span>
                                     <div>
                                         <h5 class="font-semibold text-gray-800">Training</h5>
-                                        <p class="text-gray-600">{{ $selectedPosition->training }} hours of training
-                                            required</p>
+                                        <p class="text-gray-600">{{ $selectedPosition->training }} hours of training required</p>
                                     </div>
                                 </div>
 
                                 <!-- Eligibility -->
                                 <div class="flex items-start gap-3">
-                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
+                                    <span class="text-2xl mt-1">📄</span>
                                     <div>
                                         <h5 class="font-semibold text-gray-800">Eligibility</h5>
                                         <p class="text-gray-600">{{ $selectedPosition->eligibility }}</p>
@@ -284,7 +241,7 @@
                 <div class="bg-gray-50 px-6 py-4 sticky bottom-0 border-t border-gray-200">
                     <div class="flex items-center justify-end gap-3">
                         <button @click="$wire.closeModal()"
-                            class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A6025] transition-colors duration-200">
+                            class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-700 transition-colors duration-200">
                             Close
                         </button>
 
@@ -305,7 +262,7 @@
                         @else
                         <!-- Apply Now Button -->
                         <a href="{{ route('job-application', ['position_id' => $selectedPosition->id]) }}"
-                            class="px-6 py-2.5 text-sm font-semibold text-white bg-[#0A6025] rounded-lg hover:bg-[#0B712C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A6025] transition-all duration-200 shadow-md hover:shadow-lg">
+                            class="px-6 py-2.5 text-sm font-semibold text-white bg-green-700 rounded-lg hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-700 transition-all duration-200 shadow-md hover:shadow-lg">
                             Apply Now
                         </a>
                         @endif

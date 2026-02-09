@@ -499,16 +499,10 @@ use Illuminate\Support\Facades\Storage;
 
                         <button type="submit" wire:loading.attr="disabled"
                             wire:loading.class="opacity-50 cursor-not-allowed"
-                            class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-[#0A6025] hover:from-yellow-600 hover:to-[#0B712C] text-white font-semibold rounded-lg shadow-lg transition-all duration-300">
+                            style="background: linear-gradient(to right, #eab308, #15803d);"
+                            class="px-6 py-3 hover:opacity-90 text-white font-semibold rounded-lg shadow-lg transition-all duration-300">
                             <span wire:loading.remove>Update Application</span>
-                            <span wire:loading>
-                                <svg class="animate-spin w-5 h-5 mx-auto" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                </svg>
-                            </span>
+                            <span wire:loading>⌛ Updating...</span>
                         </button>
                     </div>
 
