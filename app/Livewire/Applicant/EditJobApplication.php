@@ -193,6 +193,36 @@ class EditJobApplication extends Component
         } catch (\Exception $e) {
             // Use fallback data
         }
+
+        // Map region names to display format
+        $this->mapRegionNames();
+    }
+
+    private function mapRegionNames()
+    {
+        $regionMapping = [
+            'Ilocos Region' => 'Region I',
+            'Cagayan Valley' => 'Region II',
+            'Central Luzon' => 'Region III',
+            'CALABARZON' => 'Region IV-A',
+            'MIMAROPA Region' => 'Region IV-B',
+            'Bicol Region' => 'Region V',
+            'Western Visayas' => 'Region VI',
+            'Central Visayas' => 'Region VII',
+            'Eastern Visayas' => 'Region VIII',
+            'Zamboanga Peninsula' => 'Region IX',
+            'Northern Mindanao' => 'Region X',
+            'Davao Region' => 'Region XI',
+            'SOCCSKSARGEN' => 'Region XII',
+            'NCR' => 'NCR',
+            'CAR' => 'CAR',
+            'Caraga' => 'Region XVI',
+            'BARMM' => 'BARMM',
+        ];
+
+        foreach ($this->regions as &$region) {
+            $region['regionName'] = $regionMapping[$region['name']] ?? $region['name'];
+        }
     }
 
     public function updatedRegion($value)

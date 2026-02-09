@@ -69,7 +69,7 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
-                                        <p class="text-base text-gray-900">{{ $applicant->region ?: 'N/A' }}</p>
+                                        <p class="text-base text-gray-900">{{ $applicant->region_display ?: 'N/A' }}</p>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Province</label>

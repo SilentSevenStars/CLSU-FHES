@@ -402,7 +402,7 @@
                     <p class="text-sm font-medium text-gray-500 mb-2">Address</p>
                     <p class="text-base text-gray-900">
                         {{ collect([$applicant->street, $applicant->barangay, $applicant->city, $applicant->province,
-                        $applicant->region])->filter()->join(', ') }}
+                        $applicant->region_display])->filter()->join(', ') }}
                     </p>
                 </div>
                 @endif

@@ -110,7 +110,7 @@
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 @error('region') border-red-500 @enderror">
                                     <option value="">Select Region</option>
                                     @foreach($regions as $reg)
-                                        <option value="{{ $reg['name'] }}">{{ $reg['name'] }}</option>
+                                        <option value="{{ $reg['name'] }}">{{ $reg['regionName'] ?? $reg['name'] }}</option>
                                     @endforeach
                                 </select>
                                 @error('region') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror

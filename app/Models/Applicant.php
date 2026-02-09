@@ -69,4 +69,37 @@ class Applicant extends Model
     {
         return $this->notifications()->where('is_read', false)->count();
     }
+
+    /**
+     * Get the display name for the region.
+     */
+    public function getRegionDisplayAttribute(): ?string
+    {
+        // Return null if region is not set
+        if (empty($this->region)) {
+            return null;
+        }
+
+        $regionMapping = [
+            'Ilocos Region' => 'Region I',
+            'Cagayan Valley' => 'Region II',
+            'Central Luzon' => 'Region III',
+            'CALABARZON' => 'Region IV-A',
+            'MIMAROPA Region' => 'Region IV-B',
+            'Bicol Region' => 'Region V',
+            'Western Visayas' => 'Region VI',
+            'Central Visayas' => 'Region VII',
+            'Eastern Visayas' => 'Region VIII',
+            'Zamboanga Peninsula' => 'Region IX',
+            'Northern Mindanao' => 'Region X',
+            'Davao Region' => 'Region XI',
+            'SOCCSKSARGEN' => 'Region XII',
+            'NCR' => 'NCR',
+            'CAR' => 'CAR',
+            'Caraga' => 'Region XVI',
+            'BARMM' => 'BARMM',
+        ];
+
+        return $regionMapping[$this->region] ?? $this->region;
+    }
 }
