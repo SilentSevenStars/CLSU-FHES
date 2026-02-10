@@ -42,14 +42,9 @@ class Applicant extends Component
         $this->updatedDepartmentId();
     }
 
-    /**
-     * When college is selected, load its departments
-     * Now uses college_id foreign key instead of college name
-     */
     public function updatedCollegeId()
     {
         if (!empty($this->college_id)) {
-            // Load departments filtered by college_id (foreign key)
             $this->departments = Department::where('college_id', $this->college_id)
                 ->orderBy('name')
                 ->get();
@@ -60,7 +55,7 @@ class Applicant extends Component
 
     public function updatedDepartmentId()
     {
-        // When department changes, positions will be filtered in render via Position::when
+
     }
 
     public function updatingPerPage()
@@ -98,43 +93,36 @@ class Applicant extends Component
             ->where('status', 'decline')
             ->count();
 
-        // Ensure departments are populated when a college is selected
         if (!empty($this->college_id) && empty($this->departments)) {
             $this->departments = Department::where('college_id', $this->college_id)
                 ->orderBy('name')
                 ->get();
         }
 
-        // Main Query with eager loading
         $query = JobApplication::with(['applicant.user', 'position.college', 'position.department']);
 
-        // Status filter
         if (in_array($this->status, ['pending', 'approve', 'decline'])) {
             $query->where('status', $this->status);
         }
 
-        // College filter: now uses college_id foreign key
         if ($this->college_id) {
             $query->whereHas('position', function ($q) {
                 $q->where('college_id', $this->college_id);
             });
         }
 
-        // Department filter: now uses department_id foreign key
         if ($this->department_id) {
             $query->whereHas('position', function ($q) {
                 $q->where('department_id', $this->department_id);
             });
         }
 
-        // Position filter: still uses position name
         if ($this->position) {
             $query->whereHas('position', function ($q) {
                 $q->where('name', $this->position);
             });
         }
 
-        // Search filter
         if ($this->search) {
             $query->whereHas('applicant.user', function ($q) {
                 $q->where('name', 'like', "%{$this->search}%")
@@ -151,7 +139,6 @@ class Applicant extends Component
             'declinedCount' => $declinedCount,
             'colleges' => College::orderBy('name')->get(),
             'departments' => $this->departments,
-            // Filter positions by college_id and department_id (foreign keys)
             'positions' => Position::when($this->college_id, function ($q) {
                     $q->where('college_id', $this->college_id);
                 })->when($this->department_id, function ($q) {

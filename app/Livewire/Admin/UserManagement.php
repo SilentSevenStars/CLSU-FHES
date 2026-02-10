@@ -246,7 +246,7 @@ class UserManagement extends Component
 
         // Add password if provided
         if ($this->password) {
-            $userData['password'] = bcrypt($this->password); // <-- ADD bcrypt here!
+            $userData['password'] = bcrypt($this->password); 
         }
 
         // Regular users and panel/nbc need name field
@@ -274,7 +274,6 @@ class UserManagement extends Component
             case 'panel':
                 $user->assignRole('panel');
 
-                // FIXED: Ensure all panel data is being saved
                 Panel::create([
                     'user_id' => $user->id,
                     'panel_position' => $this->panel_position,
@@ -343,7 +342,6 @@ class UserManagement extends Component
                         'department_id' => $this->panel_position === 'dean' ? null : $this->department_id,
                     ]);
                 } else {
-                    // If panel record doesn't exist, create it
                     Panel::create([
                         'user_id' => $user->id,
                         'panel_position' => $this->panel_position,

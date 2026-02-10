@@ -17,8 +17,8 @@ class PositionIndex extends Component
 
     public string $search = '';
     public string $filter = 'all';
-    public string $filterCollege = '';      // Now stores college_id
-    public string $filterDepartment = '';   // Now stores department_id
+    public string $filterCollege = '';      
+    public string $filterDepartment = '';   
     public int $perPage = 5;
 
     protected $paginationTheme = 'tailwind';
@@ -65,10 +65,11 @@ class PositionIndex extends Component
             DB::commit();
 
             $this->dispatch('refreshPositions');
-            $this->dispatch('alert', type: 'success', title: 'Position', text: 'Position has been deleted successfully', position: 'center');
+            session()->flash('success', 'Position has been deleted successfully');
+            
         } catch (Exception $e) {
             DB::rollBack();
-            $this->dispatch('alert', type: 'error', title: 'Position', text: 'Failed to delete position', position: 'center');
+            session()->flash('error', 'Failed to delete position');
         }
     }
 
@@ -89,7 +90,7 @@ class PositionIndex extends Component
 
     public function getFilteredPositionsProperty()
     {
-        return Position::with(['college', 'department'])  // Eager load relationships
+        return Position::with(['college', 'department']) 
             ->when(
                 $this->search,
                 fn($q) =>
@@ -109,11 +110,11 @@ class PositionIndex extends Component
             })
             ->when(
                 $this->filterCollege,
-                fn($q) => $q->where('college_id', $this->filterCollege)  // Use college_id
+                fn($q) => $q->where('college_id', $this->filterCollege)  
             )
             ->when(
                 $this->filterDepartment,
-                fn($q) => $q->where('department_id', $this->filterDepartment)  // Use department_id
+                fn($q) => $q->where('department_id', $this->filterDepartment)  
             )
             // Ensure end_date is not in the past
             ->where(function($query) {
@@ -148,7 +149,6 @@ class PositionIndex extends Component
             'vacant' => $this->vacantCount,
             'promotion' => $this->promotionCount,
             'colleges' => $colleges,
-            // Filter departments by college_id
             'filterDepartments' => $this->filterCollege
                 ? Department::where('college_id', $this->filterCollege)->orderBy('name')->get()
                 : []

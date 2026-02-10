@@ -7,26 +7,6 @@
 >
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-7xl mx-auto">
-            <!-- Flash Messages -->
-            @if (session()->has('success'))
-                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
-                     class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                    <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                        <i class="fa-solid fa-xmark text-green-500 text-xl"></i>
-                    </button>
-                </div>
-            @endif
-
-            @if (session()->has('error'))
-                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
-                     class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                    <span class="block sm:inline">{{ session('error') }}</span>
-                    <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                        <i class="fa-solid fa-xmark text-red-500 text-xl"></i>
-                    </button>
-                </div>
-            @endif
 
             <!-- Header Section -->
             <div class="mb-8 animate-fadeIn">
@@ -128,6 +108,27 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Flash Messages -->
+            @if (session()->has('success'))
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)"
+                     class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                    <span class="block sm:inline">{{ session('success') }}</span>
+                    <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                        <i class="fa-solid fa-xmark text-green-500 text-xl"></i>
+                    </button>
+                </div>
+            @endif
+
+            @if (session()->has('error'))
+                <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
+                     class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                    <span class="block sm:inline">{{ session('error') }}</span>
+                    <button @click="show = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                        <i class="fa-solid fa-xmark text-red-500 text-xl"></i>
+                    </button>
+                </div>
+            @endif
 
             <!-- Table Card -->
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn">

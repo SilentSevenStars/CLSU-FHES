@@ -111,11 +111,11 @@
                         Screening
                      </a>
                   </li>
-                  <li>
+                  {{-- <li>
                      <a href="{{ route('admin.panel') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         Panel
                      </a>
-                  </li>
+                  </li> --}}
                   <li>
                      <a href="{{ route('admin.representative') }}"
                         class="block p-2 rounded hover:bg-[#0A6025] text-white">
@@ -138,12 +138,12 @@
                         NBC
                      </a>
                   </li>
-                  <li>
+                  {{-- <li>
                      <a href="{{ route('admin.nbc.comittee') }}"
                         class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         NBC Committee
                      </a>
-                  </li>
+                  </li> --}}
                </ul>
             </li>
 
