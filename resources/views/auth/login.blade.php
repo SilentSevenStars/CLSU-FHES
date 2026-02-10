@@ -55,10 +55,9 @@
                         </div>
 
                         <p class="text-sm text-gray-600 mb-5 text-center">
-                            Do you have an account?
+                            Don't have an account?
                             <a href="{{ route('register') }}"
-                                class="text-sm font-semibold text-[#0B712C] hover:text-[#0A6025] transition duration-150 no-underline">Sign
-                                up</a>
+                                class="text-sm font-semibold text-[#0B712C] hover:text-[#0A6025] transition duration-150 no-underline">Signup</a>
                         </p>
 
                         <!-- Submit Button -->

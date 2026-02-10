@@ -98,8 +98,16 @@
                                 </div>
                             </div>
 
+                            <div class="mt-5">
+                            <p class="text-sm text-gray-600 mb-5 text-center">
+                            Already have an account?
+                            <a href="{{ route('login') }}"
+                                class="text-sm font-semibold text-[#0B712C] hover:text-[#0A6025] transition duration-150 no-underline">Login</a>
+                            </p>
+                            </div> 
+                             
                             <!-- Next Button -->
-                            <div class="mt-8">
+                            <div class="mt-5">
                                 <button type="button" @click="goToStep(2)"
                                     :disabled="!firstName || !lastName"
                                     :class="firstName && lastName ? 'bg-[#0A6025] hover:bg-[#0B712C]' : 'bg-gray-400 cursor-not-allowed'"
@@ -255,12 +263,6 @@
                                     </button>
                                 </div>
                             </div>
-
-                            <p class="text-sm text-gray-600 mb-5 text-center">
-                                Already registered?
-                                <a href="{{ route('login') }}"
-                                    class="text-sm font-semibold text-[#0B712C] hover:text-[#0A6025] transition duration-150 no-underline">Sign in</a>
-                            </p>
 
                             <!-- Action Buttons -->
                             <div class="flex gap-3">
