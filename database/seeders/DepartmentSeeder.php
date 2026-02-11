@@ -4,14 +4,10 @@ namespace Database\Seeders;
 
 use App\Models\College;
 use App\Models\Department;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DepartmentSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $departments = [
@@ -26,13 +22,7 @@ class DepartmentSeeder extends Seeder
                 'Agricultural Systems and Engineering',
             ],
 
-            'College of Arts and Sciences' => [
-                'Biology',
-                'Chemistry',
-                'Mathematics',
-                'Physics',
-                'Statistics',
-                'Environmental Science',
+            'College of Arts and Social Sciences' => [
                 'English and Humanities',
                 'Filipino',
                 'Social Sciences',
@@ -40,7 +30,7 @@ class DepartmentSeeder extends Seeder
                 'Development Communication',
             ],
 
-            'College of Business Administration and Accountancy' => [
+            'College of Business and Accountancy' => [
                 'Accountancy',
                 'Business Administration',
                 'Management',
@@ -79,13 +69,13 @@ class DepartmentSeeder extends Seeder
                 'Home Economics Education',
             ],
 
-            'College of Human Ecology' => [
-                'Human Development',
-                'Family Life and Child Development',
-                'Community and Environmental Resource Planning',
-            ],
-
-            'College of Information Technology' => [
+            'College of Science' => [
+                'Biology',
+                'Chemistry',
+                'Mathematics',
+                'Physics',
+                'Statistics',
+                'Environmental Science',
                 'Information Technology',
                 'Information Systems',
                 'Computer Science',
@@ -102,13 +92,12 @@ class DepartmentSeeder extends Seeder
 
             $college = College::where('name', $collegeName)->first();
 
-            // Skip if college not found (safety)
             if (! $college) {
                 continue;
             }
 
             foreach ($deptList as $dept) {
-                Department::create([
+                Department::firstOrCreate([
                     'name'       => $dept,
                     'college_id' => $college->id,
                 ]);

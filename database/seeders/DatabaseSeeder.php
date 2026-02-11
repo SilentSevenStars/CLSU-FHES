@@ -103,6 +103,7 @@ class DatabaseSeeder extends Seeder
             CollegeSeeder::class,
             DepartmentSeeder::class,
             EducationalBackgroundSeeder::class,
+            FacultyRankSeeder::class,
         ]);
     }
 }
