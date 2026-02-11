@@ -17,7 +17,7 @@ class PositionRankManager extends Component
     public $positionRankId;
     public $name = '';
 
-    protected $paginationTheme = 'bootstrap';
+    protected $paginationTheme = 'tailwind';
 
     protected $rules = [
         'name' => 'required|string|max:255',

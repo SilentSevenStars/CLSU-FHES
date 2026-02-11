@@ -166,7 +166,7 @@
                                     </table>
 
                                     <!-- Pagination -->
-                                    <div class="p-4">
+                                    <div class="border-t border-gray-300">
                                         {{ $positionRanks->links() }}
                                     </div>
                                 </div>
@@ -207,11 +207,27 @@
                         </div>
                     </div>
                     <div class="px-6 py-4 bg-gray-50 rounded-b-lg flex justify-end gap-3">
-                        <button type="button" wire:click="closeModal" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium">
+                        <button type="button" 
+                                wire:click="closeModal" 
+                                class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                wire:loading.attr="disabled"
+                                wire:target="store, update">
                             Cancel
                         </button>
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-800 font-medium">
-                            {{ $editMode ? 'Update' : 'Save' }}
+                        <button type="submit" 
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center min-w-[100px]"
+                                wire:loading.attr="disabled"
+                                wire:target="store, update">
+                            <span wire:loading.remove wire:target="store, update">
+                                {{ $editMode ? 'Update' : 'Save' }}
+                            </span>
+                            <span wire:loading wire:target="store, update" class="inline-flex items-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Processing...
+                            </span>
                         </button>
                     </div>
                 </form>
