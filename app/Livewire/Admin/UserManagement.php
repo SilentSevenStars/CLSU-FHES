@@ -127,6 +127,12 @@ class UserManagement extends Component
         $this->resetPage();
     }
 
+    public function updatedCollegeId()
+    {
+        // Reset department when college changes
+        $this->department_id = null;
+    }
+
     public function openCreateModal($userType = 'regular')
     {
         $this->resetForm();
@@ -429,7 +435,14 @@ class UserManagement extends Component
             ->get();
 
         $colleges = College::orderBy('name')->get();
-        $departments = Department::orderBy('name')->get();
+        
+        // Filter departments by selected college
+        $departments = Department::query()
+            ->when($this->college_id, function ($query) {
+                $query->where('college_id', $this->college_id);
+            })
+            ->orderBy('name')
+            ->get();
 
         return view('livewire.admin.user-management', [
             'users' => $users,

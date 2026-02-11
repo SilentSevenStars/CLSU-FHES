@@ -35,7 +35,7 @@ class JobApplication extends Component
     public string $education = "";
     public $educationOptions = [];
     public $experience;
-    public string $training = "";
+    public $training;
     public string $eligibility = "";
     public string $other_involvement = "";
     public $requirements_file;
@@ -60,12 +60,12 @@ class JobApplication extends Component
         'province' => 'required|string|max:255',
         'city' => 'required|string|max:255',
         'barangay' => 'required|string|max:255',
-        'street' => 'nullable|string|max:255',
-        'postal_code' => 'nullable|string|max:10',
+        'street' => 'required|string|max:255',
+        'postal_code' => 'required|string|max:10',
         'present_position' => 'required|string|max:255',
         'education' => 'required|string|max:255',
         'experience' => 'required|integer|min:0',
-        'training' => 'required|string|max:255',
+        'training' => 'required|integer|min:0',
         'eligibility' => 'required|string|max:255',
         'other_involvement' => 'required|string|max:255',
         'requirements_file' => 'required|mimes:pdf|max:102400', 

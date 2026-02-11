@@ -17,7 +17,6 @@ class ApplicantSeeder extends Seeder
 
         for ($i = 1; $i <= 21; $i++) {
 
-            // 1️⃣ Create user (NO role column)
             $userId = DB::table('users')->insertGetId([
                 'name'       => $faker->firstName . ' ' . $faker->lastName,
                 'email'      => "applicant{$i}@example.com",

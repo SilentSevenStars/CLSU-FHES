@@ -36,22 +36,18 @@
             text-align: left;
             font-size: 8pt;
             margin-bottom: 2px;
-            /* previously 5px */
         }
 
         .university-name {
             font-weight: bold;
             font-size: 11pt;
             margin: 2px 0;
-            /* reduce from 3px */
         }
 
         .sub-header {
             font-size: 9pt;
             margin: 1px 0;
-            /* reduce from 2px */
         }
-
 
         .form-title {
             font-weight: bold;
@@ -119,13 +115,11 @@
             font-weight: bold;
             font-size: 8pt;
             margin-bottom: 2px;
-            /* tighter */
         }
 
         .signature-line {
             border-bottom: 1px solid #000;
             margin: 2px 20px 0 20px;
-            /* closer to name */
         }
 
         .signature-title {
@@ -160,14 +154,15 @@
 
 <body>
     @php
-    $rowsPerPage = $rowsPerPage ?? count($screeningData);
+    // Always use 10 rows per page
+    $rowsPerPage = 10;
     $dataChunks = array_chunk($screeningData, $rowsPerPage);
     $totalPages = count($dataChunks);
     @endphp
 
     @foreach($dataChunks as $pageIndex => $pageData)
     <div class="page">
-        <!-- Header -->
+        <!-- Header - Appears on every page -->
         <div class="header">
             <div class="header-left">COMPARATIVE ASSESSMENT FORM</div>
 
@@ -192,7 +187,7 @@
             <div class="form-title center-text">SCREENING OF APPLICANTS FOR FACULTY POSITIONS</div>
         </div>
 
-        <!-- Position Name -->
+        <!-- Position Name - Appears on every page -->
         <div class="position-name">{{ $positionName }}</div>
 
         <!-- Main Table -->
@@ -224,8 +219,8 @@
                 </tr>
                 @endforeach
 
-                @if($pageIndex === $totalPages - 1)
-                <!-- Empty Row and Prepared By (only on last page) -->
+                {{-- Fill remaining rows to make exactly 10 data rows per page --}}
+                @for($i = count($pageData); $i < $rowsPerPage; $i++)
                 <tr>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
@@ -235,6 +230,20 @@
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                 </tr>
+                @endfor
+
+                {{-- One blank row after the 10 data rows --}}
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr>
+
+                {{-- Prepared by row - appears on every page --}}
                 <tr>
                     <td class="text-left prepared-by"><strong>Prepared by: Jameka S. Lucido</strong></td>
                     <td>&nbsp;</td>
@@ -244,23 +253,10 @@
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                 </tr>
-                @else
-                <!-- Fill remaining rows with empty rows if less than 5 -->
-                @for($i = count($pageData); $i < 5; $i++) <tr>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    <td>&nbsp;</td>
-                    </tr>
-                    @endfor
-                    @endif
             </tbody>
         </table>
 
-        <!-- Footer with Signatures -->
+        <!-- Footer with Signatures - Appears on every page -->
         <div class="footer">
             <!-- 1st Row - Members -->
             <div class="signature-section">
@@ -363,7 +359,7 @@
             </div>
         </div>
 
-        <!-- Form Footer with Revision Info -->
+        <!-- Form Footer with Revision Info - Appears on every page -->
         <div class="form-footer">
             <div class="revision-info">
                 ADM.ADS.HRM.F.036 (Revision No. 0; June 29, 2021)

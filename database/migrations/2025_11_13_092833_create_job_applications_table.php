@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('present_position');
             $table->string('education');
             $table->integer('experience');
-            $table->string('training');
+            $table->integer('training');
             $table->string('eligibility');
             $table->text('other_involvement');
             $table->timestamp('reviewed_at')->nullable();

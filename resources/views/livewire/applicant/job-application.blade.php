@@ -220,17 +220,21 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Street/Building
-                                    (Optional)</label>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Street/Building <span
+                                        class="text-red-500">*</span></label>
                                 <input type="text" wire:model="street" placeholder="House No., Street Name, Building"
-                                    class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('street') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('street')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Postal Code
-                                    (Optional)</label>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Postal Code <span
+                                        class="text-red-500">*</span></label>
                                 <input type="text" wire:model="postal_code" placeholder="e.g., 1234"
-                                    class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('postal_code') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
+                                @error('postal_code')<span class="text-red-500 text-sm mt-1 block">{{ $message
+                                    }}</span>@enderror
                             </div>
                         </div>
                     </div>
@@ -272,10 +276,7 @@
                                     Education <span class="text-red-500">*</span>
                                 </label>
 
-                                <input
-                                    type="text"
-                                    wire:model.defer="education"
-                                    list="educationOptions"
+                                <input type="text" wire:model.defer="education" list="educationOptions"
                                     placeholder="e.g., Master of Science in Information Technology"
                                     class="block w-full px-4 py-3 bg-gray-50 border @error('education') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
 
@@ -291,9 +292,9 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Training <span
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Training (Hours) <span
                                         class="text-red-500">*</span></label>
-                                <input type="text" wire:model="training"
+                                <input type="number" wire:model="training" min="0"
                                     class="block w-full px-4 py-3 bg-gray-50 border @error('training') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025]">
                                 @error('training')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                     }}</span>@enderror
@@ -334,7 +335,7 @@
 
                         <div>
                             <p class="block text-sm font-semibold text-gray-700 mb-2">
-                                Upload Requirements (PDF only, max 2MB)
+                                Upload Requirements (PDF only, max 100MB)
                             </p>
 
                             <!-- DRAG & DROP ZONE -->

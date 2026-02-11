@@ -125,6 +125,18 @@
                </ul>
             </li>
             <li>
+               <a href="{{ route('admin.nbc') }}"
+                  class="flex items-center p-3 rounded-lg
+                  {{ request()->routeIs('admin.nbc') ? 'bg-[#0A6025] text-white' : 'text-white hover:bg-[#0A6025]' }}">
+                  <i class="fa-solid fa-scale-balanced text-xl w-5"></i>
+                  <span class="ml-4 whitespace-nowrap 
+                      block sm:hidden sm:group-hover:block
+                      transition-all duration-300">
+                     NBC
+                  </span>
+               </a>
+            </li>
+            {{-- <li>
                <button @click="nbcOpen = !nbcOpen"
                   class="flex items-center w-full p-3 rounded-lg text-white hover:bg-[#0A6025]">
                   <i class="fa-solid fa-scale-balanced text-xl w-5"></i>
@@ -137,15 +149,14 @@
                      <a href="{{ route('admin.nbc') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         NBC
                      </a>
-                  </li>
-                  {{-- <li>
+                  </li> <li>
                      <a href="{{ route('admin.nbc.comittee') }}"
                         class="block p-2 rounded hover:bg-[#0A6025] text-white">
                         NBC Committee
                      </a>
-                  </li> --}}
+                  </li> 
                </ul>
-            </li>
+            </li> --}}
 
             @canany(['position-rank.view', 'college.view', 'department.view', 'user.view', 'role-permission.view'])
             <li>

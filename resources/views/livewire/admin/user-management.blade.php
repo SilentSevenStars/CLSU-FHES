@@ -439,7 +439,7 @@
 
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">College <span class="text-red-500">*</span></label>
-                                <select wire:model="college_id"
+                                <select wire:model.live="college_id"
                                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('college_id') border-red-500 @enderror">
                                     <option value="">Select College</option>
                                     @foreach($colleges as $college)
@@ -455,12 +455,16 @@
                                     Department <span class="text-red-500">*</span>
                                 </label>
                                 <select wire:model="department_id"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('department_id') border-red-500 @enderror">
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('department_id') border-red-500 @enderror disabled:opacity-50 disabled:cursor-not-allowed"
+                                        {{ !$college_id ? 'disabled' : '' }}>
                                     <option value="">Select Department</option>
                                     @foreach($departments as $department)
                                         <option value="{{ $department->id }}">{{ $department->name }}</option>
                                     @endforeach
                                 </select>
+                                @if(!$college_id)
+                                    <p class="mt-1 text-xs text-gray-500">Please select a college first</p>
+                                @endif
                                 @error('department_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
                             @endif
