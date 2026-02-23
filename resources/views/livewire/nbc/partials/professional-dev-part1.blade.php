@@ -6,7 +6,7 @@
 <!-- Section 3.1 - Inventions and Publications (max 30 pts) -->
 <div class="border-l-4 border-blue-500 pl-4 mb-6">
     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-        3.1 Invention, patented inventions, innovations, publications and other creative works (maximum of 30 points)
+        3.1 Invention, patented inventions, innovations, publications and other creative works (maximum of 20 points)
     </h3>
     
     <div class="space-y-4">

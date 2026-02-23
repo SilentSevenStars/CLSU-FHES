@@ -453,7 +453,7 @@
                     confirmButtonColor: '#0A6025'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = '{{ route(" panel.dashboard") }}'; } }); }); } }">
+window.location.href = '{{ route("panel.dashboard") }}'; } }); }); } }">
     </div>
     <style>
         [x-cloak] {

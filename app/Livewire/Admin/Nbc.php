@@ -349,7 +349,7 @@ class Nbc extends Component
             'evaluation_id' => $evaluation->id,
             'name' => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
             'position' => $position->name,
-            'college' => $position->college,
+            'college' => $position->college->name,
             'interview_date' => $evaluation->interview_date,
             'previous_interview_date' => $previousInterviewDate,
 

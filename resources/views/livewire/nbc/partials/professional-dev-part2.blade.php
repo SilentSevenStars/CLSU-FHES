@@ -6,7 +6,7 @@
 <!-- Section 3.2.1 - Training and Seminars (max 10 pts) -->
 <div class="border-l-4 border-green-500 pl-4 mb-6">
     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-        3.2 For expert services, training and active participation in professional/technical activities (maximum of 30 pts.)
+        3.2 For expert services, training and active participation in professional/technical activities (maximum of 20 pts.)
     </h3>
     
     <h4 class="text-base font-semibold text-gray-800 mb-3">
