@@ -14,8 +14,6 @@
 
 </div>
 
-{{-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> --}}
-
 <script>
 document.addEventListener('livewire:init', function () {
 
@@ -32,7 +30,17 @@ document.addEventListener('livewire:init', function () {
                 borderRadius: 6
             }]
         },
-        options: { scales: { y: { beginAtZero: true } } }
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    }
+                }
+            }
+        }
     });
 
     new Chart(document.getElementById('collegeChart').getContext('2d'), {
@@ -48,7 +56,17 @@ document.addEventListener('livewire:init', function () {
                 borderRadius: 6
             }]
         },
-        options: { scales: { y: { beginAtZero: true } } }
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    }
+                }
+            }
+        }
     });
 
 });
