@@ -75,9 +75,9 @@
                                     </label>
                                     <p class="text-xs text-gray-600 mt-1">
                                         @if($currentPage == 1)
-                                            Maximum: 30 points
+                                            Maximum: 20 points
                                         @elseif($currentPage == 2)
-                                            Maximum: 60 points (30 + 10 + 20)
+                                            Maximum: 40 points (20 + 20)
                                         @else
                                             Maximum: 90 points
                                         @endif

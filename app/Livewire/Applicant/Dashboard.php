@@ -3,6 +3,7 @@
 namespace App\Livewire\Applicant;
 
 use App\Models\Applicant;
+use App\Services\FileEncryptionService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -11,6 +12,23 @@ class Dashboard extends Component
     public function loadApplications()
     {
         
+    }
+
+    public function getFileDataUrl($filePath)
+    {
+        $encryptionService = new FileEncryptionService();
+
+        if (!$filePath || !$encryptionService->fileExists($filePath)) {
+            return null;
+        }
+
+        try {
+            $decryptedContents = $encryptionService->decryptFile($filePath);
+            $base64 = base64_encode($decryptedContents);
+            return 'data:application/pdf;base64,' . $base64;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function render()
@@ -48,9 +66,6 @@ class Dashboard extends Component
         ]);
     }
 
-    /**
-     * Check if evaluation is complete based on panel assignments
-     */
     private function getEvaluationStatus($application)
     {
         if (!$application->evaluation) {

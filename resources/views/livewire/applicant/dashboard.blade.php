@@ -182,12 +182,87 @@
                                     <!-- Requirements -->
                                     <td class="px-6 py-4">
                                         @if(!empty($app->requirements_file))
-                                            <a
-                                                href="{{ asset($app->requirements_file) }}"
-                                                target="_blank"
-                                                class="text-[#0A6025] hover:text-[#0B712C] underline font-medium text-sm transition-colors">
-                                                View File
-                                            </a>
+                                            {{-- Encrypted file: use PDF viewer modal --}}
+                                            <div x-data="{
+                                                open: false,
+                                                loading: false,
+                                                pdfUrl: null,
+                                                async openPdfViewer() {
+                                                    this.loading = true;
+                                                    this.open = true;
+                                                    try {
+                                                        const dataUrl = await $wire.call('getFileDataUrl', '{{ $app->requirements_file }}');
+                                                        if (dataUrl) {
+                                                            this.pdfUrl = dataUrl;
+                                                        } else {
+                                                            alert('Could not load file.');
+                                                            this.open = false;
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('Error loading PDF:', error);
+                                                        alert('Error loading PDF file.');
+                                                        this.open = false;
+                                                    } finally {
+                                                        this.loading = false;
+                                                    }
+                                                }
+                                            }">
+                                                {{-- View File Button --}}
+                                                <button
+                                                    type="button"
+                                                    @click="openPdfViewer()"
+                                                    class="inline-flex items-center gap-1 text-[#0A6025] hover:text-[#0B712C] underline font-medium text-sm transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    View File
+                                                </button>
+
+                                                {{-- PDF Viewer Modal --}}
+                                                <div
+                                                    x-show="open"
+                                                    x-cloak
+                                                    class="fixed inset-0 z-50 overflow-hidden"
+                                                    style="display: none;">
+                                                    {{-- Backdrop --}}
+                                                    <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
+
+                                                    {{-- Modal Content --}}
+                                                    <div class="relative w-full h-full flex items-center justify-center">
+                                                        <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
+                                                            {{-- Header --}}
+                                                            <div class="flex items-center justify-between px-6 py-4 border-b">
+                                                                <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
+                                                                <button @click="open = false; pdfUrl = null;"
+                                                                    class="text-gray-400 hover:text-gray-600 transition">
+                                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+
+                                                            {{-- PDF Viewer --}}
+                                                            <div class="flex-1 overflow-hidden">
+                                                                <div x-show="loading" class="flex items-center justify-center h-full">
+                                                                    <svg class="animate-spin h-12 w-12 text-[#0A6025]" fill="none" viewBox="0 0 24 24">
+                                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
+                                                                    </svg>
+                                                                </div>
+                                                                <iframe
+                                                                    x-show="!loading && pdfUrl"
+                                                                    :src="pdfUrl"
+                                                                    class="w-full h-full"
+                                                                    frameborder="0">
+                                                                </iframe>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         @else
                                             <span class="text-gray-400 text-sm">No file uploaded</span>
                                         @endif
@@ -290,4 +365,10 @@
             </div>
         </div>
     </div>
+
+    <style>
+    [x-cloak] {
+        display: none !important;
+    }
+    </style>
 </div>
