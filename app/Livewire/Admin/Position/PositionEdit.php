@@ -84,7 +84,7 @@ class PositionEdit extends Component
             'department_id' => 'required|exists:departments,id',  
             'status' => 'required|string',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'specialization' => 'required|string|max:255',
             'education' => 'required|string|max:255',
             'experience' => 'required|integer|min:0',
