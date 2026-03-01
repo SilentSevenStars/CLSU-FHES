@@ -156,7 +156,7 @@
                                     @endif
                                 </h2>
                                 @if($filterRole !== 'all')
-                                    <button wire:click="$set('filterRole', 'all')" 
+                                    <button wire:click="$set('filterRole', 'all')"
                                             class="text-white/80 hover:text-white text-sm flex items-center gap-1 mt-1">
                                         <i class="fa-solid fa-xmark"></i>
                                         Clear Filter
@@ -282,10 +282,25 @@
                                                         $displayName = $user->name;
                                                     }
 
+                                                    // Human-readable panel position labels
+                                                    $panelPositionLabels = [
+                                                        'head'               => 'Head',
+                                                        'señior'             => 'Senior',
+                                                        'dean'               => 'Dean',
+                                                        'chair_fsb'          => 'Chair, FSB',
+                                                        'fai_president'      => 'FAI President',
+                                                        'clutches_president' => 'CLUTCHES President',
+                                                        'director_hr'        => 'Director HR',
+                                                    ];
+
                                                     // Get details based on role
                                                     $details = '';
                                                     if ($roleName === 'panel' && $user->panel) {
-                                                        $details = ucfirst($user->panel->panel_position) . ' - ' . ($user->panel->college->name ?? 'N/A');
+                                                        $posLabel = $panelPositionLabels[$user->panel->panel_position] ?? ucfirst($user->panel->panel_position);
+                                                        $details = $posLabel;
+                                                        if ($user->panel->college) {
+                                                            $details .= ' - ' . $user->panel->college->name;
+                                                        }
                                                         if ($user->panel->department) {
                                                             $details .= ' (' . $user->panel->department->name . ')';
                                                         }
@@ -373,10 +388,10 @@
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                  class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
                  @click.away="$wire.closeModal()">
-                
+
                 <div class="bg-[#1E7F3E] px-6 py-4">
                     <h3 class="text-xl font-bold text-white">
-                        {{ $isEditMode ? 'Edit' : 'Create' }} 
+                        {{ $isEditMode ? 'Edit' : 'Create' }}
                         @if($filterRole === 'panel') Panel Member
                         @elseif($filterRole === 'nbc') NBC Committee
                         @elseif($filterRole === 'applicant') Applicant
@@ -387,7 +402,7 @@
 
                 <form wire:submit.prevent="save">
                     <div class="bg-white px-6 pt-5 pb-4 max-h-[70vh] overflow-y-auto">
-                        
+
                         <!-- Applicant Fields -->
                         @if($filterRole === 'applicant')
                             <div class="mb-4">
@@ -433,40 +448,53 @@
                                     <option value="head">Head</option>
                                     <option value="señior">Senior</option>
                                     <option value="dean">Dean</option>
+                                    <option value="chair_fsb">Chair, FSB</option>
+                                    <option value="fai_president">FAI President</option>
+                                    <option value="clutches_president">CLUTCHES President</option>
+                                    <option value="director_hr">Director HR</option>
                                 </select>
                                 @error('panel_position') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">College <span class="text-red-500">*</span></label>
-                                <select wire:model.live="college_id"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('college_id') border-red-500 @enderror">
-                                    <option value="">Select College</option>
-                                    @foreach($colleges as $college)
-                                        <option value="{{ $college->id }}">{{ $college->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('college_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                            </div>
+                            {{-- College & Department are only shown/required for college-based positions --}}
+                            @php
+                                $noCollegeDeptPositions = ['dean', 'chair_fsb', 'fai_president', 'clutches_president', 'director_hr'];
+                                $isNoCollegeDept = in_array($panel_position, $noCollegeDeptPositions);
+                            @endphp
 
-                            @if($panel_position !== 'dean')
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    Department <span class="text-red-500">*</span>
-                                </label>
-                                <select wire:model="department_id"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('department_id') border-red-500 @enderror disabled:opacity-50 disabled:cursor-not-allowed"
-                                        {{ !$college_id ? 'disabled' : '' }}>
-                                    <option value="">Select Department</option>
-                                    @foreach($departments as $department)
-                                        <option value="{{ $department->id }}">{{ $department->name }}</option>
-                                    @endforeach
-                                </select>
-                                @if(!$college_id)
-                                    <p class="mt-1 text-xs text-gray-500">Please select a college first</p>
+                            @if(!$isNoCollegeDept)
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">College <span class="text-red-500">*</span></label>
+                                    <select wire:model.live="college_id"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('college_id') border-red-500 @enderror">
+                                        <option value="">Select College</option>
+                                        @foreach($colleges as $college)
+                                            <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('college_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+
+                                {{-- Department only shown for head & señior (not dean) --}}
+                                @if(!in_array($panel_position, ['dean']))
+                                    <div class="mb-4">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                                            Department <span class="text-red-500">*</span>
+                                        </label>
+                                        <select wire:model="department_id"
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('department_id') border-red-500 @enderror disabled:opacity-50 disabled:cursor-not-allowed"
+                                                {{ !$college_id ? 'disabled' : '' }}>
+                                            <option value="">Select Department</option>
+                                            @foreach($departments as $department)
+                                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @if(!$college_id)
+                                            <p class="mt-1 text-xs text-gray-500">Please select a college first</p>
+                                        @endif
+                                        @error('department_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                    </div>
                                 @endif
-                                @error('department_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                            </div>
                             @endif
 
                         @elseif($filterRole === 'nbc')

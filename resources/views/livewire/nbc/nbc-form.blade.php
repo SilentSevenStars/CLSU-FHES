@@ -12,7 +12,7 @@
                     {{ $assignment->isEvaluator() ? 'Evaluator' : 'Verifier' }} Assessment
                 </p>
             </div>
-            <button 
+            <button
                 wire:click="toggleApplicantModal"
                 class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150"
             >
@@ -23,6 +23,23 @@
         @if (session()->has('message'))
             <div class="mb-6 bg-green-50 border-l-4 border-green-400 p-4">
                 <p class="text-green-700">{{ session('message') }}</p>
+            </div>
+        @endif
+
+        {{-- Verifier notice banner --}}
+        @if($isVerifier)
+            <div class="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                    <p class="font-semibold text-amber-800 text-sm">Verifier Mode</p>
+                    <p class="text-amber-700 text-sm mt-0.5">
+                        The evaluator's scores are shown in
+                        <span class="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">blue</span>
+                        for reference. Enter your verification scores on the right — correct any value if needed.
+                    </p>
+                </div>
             </div>
         @endif
 
@@ -51,6 +68,24 @@
                     <h2 class="text-xl font-bold text-white">NBC Evaluation Scores</h2>
                 </div>
 
+                {{-- Column headers for verifier --}}
+                @if($isVerifier)
+                    <div class="px-8 pt-6 pb-0">
+                        <div class="flex items-center justify-end gap-4">
+                            <div class="w-48 text-center">
+                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-blue-600 bg-blue-50 border border-blue-200 rounded px-3 py-1 w-full">
+                                    Evaluator Score
+                                </span>
+                            </div>
+                            <div class="w-48 text-center">
+                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-3 py-1 w-full">
+                                    Your Score
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="p-8 space-y-8">
                     <!-- Educational Qualification Score -->
                     <div class="border-l-4 border-blue-500 pl-6">
@@ -63,20 +98,33 @@
                                     Maximum: 85 points
                                 </p>
                             </div>
-                            <div class="w-48">
-                                <input 
-                                    type="number" 
-                                    wire:model.live="educational_qualification"
-                                    step="0.001"
-                                    min="0"
-                                    max="85"
-                                    class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center font-semibold"
-                                    placeholder="0.000"
-                                >
+                            <div class="flex items-center gap-4">
+                                @if($isVerifier)
+                                    <div class="w-48">
+                                        <div class="w-full px-4 py-3 text-lg border-2 border-blue-300 bg-blue-50 rounded-lg text-center font-semibold text-blue-700">
+                                            {{ $evaluatorScoresExist ? number_format((float)$evaluator_educational_qualification, 3) : '—' }}
+                                        </div>
+                                        <p class="text-xs text-center text-blue-500 mt-1">Evaluator</p>
+                                    </div>
+                                @endif
+                                <div class="w-48">
+                                    <input
+                                        type="number"
+                                        wire:model.live="educational_qualification"
+                                        step="0.001"
+                                        min="0"
+                                        max="85"
+                                        class="w-full px-4 py-3 text-lg border-2 {{ $isVerifier ? 'border-green-400 focus:ring-green-500' : 'border-gray-300 focus:ring-blue-500' }} rounded-lg focus:ring-2 focus:border-transparent text-center font-semibold"
+                                        placeholder="0.000"
+                                    >
+                                    @if($isVerifier)
+                                        <p class="text-xs text-center text-green-600 mt-1">Your Score</p>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                        @error('educational_qualification') 
-                            <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> 
+                        @error('educational_qualification')
+                            <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
                         @enderror
                     </div>
 
@@ -91,20 +139,33 @@
                                     Maximum: 25 points
                                 </p>
                             </div>
-                            <div class="w-48">
-                                <input 
-                                    type="number" 
-                                    wire:model.live="experience"
-                                    step="0.001"
-                                    min="0"
-                                    max="25"
-                                    class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center font-semibold"
-                                    placeholder="0.000"
-                                >
+                            <div class="flex items-center gap-4">
+                                @if($isVerifier)
+                                    <div class="w-48">
+                                        <div class="w-full px-4 py-3 text-lg border-2 border-blue-300 bg-blue-50 rounded-lg text-center font-semibold text-blue-700">
+                                            {{ $evaluatorScoresExist ? number_format((float)$evaluator_experience, 3) : '—' }}
+                                        </div>
+                                        <p class="text-xs text-center text-blue-500 mt-1">Evaluator</p>
+                                    </div>
+                                @endif
+                                <div class="w-48">
+                                    <input
+                                        type="number"
+                                        wire:model.live="experience"
+                                        step="0.001"
+                                        min="0"
+                                        max="25"
+                                        class="w-full px-4 py-3 text-lg border-2 {{ $isVerifier ? 'border-green-400 focus:ring-green-500' : 'border-gray-300 focus:ring-green-500' }} rounded-lg focus:ring-2 focus:border-transparent text-center font-semibold"
+                                        placeholder="0.000"
+                                    >
+                                    @if($isVerifier)
+                                        <p class="text-xs text-center text-green-600 mt-1">Your Score</p>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                        @error('experience') 
-                            <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> 
+                        @error('experience')
+                            <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
                         @enderror
                     </div>
 
@@ -119,20 +180,33 @@
                                     Maximum: 90 points
                                 </p>
                             </div>
-                            <div class="w-48">
-                                <input 
-                                    type="number" 
-                                    wire:model.live="professional_development"
-                                    step="0.001"
-                                    min="0"
-                                    max="90"
-                                    class="w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center font-semibold"
-                                    placeholder="0.000"
-                                >
+                            <div class="flex items-center gap-4">
+                                @if($isVerifier)
+                                    <div class="w-48">
+                                        <div class="w-full px-4 py-3 text-lg border-2 border-blue-300 bg-blue-50 rounded-lg text-center font-semibold text-blue-700">
+                                            {{ $evaluatorScoresExist ? number_format((float)$evaluator_professional_development, 3) : '—' }}
+                                        </div>
+                                        <p class="text-xs text-center text-blue-500 mt-1">Evaluator</p>
+                                    </div>
+                                @endif
+                                <div class="w-48">
+                                    <input
+                                        type="number"
+                                        wire:model.live="professional_development"
+                                        step="0.001"
+                                        min="0"
+                                        max="90"
+                                        class="w-full px-4 py-3 text-lg border-2 {{ $isVerifier ? 'border-green-400 focus:ring-green-500' : 'border-gray-300 focus:ring-purple-500' }} rounded-lg focus:ring-2 focus:border-transparent text-center font-semibold"
+                                        placeholder="0.000"
+                                    >
+                                    @if($isVerifier)
+                                        <p class="text-xs text-center text-green-600 mt-1">Your Score</p>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                        @error('professional_development') 
-                            <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> 
+                        @error('professional_development')
+                            <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
                         @enderror
                     </div>
 
@@ -148,11 +222,39 @@
                                         Maximum: 200 points (85 + 25 + 90)
                                     </p>
                                 </div>
-                                <div class="px-8 py-4 bg-indigo-100 border-2 border-indigo-300 rounded-lg text-center">
-                                    <div class="text-4xl font-bold text-indigo-900">
-                                        {{ number_format($this->totalScore, 3) }}
-                                    </div>
-                                    <div class="text-xs text-indigo-700 mt-1">points</div>
+                                <div class="flex items-end gap-6">
+                                    @if($isVerifier)
+                                        @php
+                                            $evalTotal = (float)($evaluator_educational_qualification ?? 0)
+                                                       + (float)($evaluator_experience ?? 0)
+                                                       + (float)($evaluator_professional_development ?? 0);
+                                        @endphp
+                                        <div class="text-center">
+                                            <p class="text-xs text-blue-600 font-medium mb-1">Evaluator Total</p>
+                                            <div class="px-6 py-3 bg-blue-100 border-2 border-blue-300 rounded-lg text-center">
+                                                <div class="text-3xl font-bold text-blue-800">
+                                                    {{ $evaluatorScoresExist ? number_format($evalTotal, 3) : '—' }}
+                                                </div>
+                                                <div class="text-xs text-blue-600 mt-1">points</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-xs text-green-700 font-medium mb-1">Your Total</p>
+                                            <div class="px-6 py-3 bg-green-100 border-2 border-green-400 rounded-lg text-center">
+                                                <div class="text-3xl font-bold text-green-900">
+                                                    {{ number_format($this->totalScore, 3) }}
+                                                </div>
+                                                <div class="text-xs text-green-700 mt-1">points</div>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="px-8 py-4 bg-indigo-100 border-2 border-indigo-300 rounded-lg text-center">
+                                            <div class="text-4xl font-bold text-indigo-900">
+                                                {{ number_format($this->totalScore, 3) }}
+                                            </div>
+                                            <div class="text-xs text-indigo-700 mt-1">points</div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -161,7 +263,7 @@
 
                 <!-- Action Buttons -->
                 <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                    <button 
+                    <button
                         type="button"
                         wire:click="return"
                         class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
@@ -169,14 +271,14 @@
                         ← Return to Dashboard
                     </button>
                     <div class="flex gap-3">
-                        <button 
+                        <button
                             type="button"
                             @click="showSaveModal = true"
                             class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-150"
                         >
                             Save Progress
                         </button>
-                        <button 
+                        <button
                             type="button"
                             @click="showSubmitModal = true"
                             class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150"
@@ -191,7 +293,7 @@
 
     <!-- Applicant Details Modal -->
     @if($showApplicantModal)
-        <div 
+        <div
             class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
             x-data="{ show: @entangle('showApplicantModal') }"
             x-show="show"
@@ -203,20 +305,14 @@
             x-transition:leave-end="opacity-0"
         >
             <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-lg bg-white">
-                <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b pb-3 mb-4">
                     <h3 class="text-2xl font-bold text-gray-900">Applicant Details</h3>
-                    <button 
-                        wire:click="toggleApplicantModal"
-                        class="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
+                    <button wire:click="toggleApplicantModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
-
-                <!-- Modal Content -->
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -260,16 +356,14 @@
                         <div class="col-span-2">
                             <p class="text-sm font-medium text-gray-500">Requirements File</p>
                             @if($existing_file_path)
-                                <button 
+                                <button
                                     type="button"
                                     wire:click="$dispatch('open-pdf-viewer')"
                                     class="mt-1 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
                                 >
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
                                     View File
                                 </button>
@@ -279,13 +373,8 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Modal Footer -->
                 <div class="flex justify-end mt-6 pt-4 border-t">
-                    <button 
-                        wire:click="toggleApplicantModal"
-                        class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
-                    >
+                    <button wire:click="toggleApplicantModal" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150">
                         Close
                     </button>
                 </div>
@@ -294,7 +383,7 @@
     @endif
 
     <!-- Save Progress Confirmation Modal -->
-    <div 
+    <div
         x-show="showSaveModal"
         x-cloak
         class="fixed inset-0 z-50 overflow-y-auto"
@@ -305,12 +394,9 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
     >
-        <!-- Backdrop -->
         <div class="fixed inset-0 bg-black bg-opacity-50" @click="showSaveModal = false"></div>
-        
-        <!-- Modal -->
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div 
+            <div
                 class="relative bg-white rounded-lg shadow-xl max-w-md w-full"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform scale-95"
@@ -320,7 +406,6 @@
                 x-transition:leave-end="opacity-0 transform scale-95"
                 @click.away="showSaveModal = false"
             >
-                <!-- Icon -->
                 <div class="pt-8 pb-4 text-center">
                     <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
                         <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -328,15 +413,9 @@
                         </svg>
                     </div>
                 </div>
-                
-                <!-- Content -->
                 <div class="px-6 pb-4 text-center">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">
-                        Save Progress?
-                    </h3>
-                    <p class="text-gray-600 mb-4">
-                        This will save your current scores. You can continue editing later.
-                    </p>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Save Progress?</h3>
+                    <p class="text-gray-600 mb-4">This will save your current scores. You can continue editing later.</p>
                     <div class="bg-gray-50 rounded-lg p-4 text-left">
                         <p class="text-sm font-medium text-gray-700 mb-2">Current Scores:</p>
                         <div class="space-y-1 text-sm text-gray-600">
@@ -347,20 +426,11 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Actions -->
                 <div class="px-6 pb-6 flex gap-3">
-                    <button
-                        @click="showSaveModal = false"
-                        class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                    >
+                    <button @click="showSaveModal = false" class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium">
                         Cancel
                     </button>
-                    <button
-                        wire:click="save"
-                        @click="showSaveModal = false"
-                        class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                    >
+                    <button wire:click="save" @click="showSaveModal = false" class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
                         Yes, Save
                     </button>
                 </div>
@@ -369,7 +439,7 @@
     </div>
 
     <!-- Submit Evaluation Confirmation Modal -->
-    <div 
+    <div
         x-show="showSubmitModal"
         x-cloak
         class="fixed inset-0 z-50 overflow-y-auto"
@@ -380,12 +450,9 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
     >
-        <!-- Backdrop -->
         <div class="fixed inset-0 bg-black bg-opacity-50" @click="showSubmitModal = false"></div>
-        
-        <!-- Modal -->
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div 
+            <div
                 class="relative bg-white rounded-lg shadow-xl max-w-md w-full"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform scale-95"
@@ -395,7 +462,6 @@
                 x-transition:leave-end="opacity-0 transform scale-95"
                 @click.away="showSubmitModal = false"
             >
-                <!-- Icon -->
                 <div class="pt-8 pb-4 text-center">
                     <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100">
                         <svg class="h-10 w-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -403,12 +469,8 @@
                         </svg>
                     </div>
                 </div>
-                
-                <!-- Content -->
                 <div class="px-6 pb-4 text-center">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-2">
-                        Submit Evaluation?
-                    </h3>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Submit Evaluation?</h3>
                     <p class="text-gray-600 mb-4">
                         This will mark the evaluation as <strong>complete</strong>. Please review your scores before submitting.
                     </p>
@@ -425,20 +487,11 @@
                         ⚠️ Once submitted, you cannot edit this evaluation.
                     </p>
                 </div>
-                
-                <!-- Actions -->
                 <div class="px-6 pb-6 flex gap-3">
-                    <button
-                        @click="showSubmitModal = false"
-                        class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                    >
+                    <button @click="showSubmitModal = false" class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium">
                         Cancel
                     </button>
-                    <button
-                        wire:click="submit"
-                        @click="showSubmitModal = false"
-                        class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
+                    <button wire:click="submit" @click="showSubmitModal = false" class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         Yes, Submit
                     </button>
                 </div>
@@ -447,7 +500,7 @@
     </div>
 
     <!-- PDF VIEWER MODAL -->
-    <div x-data="{ 
+    <div x-data="{
         open: false,
         loading: false,
         pdfUrl: null,
@@ -456,9 +509,7 @@
             this.open = true;
             try {
                 const dataUrl = await @this.call('getFileDataUrl');
-                if (dataUrl) {
-                    this.pdfUrl = dataUrl;
-                }
+                if (dataUrl) { this.pdfUrl = dataUrl; }
             } catch (error) {
                 console.error('Error loading PDF:', error);
                 alert('Error loading PDF file');
@@ -473,24 +524,17 @@
     x-cloak
     class="fixed inset-0 z-50 overflow-hidden"
     style="display: none;">
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
-        
-        <!-- Modal Content -->
         <div class="relative w-full h-full flex items-center justify-center">
             <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
-                <!-- Header -->
                 <div class="flex items-center justify-between px-6 py-4 border-b">
                     <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
-                    <button @click="open = false; pdfUrl = null;" 
-                        class="text-gray-400 hover:text-gray-600 transition">
+                    <button @click="open = false; pdfUrl = null;" class="text-gray-400 hover:text-gray-600 transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
-                
-                <!-- PDF Viewer -->
                 <div class="flex-1 overflow-hidden">
                     <div x-show="loading" class="flex items-center justify-center h-full">
                         <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
@@ -498,11 +542,7 @@
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
                         </svg>
                     </div>
-                    <iframe x-show="!loading && pdfUrl" 
-                        :src="pdfUrl" 
-                        class="w-full h-full"
-                        frameborder="0">
-                    </iframe>
+                    <iframe x-show="!loading && pdfUrl" :src="pdfUrl" class="w-full h-full" frameborder="0"></iframe>
                 </div>
             </div>
         </div>

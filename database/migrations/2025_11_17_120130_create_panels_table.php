@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('panel_position');
             // $table->string('college');
             // $table->string('department');
-            $table->foreignId('college_id')->constrained()->onDelete('cascade');
+            $table->foreignId('college_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('department_id')->nullable()->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->cosntrained()->onDelete('cascade');
             $table->timestamps();

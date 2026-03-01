@@ -80,7 +80,6 @@ class Nbc extends Component
 
         $search = strtolower($this->tempSearchTerm);
 
-        // Find applicants by user name
         $this->searchResults = Applicant::with('user')
             ->whereHas('user', function ($q) use ($search) {
                 $q->whereRaw("LOWER(name) LIKE ?", ["%{$search}%"]);
@@ -131,7 +130,6 @@ class Nbc extends Component
             return;
         }
 
-        // Get all unique positions this applicant has applied for (excluding Instructor I)
         $positionNames = $applicant->jobApplications()
             ->with('position')
             ->where('status', 'approve')
@@ -165,7 +163,6 @@ class Nbc extends Component
             return;
         }
 
-        // Get all unique interview dates for the selected position
         $dates = $applicant->jobApplications()
             ->with(['position', 'evaluation'])
             ->where('status', 'approve')
@@ -189,13 +186,11 @@ class Nbc extends Component
      */
     public function performSearch()
     {
-        // Validate that all fields are filled
         if (empty($this->tempSearchTerm) || empty($this->tempSelectedPosition) || empty($this->tempSelectedInterviewDate)) {
             session()->flash('error', 'Please fill in applicant name, position, and interview date.');
             return;
         }
 
-        // Validate that an applicant was actually selected from dropdown
         if (!$this->selectedApplicantId) {
             session()->flash('error', 'Please select a valid applicant from the dropdown list.');
             return;
@@ -208,7 +203,6 @@ class Nbc extends Component
 
         $this->loadNbcData();
 
-        // Check if data was loaded successfully
         if (empty($this->nbcData)) {
             session()->flash('error', 'No evaluation data found for this applicant, position, and interview date.');
             return;
@@ -235,6 +229,33 @@ class Nbc extends Component
         $this->searchResults = [];
         $this->showDropdown = false;
         $this->selectedApplicantId = null;
+    }
+
+    /**
+     * Resolve the best NBC record for a given evaluation_id.
+     *
+     * Priority: verify assignment (if complete) > evaluate assignment
+     * Returns the nbc model or null, plus the assignment used.
+     */
+    protected function resolveNbcRecord(int $evaluationId): ?NbcModel
+    {
+        // Prefer a completed verify assignment first
+        $verifyAssignment = NbcAssignment::where('evaluation_id', $evaluationId)
+            ->where('type', 'verify')
+            ->whereNotNull('nbc_id')
+            ->first();
+
+        if ($verifyAssignment && $verifyAssignment->nbc) {
+            return $verifyAssignment->nbc;
+        }
+
+        // Fall back to the evaluate assignment
+        $evaluateAssignment = NbcAssignment::where('evaluation_id', $evaluationId)
+            ->where('type', 'evaluate')
+            ->whereNotNull('nbc_id')
+            ->first();
+
+        return $evaluateAssignment?->nbc;
     }
 
     /**
@@ -271,69 +292,58 @@ class Nbc extends Component
             return;
         }
 
-        $nbcAssignment = NbcAssignment::where('evaluation_id', $evaluation->id)
-            ->where('type', 'evaluate')
-            ->first();
+        // Resolve current NBC record — prefer verify over evaluate
+        $nbcRecord = $this->resolveNbcRecord($evaluation->id);
 
-        if (!$nbcAssignment) {
+        if (!$nbcRecord) {
             $this->nbcData = [];
             return;
         }
 
-        // Get the NBC record from the assignment
-        $nbcRecord = $nbcAssignment->nbc;
-
-        // Get current evaluation data
-        $educationalQualification = EducationalQualification::find($nbcAssignment->educational_qualification_id);
-        $experienceService = ExperienceService::find($nbcAssignment->experience_service_id);
-        $professionalDevelopment = ProfessionalDevelopment::find($nbcAssignment->professional_development_id);
+        /* ===============================
+           CURRENT (ADDITIONAL) POINTS
+           =============================== */
+        $currentEducation   = $nbcRecord->educational_qualification ?? 0;
+        $currentExperience  = $nbcRecord->experience ?? 0;
+        $currentProfessional = $nbcRecord->professional_development ?? 0;
+        $currentTotal       = $nbcRecord->total_score ?? 0;
 
         /* ===============================
-           CURRENT (ADDITIONAL) POINTS - From NBC table
+           PREVIOUS POINTS
+           Find the most recent previous evaluation (earlier interview date)
+           and resolve its score using the same verify-first priority.
            =============================== */
-        $currentEducation = $nbcRecord ? $nbcRecord->educational_qualification : 0;
-        $currentExperience = $nbcRecord ? $nbcRecord->experience : 0;
-        $currentProfessional = $nbcRecord ? $nbcRecord->professional_development : 0;
-        $currentTotal = $nbcRecord ? $nbcRecord->total_score : 0;
-
-        /* ===============================
-           PREVIOUS POINTS - Check for previous NBC evaluations
-           Find the most recent previous evaluation for ANY POSITION
-           (either same position or previous position)
-           with an EARLIER interview date
-           =============================== */
-        $previousNbcAssignment = NbcAssignment::whereHas('evaluation', function ($q) use ($applicant) {
-                $q->whereHas('jobApplication', function ($jobQ) use ($applicant) {
-                    $jobQ->where('applicant_id', $applicant->id)
-                        ->where('status', 'approve');
-                })
-                ->where('interview_date', '<', $this->selectedInterviewDate);
+        $previousEvaluation = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
+                $q->where('applicant_id', $applicant->id)
+                    ->where('status', 'approve');
             })
-            ->where('type', 'evaluate')
-            ->where('id', '!=', $nbcAssignment->id) // Exclude current assignment
-            ->whereNotNull('nbc_id')
-            ->with(['evaluation.jobApplication.position'])
-            ->orderBy('created_at', 'desc')
+            ->where('interview_date', '<', $this->selectedInterviewDate)
+            ->whereHas('nbcAssignments', function ($q) {
+                $q->whereNotNull('nbc_id');
+            })
+            ->orderBy('interview_date', 'desc')
             ->first();
 
-        $previousNbc = $previousNbcAssignment ? $previousNbcAssignment->nbc : null;
-        $previousInterviewDate = $previousNbcAssignment && $previousNbcAssignment->evaluation 
-            ? $previousNbcAssignment->evaluation->interview_date 
-            : null;
+        $previousNbc = null;
+        $previousInterviewDate = null;
 
-        // Set previous values (blank if no previous evaluation)
-        $previousEducation = $previousNbc ? $previousNbc->educational_qualification : null;
-        $previousExperience = $previousNbc ? $previousNbc->experience : null;
-        $previousProfessional = $previousNbc ? $previousNbc->professional_development : null;
-        $previousTotal = $previousNbc ? $previousNbc->total_score : null;
+        if ($previousEvaluation) {
+            $previousNbc = $this->resolveNbcRecord($previousEvaluation->id);
+            $previousInterviewDate = $previousEvaluation->interview_date;
+        }
+
+        $previousEducation   = $previousNbc?->educational_qualification;
+        $previousExperience  = $previousNbc?->experience;
+        $previousProfessional = $previousNbc?->professional_development;
+        $previousTotal       = $previousNbc?->total_score;
 
         /* ===============================
-           TOTAL POINTS (Current only, not cumulative)
+           TOTALS
            =============================== */
-        $totalEducation = $currentEducation;
-        $totalExperience = $currentExperience;
+        $totalEducation   = $currentEducation;
+        $totalExperience  = $currentExperience;
         $totalProfessional = $currentProfessional;
-        $grandTotal = $currentTotal;
+        $grandTotal       = $currentTotal;
 
         $position = $applicant->jobApplications()
             ->whereHas('position', function ($q) {
@@ -342,44 +352,40 @@ class Nbc extends Component
             ->first()
             ->position;
 
-        /* ===============================
-           FINAL DATA
-           =============================== */
         $this->nbcData = [[
-            'evaluation_id' => $evaluation->id,
-            'name' => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
-            'position' => $position->name,
-            'college' => $position->college->name,
-            'interview_date' => $evaluation->interview_date,
+            'evaluation_id'           => $evaluation->id,
+            'name'                    => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
+            'position'                => $position->name,
+            'college'                 => $position->college->name,
+            'interview_date'          => $evaluation->interview_date,
             'previous_interview_date' => $previousInterviewDate,
 
-            // Previous (from previous NBC evaluation)
-            'previous_education' => $previousEducation !== null ? round($previousEducation, 2) : '',
-            'previous_experience' => $previousExperience !== null ? round($previousExperience, 2) : '',
+            // Previous
+            'previous_education'   => $previousEducation  !== null ? round($previousEducation, 2)   : '',
+            'previous_experience'  => $previousExperience !== null ? round($previousExperience, 2)  : '',
             'previous_professional' => $previousProfessional !== null ? round($previousProfessional, 2) : '',
-            'previous_total' => $previousTotal !== null ? round($previousTotal, 2) : '',
+            'previous_total'       => $previousTotal      !== null ? round($previousTotal, 2)       : '',
 
-            // Additional (current NBC record values)
-            'additional_education' => round($currentEducation, 2),
-            'additional_experience' => round($currentExperience, 2),
+            // Additional (current)
+            'additional_education'    => round($currentEducation, 2),
+            'additional_experience'   => round($currentExperience, 2),
             'additional_professional' => round($currentProfessional, 2),
-            'additional_total' => round($currentTotal, 2),
+            'additional_total'        => round($currentTotal, 2),
 
-            // EP (NOT USED — ZEROED BUT REQUIRED BY VIEW)
-            'ep_education_subtotal' => 0,
-            'ep_experience_subtotal' => 0,
+            // EP (not used — zeroed but required by view)
+            'ep_education_subtotal'    => 0,
+            'ep_experience_subtotal'   => 0,
             'ep_professional_subtotal' => 0,
-            'ep_total_subtotal' => 0,
+            'ep_total_subtotal'        => 0,
 
             // Final totals
-            'total_education' => round($totalEducation, 2),
-            'total_experience' => round($totalExperience, 2),
+            'total_education'    => round($totalEducation, 2),
+            'total_experience'   => round($totalExperience, 2),
             'total_professional' => round($totalProfessional, 2),
-            'grand_total' => round($grandTotal, 2),
-            'projected_points' => round($grandTotal, 2),
+            'grand_total'        => round($grandTotal, 2),
+            'projected_points'   => round($grandTotal, 2),
         ]];
     }
-
 
     public function export()
     {
@@ -391,7 +397,7 @@ class Nbc extends Component
         $data = $this->nbcData[0];
 
         $pdf = Pdf::loadView('pdf.nbc-report', [
-            'data' => $data,
+            'data'          => $data,
             'generatedDate' => now()->format('F d, Y'),
         ]);
 

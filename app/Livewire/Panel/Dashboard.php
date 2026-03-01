@@ -17,6 +17,17 @@ class Dashboard extends Component
 
     protected $paginationTheme = 'tailwind';
 
+    /**
+     * University-level positions: see ALL applications across all colleges/departments,
+     * and route to interview (same as dean/señior).
+     */
+    private const UNIVERSITY_POSITIONS = [
+        'chair_fsb',
+        'fai_president',
+        'clutches_president',
+        'director_hr',
+    ];
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -34,8 +45,8 @@ class Dashboard extends Component
         if (!$panel) {
             return view('livewire.panel.dashboard', [
                 'applications' => collect(),
-                'panel' => null,
-                'assignments' => collect(),
+                'panel'        => null,
+                'assignments'  => collect(),
             ]);
         }
 
@@ -54,10 +65,10 @@ class Dashboard extends Component
             'Associate Professor IV',
             'Associate Professor V',
             'Professor I',
-            'Professor II'
+            'Professor II',
         ];
 
-        // Base query with eager loading
+        // Base query
         $query = JobApplication::query()
             ->whereHas('evaluation', function ($q) {
                 $q->whereDate('interview_date', today());
@@ -66,21 +77,22 @@ class Dashboard extends Component
                 $q->whereIn('name', $allowedPositions);
             });
 
-        // Filter by panel position using foreign keys
         $panelPos = strtolower($panel->panel_position);
-        
-        if (in_array($panelPos, ['head', 'senior', 'señior'])) {
-            // Filter by both college_id AND department_id (foreign keys)
+        $isUniversityLevel = in_array($panelPos, self::UNIVERSITY_POSITIONS);
+
+        if ($isUniversityLevel) {
+            // Chair FSB / FAI President / CLUTCHES President / Director HR:
+            // No college or department filter — they see ALL applications.
+        } elseif ($panelPos === 'dean') {
+            // Dean: filter by college only
+            $query->whereHas('position', function ($q) use ($panel) {
+                $q->where('college_id', $panel->college_id);
+            });
+        } elseif (in_array($panelPos, ['head', 'senior', 'señior'])) {
+            // Head / Senior: filter by both college AND department
             $query->whereHas('position', function ($q) use ($panel) {
                 $q->where('college_id', $panel->college_id)
                   ->where('department_id', $panel->department_id);
-            });
-        }
-
-        if ($panelPos === 'dean') {
-            // Filter by college_id only (foreign key)
-            $query->whereHas('position', function ($q) use ($panel) {
-                $q->where('college_id', $panel->college_id);
             });
         }
 
@@ -99,10 +111,10 @@ class Dashboard extends Component
 
         // Get all matching applications with eager loading
         $applications = $query->with([
-            'applicant.user', 
-            'position.college',      // Eager load college relationship
-            'position.department',   // Eager load department relationship
-            'evaluation'
+            'applicant.user',
+            'position.college',
+            'position.department',
+            'evaluation',
         ])->get();
 
         // Get assignments for this panel
@@ -114,14 +126,13 @@ class Dashboard extends Component
         $sortedApplications = $applications->sort(function ($a, $b) use ($assignments) {
             $evalA = $a->evaluation;
             $evalB = $b->evaluation;
-            
+
             $assignmentA = $assignments[$evalA->id] ?? null;
             $assignmentB = $assignments[$evalB->id] ?? null;
-            
+
             $isCompleteA = $assignmentA && $assignmentA->status === 'complete';
             $isCompleteB = $assignmentB && $assignmentB->status === 'complete';
-            
-            // Pending (false) comes before Complete (true)
+
             if ($isCompleteA === $isCompleteB) {
                 return 0;
             }
@@ -130,7 +141,7 @@ class Dashboard extends Component
 
         // Calculate totals for summary cards
         $totalCount = $applications->count();
-        $completedCount = $applications->filter(function($app) use ($assignments) {
+        $completedCount = $applications->filter(function ($app) use ($assignments) {
             $evaluation = $app->evaluation;
             $assignment = $assignments[$evaluation->id] ?? null;
             return $assignment && $assignment->status === 'complete';
@@ -138,7 +149,7 @@ class Dashboard extends Component
         $pendingCount = $totalCount - $completedCount;
 
         // Paginate the sorted collection
-        $perPage = 10;
+        $perPage     = 10;
         $currentPage = $this->getPage();
         $paginatedApplications = new \Illuminate\Pagination\LengthAwarePaginator(
             $sortedApplications->forPage($currentPage, $perPage),
@@ -149,12 +160,12 @@ class Dashboard extends Component
         );
 
         return view('livewire.panel.dashboard', [
-            'applications' => $paginatedApplications,
-            'panel' => $panel,
-            'assignments' => $assignments,
-            'totalCount' => $totalCount,
+            'applications'   => $paginatedApplications,
+            'panel'          => $panel,
+            'assignments'    => $assignments,
+            'totalCount'     => $totalCount,
             'completedCount' => $completedCount,
-            'pendingCount' => $pendingCount,
+            'pendingCount'   => $pendingCount,
         ]);
     }
 }

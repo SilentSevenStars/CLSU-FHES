@@ -5,10 +5,10 @@
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Educational Qualification Form</h1>
                 <p class="mt-1 text-sm text-gray-600">
-                    {{ $assignment->isEvaluator() ? 'Evaluator' : 'Verifier' }} Assessment - {{ $assignment->nbcCommittee->position_name }}
+                    {{ $assignment->nbcCommittee->isEvaluator() ? 'Evaluator' : 'Verifier' }} Assessment - {{ $assignment->nbcCommittee->position_name }}
                 </p>
             </div>
-            <button 
+            <button
                 wire:click="toggleApplicantModal"
                 class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150"
             >
@@ -25,6 +25,24 @@
         @if (session()->has('info'))
             <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4">
                 <p class="text-blue-700">{{ session('info') }}</p>
+            </div>
+        @endif
+
+        {{-- Verifier notice banner --}}
+        @if($isVerifier)
+            <div class="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg flex items-start gap-3">
+                <svg class="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                    <p class="font-semibold text-amber-800 text-sm">Verifier Mode</p>
+                    <p class="text-amber-700 text-sm mt-0.5">
+                        You are reviewing this evaluation as a <strong>Verifier</strong>.
+                        The evaluator's scores are shown in
+                        <span class="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">blue</span>
+                        for reference. Your editable scores are on the right — correct any value if needed.
+                    </p>
+                </div>
             </div>
         @endif
 
@@ -53,13 +71,32 @@
                     <h2 class="text-xl font-bold text-white">1.0 EDUCATIONAL QUALIFICATION ... 85 pts.</h2>
                 </div>
 
+                {{-- Column header row for verifier --}}
+                @if($isVerifier)
+                    <div class="px-6 pt-5 pb-1">
+                        <div class="grid grid-cols-12 gap-4">
+                            <div class="col-span-8"></div>
+                            <div class="col-span-2 text-center">
+                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-blue-600 bg-blue-50 border border-blue-200 rounded px-2 py-1 w-full">
+                                    Evaluator Score
+                                </span>
+                            </div>
+                            <div class="col-span-2 text-center">
+                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 w-full">
+                                    Your Score
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="p-6 space-y-6">
                     <!-- Section 1.1 - Highest Relevant Academic Degree -->
                     <div class="border-l-4 border-blue-500 pl-4">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">
                             1.1 Highest relevant academic degree or educational attainment
                         </h3>
-                        
+
                         <div class="bg-gray-50 rounded-lg p-4 mb-4">
                             <div class="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700 mb-2">
                                 <div class="col-span-10">Criteria</div>
@@ -67,8 +104,6 @@
                                     <div class="text-xs">RS</div>
                                 </div>
                             </div>
-
-                            <!-- Degree Options List -->
                             <div class="space-y-2 text-sm text-gray-700">
                                 <div class="pl-4">1.1.1 Doctorate Degree</div>
                                 <div class="pl-4">1.1.2 Master's Degree</div>
@@ -86,22 +121,39 @@
 
                         <!-- Input Fields for 1.1 -->
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="col-span-10">
+                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
                                 <label class="block text-sm font-medium text-gray-700">
                                     Section 1.1 Score (RS)
                                 </label>
                             </div>
-                            <div class="col-span-2">
-                                <input 
-                                    type="number" 
-                                    wire:model.live="rs_1_1"
-                                    step="0.01"
-                                    min="0"
-                                    max="85"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
-                                    placeholder="RS"
-                                >
-                            </div>
+                            @if($isVerifier)
+                                {{-- Evaluator score: read-only reference --}}
+                                <div class="col-span-2">
+                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
+                                        {{ $evaluatorScoresExist ? number_format((float)$evaluator_rs_1_1, 2) : '—' }}
+                                    </div>
+                                </div>
+                                {{-- Verifier's own editable score --}}
+                                <div class="col-span-2">
+                                    <input
+                                        type="number"
+                                        wire:model.live="rs_1_1"
+                                        step="0.01" min="0" max="85"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
+                                        placeholder="RS"
+                                    >
+                                </div>
+                            @else
+                                <div class="col-span-2">
+                                    <input
+                                        type="number"
+                                        wire:model.live="rs_1_1"
+                                        step="0.01" min="0" max="85"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        placeholder="RS"
+                                    >
+                                </div>
+                            @endif
                         </div>
                         @error('rs_1_1') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
                     </div>
@@ -111,7 +163,7 @@
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">
                             1.2 Additional equivalent degree earned related to the present position
                         </h3>
-                        
+
                         <div class="bg-gray-50 rounded-lg p-4 mb-4">
                             <div class="space-y-2 text-sm text-gray-700">
                                 <div class="pl-4">1.2.1 Master's Degree</div>
@@ -121,22 +173,37 @@
 
                         <!-- Input Fields for 1.2 -->
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="col-span-10">
+                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
                                 <label class="block text-sm font-medium text-gray-700">
                                     Section 1.2 Score (RS)
                                 </label>
                             </div>
-                            <div class="col-span-2">
-                                <input 
-                                    type="number" 
-                                    wire:model.live="rs_1_2"
-                                    step="0.01"
-                                    min="0"
-                                    max="85"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
-                                    placeholder="RS"
-                                >
-                            </div>
+                            @if($isVerifier)
+                                <div class="col-span-2">
+                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
+                                        {{ $evaluatorScoresExist ? number_format((float)$evaluator_rs_1_2, 2) : '—' }}
+                                    </div>
+                                </div>
+                                <div class="col-span-2">
+                                    <input
+                                        type="number"
+                                        wire:model.live="rs_1_2"
+                                        step="0.01" min="0" max="85"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
+                                        placeholder="RS"
+                                    >
+                                </div>
+                            @else
+                                <div class="col-span-2">
+                                    <input
+                                        type="number"
+                                        wire:model.live="rs_1_2"
+                                        step="0.01" min="0" max="85"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        placeholder="RS"
+                                    >
+                                </div>
+                            @endif
                         </div>
                         @error('rs_1_2') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
                     </div>
@@ -146,7 +213,7 @@
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">
                             1.3 Additional credits earned (Maximum of 10 points)
                         </h3>
-                        
+
                         <div class="bg-gray-50 rounded-lg p-4 mb-4">
                             <div class="space-y-2 text-sm text-gray-700">
                                 <div class="pl-4">1.3.1 For every 3 unit credit earned towards</div>
@@ -156,22 +223,37 @@
 
                         <!-- Input Fields for 1.3 -->
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="col-span-10">
+                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
                                 <label class="block text-sm font-medium text-gray-700">
                                     Section 1.3 Score (RS)
                                 </label>
                             </div>
-                            <div class="col-span-2">
-                                <input 
-                                    type="number" 
-                                    wire:model.live="rs_1_3"
-                                    step="0.01"
-                                    min="0"
-                                    max="10"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
-                                    placeholder="RS"
-                                >
-                            </div>
+                            @if($isVerifier)
+                                <div class="col-span-2">
+                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
+                                        {{ $evaluatorScoresExist ? number_format((float)$evaluator_rs_1_3, 2) : '—' }}
+                                    </div>
+                                </div>
+                                <div class="col-span-2">
+                                    <input
+                                        type="number"
+                                        wire:model.live="rs_1_3"
+                                        step="0.01" min="0" max="10"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
+                                        placeholder="RS"
+                                    >
+                                </div>
+                            @else
+                                <div class="col-span-2">
+                                    <input
+                                        type="number"
+                                        wire:model.live="rs_1_3"
+                                        step="0.01" min="0" max="10"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center"
+                                        placeholder="RS"
+                                    >
+                                </div>
+                            @endif
                         </div>
                         @error('rs_1_3') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
                     </div>
@@ -179,39 +261,60 @@
                     <!-- Subtotal Display -->
                     <div class="border-t-2 border-gray-300 pt-4">
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="col-span-8">
-                                <label class="block text-lg font-bold text-gray-900">
-                                    SUBTOTAL
-                                </label>
+                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-8' }}">
+                                <label class="block text-lg font-bold text-gray-900">SUBTOTAL</label>
+                                <p class="text-xs text-gray-500 mt-0.5">EP = MIN(RS Total, 85)</p>
                             </div>
-                            <div class="col-span-4 grid grid-cols-2 gap-2">
-                                <div>
-                                    <div class="text-xs text-center text-gray-600 mb-1">RS Total</div>
-                                    <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-semibold">
-                                        {{ number_format($this->rsSubtotal, 2) }}
+
+                            @if($isVerifier)
+                                {{-- Evaluator EP reference --}}
+                                @php
+                                    $evalRS  = (float)($evaluator_rs_1_1 ?? 0) + (float)($evaluator_rs_1_2 ?? 0) + (float)($evaluator_rs_1_3 ?? 0);
+                                    $evalEP  = min($evalRS, 85);
+                                @endphp
+                                <div class="col-span-2">
+                                    <div class="text-xs text-center text-blue-600 mb-1 font-medium">Evaluator EP</div>
+                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-bold text-blue-800">
+                                        {{ $evaluatorScoresExist ? number_format($evalEP, 2) : '—' }}
                                     </div>
                                 </div>
-                                <div>
-                                    <div class="text-xs text-center text-gray-600 mb-1">EP</div>
-                                    <div class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-center font-semibold">
+                                {{-- Verifier EP --}}
+                                <div class="col-span-2">
+                                    <div class="text-xs text-center text-green-700 mb-1 font-medium">Your EP</div>
+                                    <div class="px-3 py-2 bg-green-50 border border-green-400 rounded-lg text-center font-bold text-green-800">
                                         {{ number_format($this->epSubtotal, 2) }}
                                     </div>
                                 </div>
-                            </div>
+                            @else
+                                <div class="col-span-4 grid grid-cols-2 gap-2">
+                                    <div>
+                                        <div class="text-xs text-center text-gray-600 mb-1">RS Total</div>
+                                        <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-semibold">
+                                            {{ number_format($this->rsSubtotal, 2) }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-center text-gray-600 mb-1">EP</div>
+                                        <div class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-center font-semibold">
+                                            {{ number_format($this->epSubtotal, 2) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                    <button 
+                    <button
                         type="button"
                         wire:click="return"
                         class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
                     >
                         ← Return to Dashboard
                     </button>
-                    <button 
+                    <button
                         type="button"
                         wire:click="next"
                         class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-150"
@@ -225,7 +328,7 @@
 
     <!-- Applicant Details Modal -->
     @if($showApplicantModal)
-        <div 
+        <div
             class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
             x-data="{ show: @entangle('showApplicantModal') }"
             x-show="show"
@@ -240,16 +343,12 @@
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b pb-3 mb-4">
                     <h3 class="text-2xl font-bold text-gray-900">Applicant Details</h3>
-                    <button 
-                        wire:click="toggleApplicantModal"
-                        class="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
+                    <button wire:click="toggleApplicantModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
-
                 <!-- Modal Content -->
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
@@ -294,16 +393,14 @@
                         <div class="col-span-2">
                             <p class="text-sm font-medium text-gray-500">Requirements File</p>
                             @if($existing_file_path)
-                                <button 
+                                <button
                                     type="button"
                                     wire:click="$dispatch('open-pdf-viewer')"
                                     class="mt-1 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
                                 >
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
                                     View File
                                 </button>
@@ -313,13 +410,9 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Modal Footer -->
                 <div class="flex justify-end mt-6 pt-4 border-t">
-                    <button 
-                        wire:click="toggleApplicantModal"
-                        class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
-                    >
+                    <button wire:click="toggleApplicantModal" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150">
                         Close
                     </button>
                 </div>
@@ -328,7 +421,7 @@
     @endif
 
     <!-- PDF VIEWER MODAL -->
-    <div x-data="{ 
+    <div x-data="{
         open: false,
         loading: false,
         pdfUrl: null,
@@ -337,9 +430,7 @@
             this.open = true;
             try {
                 const dataUrl = await @this.call('getFileDataUrl');
-                if (dataUrl) {
-                    this.pdfUrl = dataUrl;
-                }
+                if (dataUrl) { this.pdfUrl = dataUrl; }
             } catch (error) {
                 console.error('Error loading PDF:', error);
                 alert('Error loading PDF file');
@@ -354,24 +445,17 @@
     x-cloak
     class="fixed inset-0 z-50 overflow-hidden"
     style="display: none;">
-        <!-- Backdrop -->
         <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
-        
-        <!-- Modal Content -->
         <div class="relative w-full h-full flex items-center justify-center">
             <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
-                <!-- Header -->
                 <div class="flex items-center justify-between px-6 py-4 border-b">
                     <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
-                    <button @click="open = false; pdfUrl = null;" 
-                        class="text-gray-400 hover:text-gray-600 transition">
+                    <button @click="open = false; pdfUrl = null;" class="text-gray-400 hover:text-gray-600 transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
-                
-                <!-- PDF Viewer -->
                 <div class="flex-1 overflow-hidden">
                     <div x-show="loading" class="flex items-center justify-center h-full">
                         <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
@@ -379,13 +463,11 @@
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
                         </svg>
                     </div>
-                    <iframe x-show="!loading && pdfUrl" 
-                        :src="pdfUrl" 
-                        class="w-full h-full"
-                        frameborder="0">
-                    </iframe>
+                    <iframe x-show="!loading && pdfUrl" :src="pdfUrl" class="w-full h-full" frameborder="0"></iframe>
                 </div>
             </div>
         </div>
     </div>
+
+    <style>[x-cloak] { display: none !important; }</style>
 </div>
