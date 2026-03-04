@@ -10,6 +10,7 @@ use App\Livewire\Admin\ArchiveApplicantManagement;
 use App\Livewire\Admin\CollegeManager;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\DepartmentManager;
+use App\Livewire\Admin\History\PositionIndex as HistoryPositionIndex;
 use App\Livewire\Admin\Message as AdminMessage;
 use App\Livewire\Admin\Nbc;
 use App\Livewire\Admin\NbcCommitteeManager;
@@ -106,6 +107,8 @@ Route::middleware([
         Route::get('/positions/{id}/edit', PositionEdit::class)
             ->name('position.edit')
             ->middleware('permission:position.edit');
+        Route::get('/position/history', HistoryPositionIndex::class)
+        ->name('position.history');
 
         // --- Applicants ---
         Route::get('/applicants', Applicant::class)

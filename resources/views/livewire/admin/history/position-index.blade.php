@@ -6,26 +6,26 @@
                 <div class="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h1 class="text-4xl font-extrabold bg-[#0a6025] bg-clip-text text-transparent mb-2">
-                            Position
+                            Position History
                         </h1>
                         <p class="text-gray-600 flex items-center gap-2">
                             <svg class="w-5 h-5 text-[#0a6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
                                 </path>
                             </svg>
-                            Manage Position
+                            Expired Positions
                         </p>
                     </div>
 
-                    <!-- History Button -->
-                    <a href="{{ route('admin.position.history') }}"
+                    <!-- Back Button -->
+                    <a href="{{ route('admin.position') }}"
                        class="inline-flex items-center gap-2 bg-white border border-[#0a6025] text-[#0a6025] hover:bg-[#0a6025] hover:text-white transition-colors duration-200 font-medium rounded-lg text-sm px-5 py-2.5 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
-                        Position History
+                        Back to Positions
                     </a>
                 </div>
             </div>
@@ -41,7 +41,7 @@
                      x-transition:leave="transition ease-in duration-300"
                      x-transition:leave-start="opacity-100 transform scale-100"
                      x-transition:leave-end="opacity-0 transform scale-90"
-                     class="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-lg animate-slideInDown"
+                     class="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-lg"
                      role="alert">
                     <div class="flex items-center">
                         <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -70,7 +70,7 @@
                      x-transition:leave="transition ease-in duration-300"
                      x-transition:leave-start="opacity-100 transform scale-100"
                      x-transition:leave-end="opacity-0 transform scale-90"
-                     class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-lg animate-slideInDown"
+                     class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-lg"
                      role="alert">
                     <div class="flex items-center">
                         <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -90,16 +90,19 @@
             @endif
 
             <!-- Table Card -->
-            <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn" style="animation-delay: 0.3s;">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn">
                 <!-- Table Header with Filters -->
                 <div class="bg-[#0a6025] p-6">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                         <!-- Left: Title -->
                         <div class="flex items-center gap-3">
                             <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-                                <i class="fa-solid fa-briefcase text-white text-lg"></i>
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
                             </div>
-                            <h2 class="text-2xl font-bold text-white">Position List</h2>
+                            <h2 class="text-2xl font-bold text-white">Position History List</h2>
                         </div>
 
                         <!-- Right: Filters -->
@@ -141,7 +144,7 @@
                         <div class="-m-1.5 overflow-x-auto">
                             <div class="p-1.5 min-w-full inline-block align-middle">
                                 <div class="bg-gray-50 border border-gray-300 rounded-xl shadow-2xs overflow-hidden">
-                                    <!-- Search + Create -->
+                                    <!-- Search -->
                                     <div class="px-6 py-4 flex flex-wrap items-center justify-between border-b border-gray-300 gap-3">
                                         <div class="flex-1 min-w-[200px] max-w-md">
                                             <label class="sr-only">Search</label>
@@ -160,12 +163,15 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div>
-                                            <a href="{{ route('admin.position.create') }}"
-                                               class="block text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300
-                                                      font-medium rounded-lg text-sm px-5 py-2.5">
-                                                Create Position
-                                            </a>
+
+                                        <!-- Expired badge indicator -->
+                                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                                            <span class="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full font-medium">
+                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Showing expired positions only
+                                            </span>
                                         </div>
                                     </div>
 
@@ -189,6 +195,9 @@
                                                     <span class="text-xs font-semibold uppercase text-black">End Date</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
+                                                    <span class="text-xs font-semibold uppercase text-black">Status</span>
+                                                </th>
+                                                <th scope="col" class="px-6 py-3 text-start">
                                                     <span class="text-xs font-semibold uppercase text-black">Action</span>
                                                 </th>
                                             </tr>
@@ -207,6 +216,14 @@
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->start_date }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->end_date }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="inline-flex items-center gap-1 bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
+                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                        Expired
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
                                                     <a href="{{ route('admin.position.edit', $position->id) }}"
                                                         class="text-white bg-yellow-500 hover:bg-yellow-600 rounded-lg px-3 py-1 text-sm font-medium inline-block">
                                                         Edit
@@ -219,13 +236,13 @@
                                             </tr>
                                             @empty
                                             <tr>
-                                                <td colspan="6" class="text-center py-8 text-gray-500">
+                                                <td colspan="7" class="text-center py-8 text-gray-500">
                                                     <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
                                                         </path>
                                                     </svg>
-                                                    <p class="mt-2">No positions found</p>
+                                                    <p class="mt-2">No expired positions found</p>
                                                 </td>
                                             </tr>
                                             @endforelse
