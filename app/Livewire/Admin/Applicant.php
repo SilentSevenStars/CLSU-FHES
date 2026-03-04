@@ -30,14 +30,12 @@ class Applicant extends Component
     public function updatingCollegeId()
     {
         $this->department_id = '';
-        $this->position = '';
         $this->resetPage();
         $this->updatedCollegeId();
     }
 
     public function updatingDepartmentId()
     {
-        $this->position = '';
         $this->resetPage();
         $this->updatedDepartmentId();
     }
@@ -77,7 +75,6 @@ class Applicant extends Component
     {
         $now = Carbon::now();
 
-        // Counts
         $pendingCount = JobApplication::whereMonth('created_at', $now->month)
             ->whereYear('created_at', $now->year)
             ->where('status', 'pending')
@@ -139,11 +136,7 @@ class Applicant extends Component
             'declinedCount' => $declinedCount,
             'colleges' => College::orderBy('name')->get(),
             'departments' => $this->departments,
-            'positions' => Position::when($this->college_id, function ($q) {
-                    $q->where('college_id', $this->college_id);
-                })->when($this->department_id, function ($q) {
-                    $q->where('department_id', $this->department_id);
-                })->orderBy('name')->get(),
+            'positions' => Position::orderBy('name')->get(),
         ]);
     }
 }
