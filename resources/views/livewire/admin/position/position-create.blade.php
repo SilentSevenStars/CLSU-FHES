@@ -3,8 +3,8 @@
         <div class="max-w-4xl mx-auto">
             <!-- Flash Messages -->
             @if (session()->has('success'))
-                <div x-data="{ show: true }" 
-                     x-show="show" 
+                <div x-data="{ show: true }"
+                     x-show="show"
                      x-init="setTimeout(() => show = false, 5000)"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform scale-90"
@@ -12,7 +12,7 @@
                      x-transition:leave="transition ease-in duration-300"
                      x-transition:leave-start="opacity-100 transform scale-100"
                      x-transition:leave-end="opacity-0 transform scale-90"
-                     class="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-lg animate-slideInDown" 
+                     class="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-lg shadow-lg animate-slideInDown"
                      role="alert">
                     <div class="flex items-center">
                         <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -32,8 +32,8 @@
             @endif
 
             @if (session()->has('error'))
-                <div x-data="{ show: true }" 
-                     x-show="show" 
+                <div x-data="{ show: true }"
+                     x-show="show"
                      x-init="setTimeout(() => show = false, 5000)"
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 transform scale-90"
@@ -41,7 +41,7 @@
                      x-transition:leave="transition ease-in duration-300"
                      x-transition:leave-start="opacity-100 transform scale-100"
                      x-transition:leave-end="opacity-0 transform scale-90"
-                     class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-lg animate-slideInDown" 
+                     class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-lg animate-slideInDown"
                      role="alert">
                     <div class="flex items-center">
                         <svg class="w-6 h-6 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -82,41 +82,38 @@
             <div class="bg-white rounded-xl shadow-xl p-8">
                 <form wire:submit.prevent="store">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                         <!-- Position Name -->
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Position Name <span class="text-red-500">*</span>
                             </label>
-                            <select wire:model="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                                <option value="">-- Select Position Rank --</option>
-
+                            <select wire:model.live="name"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">-- Select Position Name --</option>
                                 @foreach ($positionRanks as $rank)
-                                <option value="{{ $rank->name }}">
-                                    {{ $rank->name }}
-                                </option>
+                                    <option value="{{ $rank->name }}">{{ $rank->name }}</option>
                                 @endforeach
                             </select>
                             @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- College (using college_id) -->
+                        <!-- College -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 College <span class="text-red-500">*</span>
                             </label>
-                            {{-- wire:model.live triggers updatedCollegeId() --}}
                             <select wire:model.live="college_id"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                                 <option value="">Select College</option>
                                 @foreach($colleges as $college)
-                                {{-- Use college ID instead of name --}}
-                                <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                    <option value="{{ $college->id }}">{{ $college->name }}</option>
                                 @endforeach
                             </select>
                             @error('college_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- Department (using department_id, filtered by college) -->
+                        <!-- Department -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Department <span class="text-red-500">*</span>
@@ -125,32 +122,13 @@
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 @if(!$college_id) disabled @endif>
                                 <option value="">
-                                    @if(!$college_id)
-                                    Select a college first
-                                    @else
-                                    Select Department
-                                    @endif
+                                    @if(!$college_id) Select a college first @else Select Department @endif
                                 </option>
                                 @foreach($departments as $dept)
-                                {{-- Use department ID instead of name --}}
-                                <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                                    <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                                 @endforeach
                             </select>
                             @error('department_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                        </div>
-
-                        <!-- Status -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Status <span class="text-red-500">*</span>
-                            </label>
-                            <select wire:model="status"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                <option value="vacant">Vacant</option>
-                                <option value="promotion">Promotion</option>
-                                <option value="none">None</option>
-                            </select>
-                            @error('status') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
                         <!-- Specialization -->
@@ -168,54 +146,47 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Education <span class="text-red-500">*</span>
                             </label>
-
-                            <input
-                                type="text"
-                                wire:model.defer="education"
-                                list="educationOptions"
+                            <input type="text" wire:model.defer="education" list="educationOptions"
                                 placeholder="e.g., Master of Science in Information Technology"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg
-               focus:ring-2 focus:ring-green-500 focus:border-green-500">
-
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                             <datalist id="educationOptions">
                                 @foreach($educationOptions as $option)
-                                <option value="{{ $option }}">
-                                    @endforeach
+                                    <option value="{{ $option }}">
+                                @endforeach
                             </datalist>
-
-                            @error('education')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                            @enderror
+                            @error('education') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- Eligibility -->
-                        <div>
+                        <!-- Eligibility (auto-filled, read-only) -->
+                        <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Eligibility <span class="text-red-500">*</span>
+                                Eligibility
+                                <span class="text-xs text-gray-400 font-normal ml-1">(auto-filled based on position)</span>
                             </label>
-                            <input type="text" wire:model="eligibility"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                placeholder="e.g., Licensed Professional">
+                            <input type="text" wire:model="eligibility" readonly
+                                class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed">
                             @error('eligibility') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- Experience -->
+                        <!-- Experience (auto-filled, read-only) -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Experience (years) <span class="text-red-500">*</span>
+                                Experience (years)
+                                <span class="text-xs text-gray-400 font-normal ml-1">(auto-filled)</span>
                             </label>
-                            <input type="number" wire:model="experience" min="0"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <input type="number" wire:model="experience" readonly min="0"
+                                class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed">
                             @error('experience') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- Training -->
+                        <!-- Training (auto-filled, read-only) -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Training (hours) <span class="text-red-500">*</span>
+                                Training (hours)
+                                <span class="text-xs text-gray-400 font-normal ml-1">(auto-filled)</span>
                             </label>
-                            <input type="number" wire:model="training" min="0"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <input type="number" wire:model="training" readonly min="0"
+                                class="w-full px-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed">
                             @error('training') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
@@ -232,12 +203,13 @@
                         <!-- End Date -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                End Date
+                                End Date <span class="text-red-500">*</span>
                             </label>
                             <input type="date" wire:model="end_date"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
                             @error('end_date') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
+
                     </div>
 
                     <!-- Action Buttons -->

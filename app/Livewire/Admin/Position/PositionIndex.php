@@ -16,9 +16,8 @@ class PositionIndex extends Component
     use WithPagination;
 
     public string $search = '';
-    public string $filter = 'all';
-    public string $filterCollege = '';      
-    public string $filterDepartment = '';   
+    public string $filterCollege = '';
+    public string $filterDepartment = '';
     public int $perPage = 5;
 
     protected $paginationTheme = 'tailwind';
@@ -30,11 +29,6 @@ class PositionIndex extends Component
     }
 
     public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingFilter()
     {
         $this->resetPage();
     }
@@ -66,7 +60,7 @@ class PositionIndex extends Component
 
             $this->dispatch('refreshPositions');
             session()->flash('success', 'Position has been deleted successfully');
-            
+
         } catch (Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Failed to delete position');
@@ -90,34 +84,24 @@ class PositionIndex extends Component
 
     public function getFilteredPositionsProperty()
     {
-        return Position::with(['college', 'department']) 
+        return Position::with(['college', 'department'])
             ->when(
                 $this->search,
                 fn($q) =>
                 $q->where('name', 'like', "%{$this->search}%")
-                    ->orWhereHas('department', function($query) {
+                    ->orWhereHas('department', function ($query) {
                         $query->where('name', 'like', "%{$this->search}%");
                     })
             )
-            ->when($this->filter !== 'all', function ($q) {
-                if ($this->filter === 'vacant') {
-                    $q->where('status', 'vacant');
-                } elseif ($this->filter === 'promotion') {
-                    $q->where('status', 'promotion');
-                } elseif ($this->filter === 'none') {
-                    $q->where('status', 'none');
-                }
-            })
             ->when(
                 $this->filterCollege,
-                fn($q) => $q->where('college_id', $this->filterCollege)  
+                fn($q) => $q->where('college_id', $this->filterCollege)
             )
             ->when(
                 $this->filterDepartment,
-                fn($q) => $q->where('department_id', $this->filterDepartment)  
+                fn($q) => $q->where('department_id', $this->filterDepartment)
             )
-            // Ensure end_date is not in the past
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->whereNull('end_date')
                       ->orWhere('end_date', '>=', now()->toDateString());
             })
@@ -125,33 +109,15 @@ class PositionIndex extends Component
             ->paginate($this->perPage);
     }
 
-    public function getVacantCountProperty()
-    {
-        return Position::where('status', 'vacant')
-            ->whereMonth('start_date', now()->month)
-            ->whereYear('start_date', now()->year)
-            ->count();
-    }
-
-    public function getPromotionCountProperty()
-    {
-        return Position::where('status', 'promotion')
-            ->whereMonth('start_date', now()->month)
-            ->whereYear('start_date', now()->year)
-            ->count();
-    }
-
     public function render()
     {
         $colleges = College::orderBy('name')->get();
         return view('livewire.admin.position.position-index', [
             'positions' => $this->filteredPositions,
-            'vacant' => $this->vacantCount,
-            'promotion' => $this->promotionCount,
-            'colleges' => $colleges,
+            'colleges'  => $colleges,
             'filterDepartments' => $this->filterCollege
                 ? Department::where('college_id', $this->filterCollege)->orderBy('name')->get()
-                : []
+                : [],
         ]);
     }
 }
