@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             // $table->string('college');
             // $table->string('department')->nullable();
-            $table->foreignId('college_id')->constrained()->onDelete('cascade');
-            $table->foreignId('department_id')->constrained()->onDelete('cascade');
+            $table->foreignId('college_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('department_id')->nullable()->constrained()->onDelete('cascade');
             // $table->enum('status', ['vacant', 'promotion', 'none'])->default('none');
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();

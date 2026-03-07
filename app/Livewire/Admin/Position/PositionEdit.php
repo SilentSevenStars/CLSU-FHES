@@ -15,8 +15,8 @@ class PositionEdit extends Component
 {
     public $position_id;
     public string $name = "";
-    public $college_id = "";
-    public $department_id = "";
+    public $college_id = null;
+    public $department_id = null;
     public $start_date;
     public $end_date;
     public string $specialization = "";
@@ -68,19 +68,14 @@ class PositionEdit extends Component
         $this->experience     = $position->experience;
         $this->training       = $position->training;
         $this->eligibility    = $position->eligibility;
-        $this->college_id     = (string) $position->college_id;
+        $this->college_id     = $position->college_id ? (string) $position->college_id : null;
+        $this->department_id  = $position->department_id ? (string) $position->department_id : null;
 
         if ($this->college_id) {
-            $this->departments = Department::where('college_id', $this->college_id)
-                ->orderBy('name')
-                ->get();
+            $this->departments = Department::where('college_id', $this->college_id)->orderBy('name')->get();
         }
 
-        $this->educationOptions = EducationalBackground::orderBy('name')
-            ->pluck('name')
-            ->toArray();
-
-        $this->department_id = (string) $position->department_id;
+        $this->educationOptions = EducationalBackground::orderBy('name')->pluck('name')->toArray();
     }
 
     public function updatedName($value)
@@ -99,13 +94,11 @@ class PositionEdit extends Component
 
     public function updatedCollegeId($value)
     {
+        $this->department_id = null;
         if ($value) {
-            $this->departments = Department::where('college_id', $value)
-                ->orderBy('name')
-                ->get();
+            $this->departments = Department::where('college_id', $value)->orderBy('name')->get();
         } else {
             $this->departments = [];
-            $this->department_id = "";
         }
     }
 
@@ -113,8 +106,8 @@ class PositionEdit extends Component
     {
         $this->validate([
             'name'           => 'required|string|max:255',
-            'college_id'     => 'required|exists:colleges,id',
-            'department_id'  => 'required|exists:departments,id',
+            'college_id'     => 'nullable|exists:colleges,id',
+            'department_id'  => 'nullable|exists:departments,id',
             'start_date'     => 'required|date',
             'end_date'       => 'required|date|after_or_equal:start_date',
             'specialization' => 'required|string|max:255',
@@ -128,8 +121,8 @@ class PositionEdit extends Component
         try {
             $position = Position::findOrFail($this->position_id);
             $position->name           = $this->name;
-            $position->college_id     = $this->college_id;
-            $position->department_id  = $this->department_id;
+            $position->college_id     = $this->college_id ?: null;
+            $position->department_id  = $this->department_id ?: null;
             $position->start_date     = $this->start_date;
             $position->end_date       = $this->end_date;
             $position->specialization = $this->specialization;
@@ -140,7 +133,6 @@ class PositionEdit extends Component
             $position->save();
 
             DB::commit();
-
             session()->flash('success', 'Position has been updated successfully');
             return redirect()->route('admin.position');
         } catch (Exception $e) {

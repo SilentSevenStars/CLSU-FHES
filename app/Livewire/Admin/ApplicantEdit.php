@@ -18,6 +18,7 @@ class ApplicantEdit extends Component
     public $status;
     public $interview_date;
     public $interview_room;
+    public $admin_message;
     public $originalStatus;
     public $originalInterviewDate;
     public $originalInterviewRoom;
@@ -36,15 +37,15 @@ class ApplicantEdit extends Component
         $this->status = $this->application->status;
 
         if ($this->status === 'approve' && $this->application->evaluation) {
-            $this->interview_date = $this->application->evaluation->interview_date 
-                ? $this->application->evaluation->interview_date->format('Y-m-d') 
+            $this->interview_date = $this->application->evaluation->interview_date
+                ? $this->application->evaluation->interview_date->format('Y-m-d')
                 : null;
             $this->interview_room = $this->application->evaluation->interview_room ?? null;
         } else {
             $this->interview_date = null;
             $this->interview_room = null;
         }
-        
+
         $this->originalInterviewDate = $this->interview_date;
         $this->originalInterviewRoom = $this->interview_room;
 
@@ -64,7 +65,7 @@ class ApplicantEdit extends Component
     {
         $encryptionService = new FileEncryptionService();
 
-        if (!$this->application->requirements_file || 
+        if (!$this->application->requirements_file ||
             !$encryptionService->fileExists($this->application->requirements_file)) {
             $this->dispatch('show-error', message: 'File not found.');
             return null;
@@ -95,15 +96,16 @@ class ApplicantEdit extends Component
             'status' => 'required|in:approve,decline',
             'interview_date' => $this->status === 'approve' ? 'required|date' : 'nullable',
             'interview_room' => $this->status === 'approve' ? 'required|string|max:255' : 'nullable',
+            'admin_message' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
 
         try {
             $statusChanged = $this->originalStatus !== $this->status;
-            $interviewDateChanged = ($this->status === 'approve') && 
+            $interviewDateChanged = ($this->status === 'approve') &&
                                    ($this->originalInterviewDate !== $this->interview_date);
-            $interviewRoomChanged = ($this->status === 'approve') && 
+            $interviewRoomChanged = ($this->status === 'approve') &&
                                    (trim($this->originalInterviewRoom ?? '') !== trim($this->interview_room ?? ''));
 
             Log::info('Change detection', [
@@ -131,10 +133,12 @@ class ApplicantEdit extends Component
                 if ($statusChanged && $this->originalStatus === 'decline') {
                     Log::info('Sending approval email due to status change');
                     $this->sendApprovalEmail();
-                }
-                elseif (!$statusChanged && ($interviewDateChanged || $interviewRoomChanged)) {
+                } elseif (!$statusChanged && ($interviewDateChanged || $interviewRoomChanged)) {
                     Log::info('Sending interview update email');
                     $this->sendInterviewUpdateEmail($interviewDateChanged, $interviewRoomChanged);
+                } elseif (!$statusChanged && !$interviewDateChanged && !$interviewRoomChanged && !empty(strip_tags($this->admin_message ?? ''))) {
+                    Log::info('Sending interview update email due to admin message only');
+                    $this->sendInterviewUpdateEmail(false, false);
                 }
             }
 
@@ -142,6 +146,9 @@ class ApplicantEdit extends Component
                 if ($statusChanged && $this->originalStatus === 'approve') {
                     Log::info('Deleting evaluation and sending decline email');
                     $this->application->evaluation()?->delete();
+                    $this->sendDeclineEmail();
+                } elseif (!$statusChanged && !empty(strip_tags($this->admin_message ?? ''))) {
+                    Log::info('Sending decline update email due to admin message only');
                     $this->sendDeclineEmail();
                 }
             }
@@ -155,7 +162,7 @@ class ApplicantEdit extends Component
 
             if ($statusChanged) {
                 session()->flash('success', 'Application status updated successfully. Email notification has been sent.');
-            } elseif ($interviewDateChanged || $interviewRoomChanged) {
+            } elseif ($interviewDateChanged || $interviewRoomChanged || !empty(strip_tags($this->admin_message ?? ''))) {
                 session()->flash('success', 'Interview details updated successfully. Email notification has been sent.');
             } else {
                 session()->flash('success', 'Application details updated successfully.');
@@ -174,6 +181,15 @@ class ApplicantEdit extends Component
         }
     }
 
+    protected function buildAdminMessageBlock(): string
+    {
+        if (empty(strip_tags($this->admin_message ?? ''))) {
+            return '';
+        }
+
+        return "<div style='margin: 16px 0;'>" . $this->admin_message . "</div>";
+    }
+
     protected function sendInterviewUpdateEmail($dateChanged, $roomChanged)
     {
         try {
@@ -190,8 +206,10 @@ class ApplicantEdit extends Component
                 $changesText = 'interview date and location';
             } elseif ($dateChanged) {
                 $changesText = 'interview date';
-            } else {
+            } elseif ($roomChanged) {
                 $changesText = 'interview location';
+            } else {
+                $changesText = 'interview details';
             }
 
             Log::info('Preparing interview update email', [
@@ -199,12 +217,14 @@ class ApplicantEdit extends Component
                 'changes' => $changesText
             ]);
 
+            $adminMessageBlock = $this->buildAdminMessageBlock();
+
             $messageContent = "
                 <div style='font-family: Arial, sans-serif;'>
                     <h2 style='color: #0D7A2F;'>Interview Details Updated</h2>
                     <p>Dear {$applicant->first_name} {$applicant->last_name},</p>
                     <p>We would like to inform you that your <strong>{$changesText}</strong> for the position of <strong>{$position->name}</strong> has been updated.</p>
-                    
+
                     <div style='background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;'>
                         <h3 style='color: #0D7A2F; margin-top: 0;'>Updated Interview Details:</h3>
                         <table style='width: 100%;'>
@@ -218,24 +238,9 @@ class ApplicantEdit extends Component
                             </tr>
                         </table>
                     </div>
-                    
-                    <p><strong>Important Reminders:</strong></p>
-                    <ul style='line-height: 1.8;'>
-                        <li>Please arrive <strong>15 minutes before</strong> your scheduled interview time</li>
-                        <li>Dress professionally</li>
-                        <li>Bring a valid government-issued ID</li>
-                    </ul>
-                    
-                    <p><strong>Required Documents to Bring:</strong></p>
-                    <ul style='line-height: 1.8;'>
-                        <li>Updated Resume/CV</li>
-                        <li>Academic credentials (Transcripts, Diplomas)</li>
-                        <li>Certificates of relevant training and seminars</li>
-                        <li>Any other supporting documents</li>
-                    </ul>
-                    
-                    <p>We apologize for any inconvenience this change may cause. We look forward to meeting you at the updated schedule.</p>
-                    
+
+                    {$adminMessageBlock}
+
                     <p style='margin-top: 30px;'>Best regards,<br>
                     <strong>CLSU HR Department</strong></p>
                 </div>
@@ -284,12 +289,14 @@ class ApplicantEdit extends Component
                 'interview_room' => $this->interview_room
             ]);
 
+            $adminMessageBlock = $this->buildAdminMessageBlock();
+
             $messageContent = "
                 <div style='font-family: Arial, sans-serif;'>
                     <h2 style='color: #0D7A2F;'>Application Status Updated to Approved</h2>
                     <p>Dear {$applicant->first_name} {$applicant->last_name},</p>
                     <p>We are pleased to inform you that your application status for the position of <strong>{$position->name}</strong> has been updated to <strong style='color: #0D7A2F;'>APPROVED</strong>.</p>
-                    
+
                     <div style='background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;'>
                         <h3 style='color: #0D7A2F; margin-top: 0;'>Interview Details:</h3>
                         <table style='width: 100%;'>
@@ -303,24 +310,9 @@ class ApplicantEdit extends Component
                             </tr>
                         </table>
                     </div>
-                    
-                    <p><strong>Important Reminders:</strong></p>
-                    <ul style='line-height: 1.8;'>
-                        <li>Please arrive <strong>15 minutes before</strong> your scheduled interview time</li>
-                        <li>Dress professionally</li>
-                        <li>Bring a valid government-issued ID</li>
-                    </ul>
-                    
-                    <p><strong>Required Documents to Bring:</strong></p>
-                    <ul style='line-height: 1.8;'>
-                        <li>Updated Resume/CV</li>
-                        <li>Academic credentials (Transcripts, Diplomas)</li>
-                        <li>Certificates of relevant training and seminars</li>
-                        <li>Any other supporting documents</li>
-                    </ul>
-                    
-                    <p>We look forward to meeting you. Good luck with your interview!</p>
-                    
+
+                    {$adminMessageBlock}
+
                     <p style='margin-top: 30px;'>Best regards,<br>
                     <strong>CLSU HR Department</strong></p>
                 </div>
@@ -363,12 +355,17 @@ class ApplicantEdit extends Component
                 return;
             }
 
+            $adminMessageBlock = $this->buildAdminMessageBlock();
+
             $messageContent = "
                 <div style='font-family: Arial, sans-serif;'>
                     <h2>Application Status Updated to Declined</h2>
                     <p>Dear {$applicant->first_name} {$applicant->last_name},</p>
                     <p>We regret to inform you that your application status for the position of <strong>{$position->name}</strong> at Central Luzon State University has been updated to <strong>DECLINED</strong>.</p>
                     <p>This decision was made after careful consideration of all candidates. We appreciate the time and effort you invested in your application.</p>
+
+                    {$adminMessageBlock}
+
                     <p>We encourage you to apply for future positions that match your qualifications and experience.</p>
                     <p style='margin-top: 30px;'>Best regards,<br>
                     <strong>CLSU HR Department</strong></p>

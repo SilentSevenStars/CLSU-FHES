@@ -60,7 +60,6 @@ class PositionIndex extends Component
 
             $this->dispatch('refreshPositions');
             session()->flash('success', 'Position has been deleted successfully');
-
         } catch (Exception $e) {
             DB::rollBack();
             session()->flash('error', 'Failed to delete position');
@@ -94,16 +93,24 @@ class PositionIndex extends Component
                     })
             )
             ->when(
-                $this->filterCollege,
+                $this->filterCollege === 'various',
+                fn($q) => $q->whereNull('college_id')
+            )
+            ->when(
+                $this->filterCollege && $this->filterCollege !== 'various',
                 fn($q) => $q->where('college_id', $this->filterCollege)
             )
             ->when(
-                $this->filterDepartment,
+                $this->filterDepartment === 'various',
+                fn($q) => $q->whereNull('department_id')
+            )
+            ->when(
+                $this->filterDepartment && $this->filterDepartment !== 'various',
                 fn($q) => $q->where('department_id', $this->filterDepartment)
             )
             ->where(function ($query) {
                 $query->whereNull('end_date')
-                      ->orWhere('end_date', '>=', now()->toDateString());
+                    ->orWhere('end_date', '>=', now()->toDateString());
             })
             ->orderBy('created_at', 'desc')
             ->paginate($this->perPage);

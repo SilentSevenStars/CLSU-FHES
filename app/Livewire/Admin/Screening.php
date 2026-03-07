@@ -6,7 +6,6 @@ use Livewire\Component;
 use App\Models\Evaluation;
 use App\Models\Representative;
 use App\Models\Position;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class Screening extends Component
 {
@@ -45,7 +44,6 @@ class Screening extends Component
      */
     public function loadPositions()
     {
-        // Get positions that have approved applications with evaluations
         $existingPositions = Position::whereIn('name', $this->allowedPositions)
             ->whereHas('jobApplications', function ($q) {
                 $q->where('status', 'approve')
@@ -56,7 +54,6 @@ class Screening extends Component
             ->unique()
             ->toArray();
 
-        // Sort by the predefined order
         $this->positions = collect($this->allowedPositions)
             ->filter(function ($positionName) use ($existingPositions) {
                 return in_array($positionName, $existingPositions);
@@ -78,7 +75,6 @@ class Screening extends Component
             return;
         }
 
-        // Get all interview dates for this position name across all colleges/departments
         $this->interviewDates = Evaluation::whereHas('jobApplication', function ($q) {
             $q->where('status', 'approve')
                 ->whereHas('position', function ($posQuery) {
@@ -114,7 +110,6 @@ class Screening extends Component
             return;
         }
 
-        // Load evaluations for ALL positions with this name (across all colleges/departments)
         $evaluations = Evaluation::with([
             'jobApplication.applicant',
             'jobApplication.position',
@@ -159,7 +154,6 @@ class Screening extends Component
 
             $assignments = $evaluation->panelAssignments;
 
-            // Read scores from related tables
             $avgPerformance = $assignments->pluck('performance.total_score')->filter()->avg() ?? 0;
             $avgExperience  = $assignments->pluck('experience.total_score')->filter()->avg() ?? 0;
             $avgInterview   = $assignments->pluck('interview.total_score')->filter()->avg() ?? 0;
@@ -191,7 +185,7 @@ class Screening extends Component
             Evaluation::where('id', $row['evaluation_id'])
                 ->update([
                     'total_score' => $row['total'],
-                    'rank' => $rank
+                    'rank'        => $rank,
                 ]);
 
             $row['rank'] = $rank;
@@ -199,126 +193,100 @@ class Screening extends Component
         });
     }
 
-    public function export()
+    /**
+     * Print — renders the screening report blade to HTML and opens in a new tab
+     */
+    public function print()
     {
         if (empty($this->screeningData) || !$this->selectedPosition || !$this->selectedDate) {
-            session()->flash('error', 'No data to export. Please select both position and date.');
+            session()->flash('error', 'No data to print. Please select both position and date.');
             return;
         }
 
-        // Get position name
-        $positionName = $this->selectedPosition;
-        $exportCollection = collect($this->screeningData)->sortBy('rank');
+        $positionName      = $this->selectedPosition;
+        $exportCollection  = collect($this->screeningData)->sortBy('rank');
 
-        // LIMIT ONLY IF vacancies IS SET
+        // Limit to vacancies if set
         if ($this->vacancies && $this->vacancies > 0) {
             $exportCollection = $exportCollection->take((int) $this->vacancies);
         }
 
-        $exportData = $exportCollection->values()->toArray();
+        $exportData    = $exportCollection->values()->toArray();
+        $panelMembers  = $this->getPanelMembersFromRepresentatives();
+        $rowsPerPage   = 10;
 
-        // Get panel members from Representative model
-        $panelMembers = $this->getPanelMembersFromRepresentatives();
-
-        // Set rows per page to 10 (maximum data per page)
-        $rowsPerPage = 10;
-
-        $pdf = Pdf::loadView('pdf.screening-report', [
+        $html = view('pdf.screening-report', [
             'screeningData' => $exportData,
-            'rowsPerPage' => $rowsPerPage,
-            'positionName' => $positionName,
-            'college' => 'All Colleges',
-            'department' => 'All Departments',
+            'rowsPerPage'   => $rowsPerPage,
+            'positionName'  => $positionName,
+            'college'       => 'All Colleges',
+            'department'    => 'All Departments',
             'interviewDate' => date('M d, Y', strtotime($this->selectedDate)),
-            'panelMembers' => $panelMembers,
+            'panelMembers'  => $panelMembers,
             'generatedDate' => now()->format('F d, Y'),
-            'vacancies' => $this->vacancies,
-        ]);
+            'vacancies'     => $this->vacancies,
+        ])->render();
 
-        // Set to legal size (long bond paper) in landscape orientation
-        $pdf->setPaper('legal', 'landscape');
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, 'screening-report-' . now()->format('Y-m-d') . '.pdf');
+        $this->dispatch('openPrintTab', html: $html);
     }
 
     private function getPanelMembersFromRepresentatives()
     {
-        // Fetch all representatives
         $representatives = Representative::all();
 
-        // Initialize panel members array
         $panelMembers = [
-            'supervising_admin' => 'TBA',
-            'fai_president' => 'TBA',
-            'glutches_preside' => 'TBA',
-            'ranking_faculty' => 'TBA',
-            'dean_cass' => 'TBA',
-            'dean_cen' => 'TBA',
-            'dean_cos' => 'TBA',
-            'dean_ced' => 'TBA',
-            'dean_cf' => 'TBA',
-            'dean_cba' => 'TBA',
-            'senior_faculty' => 'TBA',
-            'head_dabe' => 'TBA',
-            'head_business' => 'TBA',
-            'head_ispels' => 'TBA',
-            'chairman_fsb' => 'TBA',
+            'supervising_admin'  => 'TBA',
+            'fai_president'      => 'TBA',
+            'glutches_preside'   => 'TBA',
+            'ranking_faculty'    => 'TBA',
+            'dean_cass'          => 'TBA',
+            'dean_cen'           => 'TBA',
+            'dean_cos'           => 'TBA',
+            'dean_ced'           => 'TBA',
+            'dean_cf'            => 'TBA',
+            'dean_cba'           => 'TBA',
+            'senior_faculty'     => 'TBA',
+            'head_dabe'          => 'TBA',
+            'head_business'      => 'TBA',
+            'head_ispels'        => 'TBA',
+            'chairman_fsb'       => 'TBA',
             'university_president' => 'TBA',
         ];
 
-        // Map representatives to their positions
         foreach ($representatives as $rep) {
             switch ($rep->position) {
                 case 'Member, Supervising Admin. Officer, HRMO':
-                    $panelMembers['supervising_admin'] = $rep->name;
-                    break;
+                    $panelMembers['supervising_admin'] = $rep->name; break;
                 case 'Member, FAI President/Representative':
-                    $panelMembers['fai_president'] = $rep->name;
-                    break;
+                    $panelMembers['fai_president'] = $rep->name; break;
                 case 'Member, GLUTCHES President':
-                    $panelMembers['glutches_preside'] = $rep->name;
-                    break;
+                    $panelMembers['glutches_preside'] = $rep->name; break;
                 case 'Member, Ranking Faculty':
-                    $panelMembers['ranking_faculty'] = $rep->name;
-                    break;
+                    $panelMembers['ranking_faculty'] = $rep->name; break;
                 case 'Dean, CASS':
-                    $panelMembers['dean_cass'] = $rep->name;
-                    break;
+                    $panelMembers['dean_cass'] = $rep->name; break;
                 case 'Dean, CEN Representative':
-                    $panelMembers['dean_cen'] = $rep->name;
-                    break;
+                    $panelMembers['dean_cen'] = $rep->name; break;
                 case 'Dean, COS':
-                    $panelMembers['dean_cos'] = $rep->name;
-                    break;
+                    $panelMembers['dean_cos'] = $rep->name; break;
                 case 'Dean, CED':
-                    $panelMembers['dean_ced'] = $rep->name;
-                    break;
+                    $panelMembers['dean_ced'] = $rep->name; break;
                 case 'Dean, CF':
-                    $panelMembers['dean_cf'] = $rep->name;
-                    break;
+                    $panelMembers['dean_cf'] = $rep->name; break;
                 case 'Dean, CBA':
-                    $panelMembers['dean_cba'] = $rep->name;
-                    break;
+                    $panelMembers['dean_cba'] = $rep->name; break;
                 case 'Senior Faculty':
-                    $panelMembers['senior_faculty'] = $rep->name;
-                    break;
+                    $panelMembers['senior_faculty'] = $rep->name; break;
                 case 'Head, Dept DABE, Representative':
-                    $panelMembers['head_dabe'] = $rep->name;
-                    break;
+                    $panelMembers['head_dabe'] = $rep->name; break;
                 case 'Head, Dept Business':
-                    $panelMembers['head_business'] = $rep->name;
-                    break;
+                    $panelMembers['head_business'] = $rep->name; break;
                 case 'Head, ISPELS':
-                    $panelMembers['head_ispels'] = $rep->name;
-                    break;
+                    $panelMembers['head_ispels'] = $rep->name; break;
                 case 'Chairman, Faculty Selection Board & VPAA':
-                    $panelMembers['chairman_fsb'] = $rep->name;
-                    break;
+                    $panelMembers['chairman_fsb'] = $rep->name; break;
                 case 'University President':
-                    $panelMembers['university_president'] = $rep->name;
-                    break;
+                    $panelMembers['university_president'] = $rep->name; break;
             }
         }
 

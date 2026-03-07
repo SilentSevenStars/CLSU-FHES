@@ -27,26 +27,107 @@ class ScheduledApplicant extends Component
         $this->resetPage();
     }
 
+    public function print()
+    {
+        if (empty($this->selectedPositionName)) {
+            session()->flash('error', 'Please select a position first.');
+            return;
+        }
+
+        $positionIds = Position::where('name', $this->selectedPositionName)->pluck('id');
+
+        $query = JobApplication::with(['applicant.user', 'position', 'evaluation'])
+            ->whereIn('position_id', $positionIds)
+            ->whereHas('evaluation');
+
+        if ($this->selectedDate) {
+            $query->whereHas('evaluation', function ($q) {
+                $q->where('interview_date', $this->selectedDate);
+            });
+        }
+
+        $applicants = $query->get()->map(function ($app) {
+            $a = $app->applicant;  // Applicant model
+            $p = $app->position;   // Position model
+            $u = $a->user;         // User model
+
+            // Build full address from applicant
+            $addressParts = array_filter([
+                $a->street   ?? null,
+                $a->barangay ?? null,
+                $a->city     ?? null,
+                $a->province ?? null,
+            ]);
+            $address = implode(', ', $addressParts) ?: 'N/A';
+
+            // Build full name with middle initial
+            $middleInitial = $a->middle_name
+                ? strtoupper(substr($a->middle_name, 0, 1)) . '.'
+                : '';
+            $fullName = trim(
+                $a->first_name . ' ' .
+                $middleInitial . ' ' .
+                $a->last_name .
+                ($a->suffix ? ', ' . $a->suffix : '')
+            );
+
+            // experience & training from JobApplication
+            // if 0 or null => "None Required", otherwise show value with unit
+            $experience = (!empty($app->experience) && $app->experience != 0)
+                ? $app->experience . ' year(s)'
+                : 'None Required';
+
+            $training = (!empty($app->training) && $app->training != 0)
+                ? $app->training . ' hour(s)'
+                : 'None Required';
+
+            return [
+                'name'              => $fullName,
+                'position_name'     => $p->name ?? 'N/A',
+                'present_pos'       => $app->present_position ?? 'N/A',
+                'education'         => $app->education ?? 'N/A',
+                'experience'        => $experience,
+                'training'          => $training,
+                'eligibility'       => $app->eligibility ?? 'N/A',
+                'other'             => $app->other_involvement ?? 'N/A',
+                'requirements_file' => $app->requirements_file ?? 'N/A',
+                'cp_number'         => $a->phone_number ?? 'N/A',
+                'address'           => $address,
+                'email'             => $u->email ?? 'N/A',
+            ];
+        })->values()->toArray();
+
+        $hiringDate    = $this->selectedDate
+            ? \Carbon\Carbon::parse($this->selectedDate)->format('F j, Y')
+            : now()->format('F j, Y');
+        $generatedDate = now()->format('F d, Y h:i A');
+        $positionName  = $this->selectedPositionName;
+
+        $html = view('print.faculty-hiring-print', compact(
+            'applicants',
+            'positionName',
+            'hiringDate',
+            'generatedDate'
+        ))->render();
+
+        $this->dispatch('openPrintTab', html: $html);
+    }
+
     public function render()
     {
-        // Unique position names from vacant/promotion positions
-        $positionNames = Position::whereIn('status', ['vacant', 'promotion'])
-            ->orderBy('name')
+        // Unique position names
+        $positionNames = Position::orderBy('name')
             ->pluck('name')
             ->unique()
             ->values();
 
-        // Unique interview dates from evaluations, filtered by selected position name
+        // Unique interview dates filtered by selected position
         $availableDates = collect();
         if ($this->selectedPositionName) {
-            $positionIds = Position::whereIn('status', ['vacant', 'promotion'])
-                ->where('name', $this->selectedPositionName)
-                ->pluck('id');
+            $positionIds = Position::where('name', $this->selectedPositionName)->pluck('id');
+            $jobAppIds   = JobApplication::whereIn('position_id', $positionIds)->pluck('id');
 
-            $jobApplicationIds = JobApplication::whereIn('position_id', $positionIds)
-                ->pluck('id');
-
-            $availableDates = Evaluation::whereIn('job_application_id', $jobApplicationIds)
+            $availableDates = Evaluation::whereIn('job_application_id', $jobAppIds)
                 ->orderBy('interview_date')
                 ->pluck('interview_date')
                 ->unique()
@@ -68,16 +149,12 @@ class ScheduledApplicant extends Component
             ]);
         }
 
-        // Get all position IDs matching the selected name
-        $positionIds = Position::whereIn('status', ['vacant', 'promotion'])
-            ->where('name', $this->selectedPositionName)
-            ->pluck('id');
+        $positionIds = Position::where('name', $this->selectedPositionName)->pluck('id');
 
         $baseQuery = JobApplication::with(['applicant.user', 'position', 'evaluation'])
             ->whereIn('position_id', $positionIds)
-            ->whereHas('evaluation'); // only show applicants that have an evaluation (scheduled)
+            ->whereHas('evaluation');
 
-        // Further filter by interview date if selected
         if ($this->selectedDate) {
             $baseQuery->whereHas('evaluation', function ($q) {
                 $q->where('interview_date', $this->selectedDate);

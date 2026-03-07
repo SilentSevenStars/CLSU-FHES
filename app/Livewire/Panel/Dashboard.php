@@ -83,17 +83,34 @@ class Dashboard extends Component
         if ($isUniversityLevel) {
             // Chair FSB / FAI President / CLUTCHES President / Director HR:
             // No college or department filter — they see ALL applications.
+
         } elseif ($panelPos === 'dean') {
-            // Dean: filter by college only
-            $query->whereHas('position', function ($q) use ($panel) {
-                $q->where('college_id', $panel->college_id);
-            });
+            if (is_null($panel->college_id)) {
+                // Dean with no college assigned → sees ALL applications
+            } else {
+                // Dean with a college → filter by college only
+                $query->whereHas('position', function ($q) use ($panel) {
+                    $q->where('college_id', $panel->college_id);
+                });
+            }
+
         } elseif (in_array($panelPos, ['head', 'senior', 'señior'])) {
-            // Head / Senior: filter by both college AND department
-            $query->whereHas('position', function ($q) use ($panel) {
-                $q->where('college_id', $panel->college_id)
-                  ->where('department_id', $panel->department_id);
-            });
+            if (is_null($panel->college_id)) {
+                // No college assigned → sees ALL applications (across all colleges/departments)
+
+            } elseif (is_null($panel->department_id)) {
+                // College assigned but no department → sees all applications within that college
+                $query->whereHas('position', function ($q) use ($panel) {
+                    $q->where('college_id', $panel->college_id);
+                });
+
+            } else {
+                // Both college and department assigned → filter by both
+                $query->whereHas('position', function ($q) use ($panel) {
+                    $q->where('college_id', $panel->college_id)
+                      ->where('department_id', $panel->department_id);
+                });
+            }
         }
 
         // Search filter

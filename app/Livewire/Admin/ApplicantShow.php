@@ -18,6 +18,7 @@ class ApplicantShow extends Component
     public $status;
     public $interview_date;
     public $interview_room;
+    public $admin_message;
 
     public function mount($job_application_id)
     {
@@ -61,21 +62,15 @@ class ApplicantShow extends Component
     {
         $encryptionService = new FileEncryptionService();
 
-        // Check if file exists
-        if (!$this->application->requirements_file || 
+        if (!$this->application->requirements_file ||
             !$encryptionService->fileExists($this->application->requirements_file)) {
             $this->dispatch('show-error', message: 'File not found.');
             return null;
         }
 
         try {
-            // Decrypt file
             $decryptedContents = $encryptionService->decryptFile($this->application->requirements_file);
-            
-            // Convert to base64
             $base64 = base64_encode($decryptedContents);
-            
-            // Return data URL
             return 'data:application/pdf;base64,' . $base64;
         } catch (\Exception $e) {
             $this->dispatch('show-error', message: 'Error loading file: ' . $e->getMessage());
@@ -92,17 +87,11 @@ class ApplicantShow extends Component
             'application_id' => $this->application->id
         ]);
 
-        // Backend protection
-        if ($this->isWithinApplicationPeriod) {
-            Log::warning('Attempted review during application period');
-            session()->flash('error', 'You cannot review the application while the application period is still ongoing.');
-            return;
-        }
-
         $this->validate([
             'status' => 'required|in:approve,decline',
             'interview_date' => $this->status === 'approve' ? 'required|date|after_or_equal:today' : 'nullable',
             'interview_room' => $this->status === 'approve' ? 'required|string|max:255' : 'nullable',
+            'admin_message' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
@@ -176,12 +165,17 @@ class ApplicantShow extends Component
                 'interview_room' => $this->interview_room
             ]);
 
+            $adminMessageBlock = '';
+            if (!empty(strip_tags($this->admin_message ?? ''))) {
+                $adminMessageBlock = "<div style='margin: 16px 0;'>" . $this->admin_message . "</div>";
+            }
+
             $messageContent = "
                 <div style='font-family: Arial, sans-serif;'>
                     <h2 style='color: #0D7A2F;'>Congratulations!</h2>
                     <p>Dear {$applicant->first_name} {$applicant->last_name},</p>
                     <p>Your application for the position of <strong>{$position->name}</strong> has been <strong style='color: #0D7A2F;'>APPROVED</strong>.</p>
-                    
+
                     <div style='background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;'>
                         <h3 style='color: #0D7A2F; margin-top: 0;'>Interview Details:</h3>
                         <table style='width: 100%;'>
@@ -195,24 +189,9 @@ class ApplicantShow extends Component
                             </tr>
                         </table>
                     </div>
-                    
-                    <p><strong>Important Reminders:</strong></p>
-                    <ul style='line-height: 1.8;'>
-                        <li>Please arrive <strong>15 minutes before</strong> your scheduled interview time</li>
-                        <li>Dress professionally</li>
-                        <li>Bring a valid government-issued ID</li>
-                    </ul>
-                    
-                    <p><strong>Required Documents to Bring:</strong></p>
-                    <ul style='line-height: 1.8;'>
-                        <li>Updated Resume/CV</li>
-                        <li>Academic credentials (Transcripts, Diplomas)</li>
-                        <li>Certificates of relevant training and seminars</li>
-                        <li>Any other supporting documents</li>
-                    </ul>
-                    
-                    <p>We look forward to meeting you. Good luck with your interview!</p>
-                    
+
+                    {$adminMessageBlock}
+
                     <p style='margin-top: 30px;'>Best regards,<br>
                     <strong>CLSU HR Department</strong></p>
                 </div>
@@ -255,12 +234,20 @@ class ApplicantShow extends Component
                 return;
             }
 
+            $adminMessageBlock = '';
+            if (!empty(strip_tags($this->admin_message ?? ''))) {
+                $adminMessageBlock = "<div style='margin: 16px 0;'>" . $this->admin_message . "</div>";
+            }
+
             $messageContent = "
                 <div style='font-family: Arial, sans-serif;'>
                     <h2>Application Status Update</h2>
                     <p>Dear {$applicant->first_name} {$applicant->last_name},</p>
                     <p>Thank you for your interest in the position of <strong>{$position->name}</strong> at Central Luzon State University.</p>
                     <p>After careful consideration, we regret to inform you that we will not be moving forward with your application at this time.</p>
+
+                    {$adminMessageBlock}
+
                     <p>We appreciate the time and effort you invested in your application. We encourage you to apply for future positions that match your qualifications.</p>
                     <p style='margin-top: 30px;'>Best regards,<br>
                     <strong>CLSU HR Department</strong></p>

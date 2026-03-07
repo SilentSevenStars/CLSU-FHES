@@ -17,8 +17,6 @@
                             Manage Position
                         </p>
                     </div>
-
-                    <!-- History Button -->
                     <a href="{{ route('admin.position.history') }}"
                        class="inline-flex items-center gap-2 bg-white border border-[#0a6025] text-[#0a6025] hover:bg-[#0a6025] hover:text-white transition-colors duration-200 font-medium rounded-lg text-sm px-5 py-2.5 shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +92,6 @@
                 <!-- Table Header with Filters -->
                 <div class="bg-[#0a6025] p-6">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                        <!-- Left: Title -->
                         <div class="flex items-center gap-3">
                             <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
                                 <i class="fa-solid fa-briefcase text-white text-lg"></i>
@@ -102,13 +99,13 @@
                             <h2 class="text-2xl font-bold text-white">Position List</h2>
                         </div>
 
-                        <!-- Right: Filters -->
                         <div class="flex flex-wrap items-center gap-3">
                             <!-- College Filter -->
                             <select wire:model.live="filterCollege"
                                 x-data x-bind:class="$el.value === '' ? 'text-gray-400' : 'text-gray-900'"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-white">
-                                <option value="" class="text-gray-400">All Colleges</option>
+                                <option value="">All Colleges</option>
+                                <option value="various">Various Colleges</option>
                                 @foreach($colleges as $college)
                                     <option value="{{ $college->id }}">{{ $college->name }}</option>
                                 @endforeach
@@ -118,7 +115,8 @@
                             <select wire:model.live="filterDepartment"
                                 x-data x-bind:class="$el.value === '' ? 'text-gray-400' : 'text-gray-900'"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-white">
-                                <option value="" class="text-gray-400">All Departments</option>
+                                <option value="">All Departments</option>
+                                <option value="various">Various Departments</option>
                                 @foreach($filterDepartments as $dept)
                                     <option value="{{ $dept->id }}">{{ $dept->name }}</option>
                                 @endforeach
@@ -199,10 +197,10 @@
                                             <tr class="bg-gray-50 hover:bg-gray-100">
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->name }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">
-                                                    {{ $position->college->name ?? 'N/A' }}
+                                                    {{ $position->college->name ?? 'Various Colleges' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">
-                                                    {{ $position->department->name ?? 'N/A' }}
+                                                    {{ $position->department->name ?? '' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->start_date }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->end_date }}</td>

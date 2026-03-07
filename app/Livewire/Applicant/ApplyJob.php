@@ -32,16 +32,16 @@ class ApplyJob extends Component
     {
         $today = Carbon::today();
 
-        $query = Position::where('status', 'vacant')
+        $query = Position::with(['college', 'department'])
             ->whereDate('start_date', '<=', $today)
             ->whereDate('end_date', '>=', $today);
 
         if (!empty($this->search)) {
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('department', 'like', '%' . $this->search . '%')
-                  ->orWhere('college', 'like', '%' . $this->search . '%')
-                  ->orWhere('specialization', 'like', '%' . $this->search . '%');
+                    ->orWhereHas('department', fn($dq) => $dq->where('name', 'like', '%' . $this->search . '%'))
+                    ->orWhereHas('college', fn($cq) => $cq->where('name', 'like', '%' . $this->search . '%'))
+                    ->orWhere('specialization', 'like', '%' . $this->search . '%');
             });
         }
 
@@ -56,12 +56,14 @@ class ApplyJob extends Component
             $this->applied = JobApplication::where('applicant_id', $user->applicant->id)
                 ->pluck('position_id')
                 ->toArray();
+        } else {
+            $this->applied = [];
         }
     }
 
     public function viewDetails($positionId)
     {
-        $this->selectedPosition = Position::find($positionId);
+        $this->selectedPosition = Position::with(['college', 'department'])->find($positionId);
         $this->showModal = true;
     }
 
@@ -95,11 +97,11 @@ class ApplyJob extends Component
         $position = Position::find($positionId);
         $today = Carbon::today();
 
-        return $position && 
-               $today->between(
-                   Carbon::parse($position->start_date), 
-                   Carbon::parse($position->end_date)
-               );
+        return $position &&
+            $today->between(
+                Carbon::parse($position->start_date),
+                Carbon::parse($position->end_date)
+            );
     }
 
     public function getApplicationId($positionId)
@@ -120,6 +122,11 @@ class ApplyJob extends Component
     {
         $this->loadAppliedPositions();
 
-        return view('livewire.applicant.apply-job');
+        // Has active = applicant has applied to at least one position
+        $hasActiveApplication = !empty($this->applied);
+
+        return view('livewire.applicant.apply-job', [
+            'hasActiveApplication' => $hasActiveApplication,
+        ]);
     }
 }

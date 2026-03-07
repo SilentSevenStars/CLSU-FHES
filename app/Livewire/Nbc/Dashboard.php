@@ -22,11 +22,9 @@ class Dashboard extends Component
 
     public function mount()
     {
-        // Security check: Verify user is an authorized NBC committee member
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
-        
+
         if (!$nbcCommittee) {
-            // User is not authorized as NBC committee member
             abort(403, 'Unauthorized. You are not registered as an NBC Committee member.');
         }
     }
@@ -43,33 +41,18 @@ class Dashboard extends Component
 
     public function getEvaluationsProperty()
     {
-        // Security check: Verify user is an authorized NBC committee member
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
-        
+
         if (!$nbcCommittee) {
-            // Return empty collection if not authorized
             return collect()->paginate($this->perPage);
         }
-
-        // Define allowed positions
-        $allowedPositions = [
-            'Professor III',
-            'Professor IV',
-            'Professor V',
-            'Professor VI',
-            'College/University Professor'
-        ];
 
         $query = Evaluation::with([
             'jobApplication.applicant.user',
             'jobApplication.position',
         ])
-        // Filter by today's interview date
-        ->whereDate('interview_date', today())
-        // Filter by allowed positions
-        ->whereHas('jobApplication.position', function ($positionQuery) use ($allowedPositions) {
-            $positionQuery->whereIn('name', $allowedPositions);
-        });
+        // Filter by today's interview date only — no position restriction
+        ->whereDate('interview_date', today());
 
         // Search filter - name or position
         if ($this->search) {
@@ -86,20 +69,19 @@ class Dashboard extends Component
         }
 
         // Sort: pending first, complete last
-        // Check NBC assignment status for current user
         $query->orderByRaw('
-            CASE 
+            CASE
                 WHEN EXISTS (
-                    SELECT 1 FROM nbc_assignments 
-                    WHERE nbc_assignments.evaluation_id = evaluations.id 
+                    SELECT 1 FROM nbc_assignments
+                    WHERE nbc_assignments.evaluation_id = evaluations.id
                     AND nbc_assignments.status = "complete"
                     AND EXISTS (
-                        SELECT 1 FROM nbc_committees 
-                        WHERE nbc_committees.id = nbc_assignments.nbc_committee_id 
+                        SELECT 1 FROM nbc_committees
+                        WHERE nbc_committees.id = nbc_assignments.nbc_committee_id
                         AND nbc_committees.user_id = ?
                     )
-                ) THEN 1 
-                ELSE 0 
+                ) THEN 1
+                ELSE 0
             END
         ', [Auth::id()])
         ->orderBy('created_at', 'desc');
@@ -109,26 +91,13 @@ class Dashboard extends Component
 
     public function getPendingTodayCountProperty()
     {
-        // Define allowed positions
-        $allowedPositions = [
-            'Professor III',
-            'Professor IV',
-            'Professor V',
-            'Professor VI',
-            'College/University Professor'
-        ];
-
-        // Get the NBC committee ID for the current user
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
-        
+
         if (!$nbcCommittee) {
             return 0;
         }
 
         return Evaluation::whereDate('interview_date', today())
-            ->whereHas('jobApplication.position', function ($positionQuery) use ($allowedPositions) {
-                $positionQuery->whereIn('name', $allowedPositions);
-            })
             ->whereDoesntHave('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
                 $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
                     ->where('status', 'complete');
@@ -138,26 +107,13 @@ class Dashboard extends Component
 
     public function getCompleteTodayCountProperty()
     {
-        // Define allowed positions
-        $allowedPositions = [
-            'Professor III',
-            'Professor IV',
-            'Professor V',
-            'Professor VI',
-            'College/University Professor'
-        ];
-
-        // Get the NBC committee ID for the current user
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
-        
+
         if (!$nbcCommittee) {
             return 0;
         }
 
         return Evaluation::whereDate('interview_date', today())
-            ->whereHas('jobApplication.position', function ($positionQuery) use ($allowedPositions) {
-                $positionQuery->whereIn('name', $allowedPositions);
-            })
             ->whereHas('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
                 $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
                     ->where('status', 'complete')
@@ -169,8 +125,8 @@ class Dashboard extends Component
     public function render()
     {
         return view('livewire.nbc.dashboard', [
-            'evaluations' => $this->evaluations,
-            'pendingTodayCount' => $this->pendingTodayCount,
+            'evaluations'        => $this->evaluations,
+            'pendingTodayCount'  => $this->pendingTodayCount,
             'completeTodayCount' => $this->completeTodayCount,
         ]);
     }

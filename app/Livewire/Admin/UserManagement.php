@@ -58,6 +58,20 @@ class UserManagement extends Component
     private function isNoCollegeDeptPosition(): bool
     {
         return in_array($this->panel_position, [
+            'chair_fsb',
+            'fai_president',
+            'clutches_president',
+            'director_hr',
+            // 'dean' removed — dean needs college but not department
+        ]);
+    }
+
+    /**
+     * Positions that require college but NOT department.
+     */
+    private function isNoDeptPosition(): bool
+    {
+        return in_array($this->panel_position, [
             'dean',
             'chair_fsb',
             'fai_president',
@@ -98,13 +112,17 @@ class UserManagement extends Component
             case 'panel':
                 $rules['name'] = 'required|string|max:255';
                 $rules['panel_position'] = 'required|in:head,señior,dean,chair_fsb,fai_president,clutches_president,director_hr';
+
+                // College: required for all except no-college-dept positions
                 $rules['college_id'] = [
                     Rule::requiredIf(fn() => !$this->isNoCollegeDeptPosition()),
                     'nullable',
                     'exists:colleges,id',
                 ];
+
+                // Department: required only for head and señior (not dean, not no-college positions)
                 $rules['department_id'] = [
-                    Rule::requiredIf(fn() => !$this->isNoCollegeDeptPosition()),
+                    Rule::requiredIf(fn() => !$this->isNoDeptPosition()),
                     'nullable',
                     'exists:departments,id',
                 ];
@@ -156,6 +174,11 @@ class UserManagement extends Component
         // Auto-clear college and department when switching to a no-college-dept position
         if ($this->isNoCollegeDeptPosition()) {
             $this->college_id = null;
+            $this->department_id = null;
+        }
+
+        // Auto-clear department when switching to a no-dept position (like dean)
+        if ($this->isNoDeptPosition()) {
             $this->department_id = null;
         }
     }
@@ -306,13 +329,11 @@ class UserManagement extends Component
             case 'panel':
                 $user->assignRole('panel');
 
-                $noCollegeDept = $this->isNoCollegeDeptPosition();
-
                 Panel::create([
-                    'user_id' => $user->id,
+                    'user_id'        => $user->id,
                     'panel_position' => $this->panel_position,
-                    'college_id' => $noCollegeDept ? null : $this->college_id,
-                    'department_id' => $noCollegeDept ? null : $this->department_id,
+                    'college_id'     => $this->isNoCollegeDeptPosition() ? null : $this->college_id,
+                    'department_id'  => $this->isNoDeptPosition() ? null : $this->department_id,
                 ]);
                 break;
 
@@ -368,12 +389,10 @@ class UserManagement extends Component
                 break;
 
             case 'panel':
-                $noCollegeDept = $this->isNoCollegeDeptPosition();
-
                 $panelData = [
                     'panel_position' => $this->panel_position,
-                    'college_id'     => $noCollegeDept ? null : $this->college_id,
-                    'department_id'  => $noCollegeDept ? null : $this->department_id,
+                    'college_id'     => $this->isNoCollegeDeptPosition() ? null : $this->college_id,
+                    'department_id'  => $this->isNoDeptPosition() ? null : $this->department_id,
                 ];
 
                 $panel = Panel::where('user_id', $user->id)->first();

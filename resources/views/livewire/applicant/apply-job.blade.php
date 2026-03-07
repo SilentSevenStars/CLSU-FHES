@@ -2,20 +2,16 @@
     <div class="flex-1 bg-gradient-to-br from-slate-50 to-green-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-7xl mx-auto">
 
-            <!-- Success Message -->
             @if (session('success'))
             <div class="mb-6 p-4 bg-green-100 border border-green-300 text-green-700 rounded-lg shadow animate-fadeIn">
                 {{ session('success') }}
             </div>
             @endif
 
-            <!-- Header Section -->
+            <!-- Header -->
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
-                    @php
-                    use Illuminate\Support\Facades\Storage;
-                    @endphp
-
+                    @php use Illuminate\Support\Facades\Storage; @endphp
                     <div>
                         <h1 class="text-4xl font-extrabold bg-[#0A6025] bg-clip-text text-transparent mb-2">
                             Available Positions
@@ -31,6 +27,20 @@
                 </div>
             </div>
 
+            <!-- Active Application Banner -->
+            @if($hasActiveApplication)
+            <div class="mb-6 p-4 bg-amber-50 border border-amber-300 text-amber-800 rounded-lg shadow flex items-start gap-3 animate-fadeIn">
+                <svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+                <div>
+                    <p class="font-semibold">You already have an active application.</p>
+                    <p class="text-sm mt-1">You can only apply to one position at a time. Other positions will be available once your current application is archived or removed.</p>
+                </div>
+            </div>
+            @endif
+
             <!-- Search Bar -->
             <div class="mb-6 animate-fadeIn">
                 <div class="relative">
@@ -41,18 +51,15 @@
                         </svg>
                     </div>
                     <input type="text" wire:model.live.debounce.300ms="search"
-                        class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] sm:text-sm transition duration-150 ease-in-out shadow-sm"
+                        class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] sm:text-sm shadow-sm"
                         placeholder="Search by position, department, college, or specialization..." />
                 </div>
             </div>
 
             @if($positions->isEmpty())
-
-            <!-- Empty State -->
             <div class="bg-white rounded-xl shadow-xl p-12 text-center animate-fadeIn">
                 <div class="max-w-md mx-auto">
-                    <div
-                        class="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+                    <div class="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full p-6 w-24 h-24 mx-auto mb-4 flex items-center justify-center">
                         <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -61,9 +68,9 @@
                     <h3 class="text-xl font-semibold text-gray-800 mb-2">No Available Positions</h3>
                     <p class="text-gray-500">
                         @if(!empty($search))
-                        No positions match your search criteria. Try different keywords.
+                            No positions match your search criteria. Try different keywords.
                         @else
-                        There are no job positions available at the moment. Please check back later.
+                            There are no job positions available at the moment. Please check back later.
                         @endif
                     </p>
                 </div>
@@ -74,23 +81,32 @@
             <!-- Positions Grid -->
             <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
                 @foreach($positions as $index => $position)
-                <div class="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 animate-slideInLeft border-l-4 border-[#0A6025]"
+                @php
+                    // This specific position was applied to by the user
+                    $isAppliedToThis = in_array($position->id, $applied);
+
+                    // User has applied somewhere else — lock this card
+                    $isLockedOut = $hasActiveApplication && !$isAppliedToThis;
+                @endphp
+
+                <div class="group bg-white rounded-xl shadow-lg transition-all duration-300 animate-slideInLeft border-l-4
+                    {{ $isLockedOut ? 'opacity-60 border-gray-300 cursor-default' : 'hover:shadow-2xl transform hover:-translate-y-1 border-[#0A6025]' }}"
                     style="animation-delay: {{ $index * 0.1 }}s;">
                     <div class="p-6">
 
                         <!-- Icon -->
-                        <div
-                            class="bg-gradient-to-br from-yellow-500 to-[#0A6025] rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300 w-16 h-16 flex items-center justify-center mb-4">
+                        <div class="rounded-2xl p-4 shadow-lg w-16 h-16 flex items-center justify-center mb-4
+                            {{ $isLockedOut ? 'bg-gray-300' : 'bg-gradient-to-br from-yellow-500 to-[#0A6025] group-hover:scale-110 transition-transform duration-300' }}">
                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
 
-                        <!-- Job Title with Department -->
-                        <h5
-                            class="text-xl font-bold text-gray-800 mb-3 group-hover:text-[#0A6025] transition-colors duration-300 leading-tight">
-                            {{ $position->name }} - {{ $position->department->name }}
+                        <!-- Job Title -->
+                        <h5 class="text-xl font-bold mb-3 leading-tight transition-colors duration-300
+                            {{ $isLockedOut ? 'text-gray-400' : 'text-gray-800 group-hover:text-[#0A6025]' }}">
+                            {{ $position->name }}@if($position->department) - {{ $position->department->name }}@endif
                         </h5>
 
                         <!-- College -->
@@ -99,7 +115,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
-                            <p class="text-sm font-medium text-gray-600">{{ $position->college->name }}</p>
+                            <p class="text-sm font-medium {{ $isLockedOut ? 'text-gray-400' : 'text-gray-600' }}">
+                                {{ $position->college->name ?? 'Various Colleges' }}
+                            </p>
                         </div>
 
                         <!-- Date Range -->
@@ -114,12 +132,20 @@
                             </p>
                         </div>
 
-                        <!-- View Details Button -->
-                        <button wire:click="viewDetails({{ $position->id }})"
-                            class="block w-full text-center text-white bg-[#0A6025] hover:bg-[#0B712C] focus:ring-4 focus:ring-[#0A6025] 
-                                            font-semibold rounded-lg text-sm px-4 py-3 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105">
-                            View Details
-                        </button>
+                        <!-- Card Button -->
+                        @if($isLockedOut)
+                            <div class="block w-full text-center font-semibold rounded-lg text-sm px-4 py-3 bg-gray-200 text-gray-400 cursor-not-allowed select-none">
+                                Not Available
+                            </div>
+                        @else
+                            <button wire:click="viewDetails({{ $position->id }})"
+                                class="block w-full text-center font-semibold rounded-lg text-sm px-4 py-3 transition-all duration-300
+                                {{ $isAppliedToThis
+                                    ? 'text-white bg-yellow-600 hover:bg-yellow-700 shadow-md hover:shadow-lg'
+                                    : 'text-white bg-[#0A6025] hover:bg-[#0B712C] focus:ring-4 focus:ring-[#0A6025] shadow-md hover:shadow-lg transform hover:scale-105' }}">
+                                {{ $isAppliedToThis ? 'View Application' : 'View Details' }}
+                            </button>
+                        @endif
 
                     </div>
                 </div>
@@ -134,18 +160,15 @@
     <div x-show="showModal" x-cloak x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title"
-        role="dialog" aria-modal="true">
-        <!-- Background Overlay -->
+        x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto"
+        aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div x-show="showModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="$wire.closeModal()"></div>
+            <div x-show="showModal"
+                class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                @click="$wire.closeModal()"></div>
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <!-- Modal Panel -->
             <div x-show="showModal" x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -153,49 +176,42 @@
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+
                 @if($selectedPosition)
-                <!-- Modal Header (Fixed) -->
+                @php
+                    $selectedIsApplied = in_array($selectedPosition->id, $applied);
+                @endphp
+
+                <!-- Modal Header -->
                 <div class="bg-gradient-to-r from-[#0A6025] to-[#0B712C] px-6 py-4 sticky top-0 z-10">
                     <div class="flex items-center justify-between">
                         <h3 class="text-2xl font-bold text-white" id="modal-title">
                             {{ $selectedPosition->name }}
                         </h3>
-                        <button @click="$wire.closeModal()"
-                            class="text-white hover:text-gray-200 transition-colors duration-200">
+                        <button @click="$wire.closeModal()" class="text-white hover:text-gray-200 transition-colors duration-200">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
                 </div>
 
-                <!-- Modal Body (Scrollable) -->
+                <!-- Modal Body -->
                 <div class="px-6 py-4 max-h-[60vh] overflow-y-auto">
                     <div class="space-y-6">
 
-                        <!-- Department & College -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <h4 class="text-sm font-semibold text-gray-500 mb-1">Department</h4>
-                                <p class="text-lg font-medium text-gray-800">{{ $selectedPosition->department->name }}</p>
+                                <p class="text-lg font-medium text-gray-800">{{ $selectedPosition->department->name ?? '' }}</p>
                             </div>
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <h4 class="text-sm font-semibold text-gray-500 mb-1">College</h4>
-                                <p class="text-lg font-medium text-gray-800">{{ $selectedPosition->college->name }}</p>
+                                <p class="text-lg font-medium text-gray-800">{{ $selectedPosition->college->name ?? 'Various Colleges' }}</p>
                             </div>
                         </div>
 
-                        <!-- Status & Dates -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <h4 class="text-sm font-semibold text-gray-500 mb-1">Status</h4>
-                                <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                        {{ $selectedPosition->status === 'vacant' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                    {{ ucfirst($selectedPosition->status) }}
-                                </span>
-                            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="bg-gray-50 p-4 rounded-lg">
                                 <h4 class="text-sm font-semibold text-gray-500 mb-1">Start of Application</h4>
                                 <p class="text-base font-medium text-gray-800">
@@ -210,21 +226,16 @@
                             </div>
                         </div>
 
-                        <!-- Specialization -->
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <h4 class="text-sm font-semibold text-gray-500 mb-2">Specialization</h4>
                             <p class="text-base text-gray-800">{{ $selectedPosition->specialization }}</p>
                         </div>
 
-                        <!-- Requirements Section -->
                         <div class="border-t pt-6">
                             <h4 class="text-xl font-bold text-gray-800 mb-4">Requirements</h4>
-
                             <div class="space-y-4">
-                                <!-- Education -->
                                 <div class="flex items-start gap-3">
-                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
@@ -233,39 +244,28 @@
                                         <p class="text-gray-600">{{ $selectedPosition->education }}</p>
                                     </div>
                                 </div>
-
-                                <!-- Experience -->
                                 <div class="flex items-start gap-3">
-                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
                                     <div>
                                         <h5 class="font-semibold text-gray-800">Experience</h5>
-                                        <p class="text-gray-600">{{ $selectedPosition->experience }} years of relevant
-                                            experience</p>
+                                        <p class="text-gray-600">{{ $selectedPosition->experience }} years of relevant experience</p>
                                     </div>
                                 </div>
-
-                                <!-- Training -->
                                 <div class="flex items-start gap-3">
-                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <div>
                                         <h5 class="font-semibold text-gray-800">Training</h5>
-                                        <p class="text-gray-600">{{ $selectedPosition->training }} hours of training
-                                            required</p>
+                                        <p class="text-gray-600">{{ $selectedPosition->training }} hours of training required</p>
                                     </div>
                                 </div>
-
-                                <!-- Eligibility -->
                                 <div class="flex items-start gap-3">
-                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6 text-[#0A6025] mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
@@ -280,34 +280,33 @@
                     </div>
                 </div>
 
-                <!-- Modal Footer (Fixed) -->
+                <!-- Modal Footer -->
                 <div class="bg-gray-50 px-6 py-4 sticky bottom-0 border-t border-gray-200">
                     <div class="flex items-center justify-end gap-3">
                         <button @click="$wire.closeModal()"
-                            class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A6025] transition-colors duration-200">
+                            class="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
                             Close
                         </button>
 
-                        @if(in_array($selectedPosition->id, $applied))
-                        @if($this->canEditApplication($selectedPosition->id))
-                        <!-- Edit Application Button -->
-                        <a href="{{ route('edit-job-application', ['application_id' => $this->getApplicationId($selectedPosition->id)]) }}"
-                            class="px-6 py-2.5 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-600 transition-all duration-200 shadow-md hover:shadow-lg">
-                            Edit Application
-                        </a>
+                        @if($selectedIsApplied)
+                            {{-- Applied to THIS position --}}
+                            @if($this->canEditApplication($selectedPosition->id))
+                                <a href="{{ route('edit-job-application', ['application_id' => $this->getApplicationId($selectedPosition->id)]) }}"
+                                    class="px-6 py-2.5 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-all duration-200 shadow-md hover:shadow-lg">
+                                    Edit Application
+                                </a>
+                            @else
+                                <button disabled
+                                    class="px-6 py-2.5 text-sm font-semibold text-gray-500 bg-gray-300 rounded-lg cursor-not-allowed">
+                                    Application Submitted
+                                </button>
+                            @endif
                         @else
-                        <!-- Already Applied (Can't Edit) -->
-                        <button disabled
-                            class="px-6 py-2.5 text-sm font-semibold text-gray-500 bg-gray-300 rounded-lg cursor-not-allowed">
-                            Application Submitted
-                        </button>
-                        @endif
-                        @else
-                        <!-- Apply Now Button -->
-                        <a href="{{ route('job-application', ['position_id' => $selectedPosition->id]) }}"
-                            class="px-6 py-2.5 text-sm font-semibold text-white bg-[#0A6025] rounded-lg hover:bg-[#0B712C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A6025] transition-all duration-200 shadow-md hover:shadow-lg">
-                            Apply Now
-                        </a>
+                            {{-- Not applied to this position — show Apply Now --}}
+                            <a href="{{ route('job-application', ['position_id' => $selectedPosition->id]) }}"
+                                class="px-6 py-2.5 text-sm font-semibold text-white bg-[#0A6025] rounded-lg hover:bg-[#0B712C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A6025] transition-all duration-200 shadow-md hover:shadow-lg">
+                                Apply Now
+                            </a>
                         @endif
                     </div>
                 </div>
@@ -315,39 +314,12 @@
             </div>
         </div>
     </div>
+
     <style>
-        [x-cloak] {
-            display: none !important;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .animate-slideInLeft {
-            animation: slideInLeft 0.5s ease-out;
-        }
+        [x-cloak] { display: none !important; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
+        .animate-slideInLeft { animation: slideInLeft 0.5s ease-out; }
     </style>
 </div>

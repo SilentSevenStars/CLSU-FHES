@@ -22,61 +22,65 @@ class EditJobApplication extends Component
     public string $last_name = "";
     public string $suffix = "";
     public string $phone_number = "";
-    
-    // New address fields
+
     public string $region = "";
     public string $province = "";
     public string $city = "";
     public string $barangay = "";
     public string $street = "";
     public string $postal_code = "";
-    
+
     public string $present_position = "";
     public string $education = "";
     public $educationOptions = [];
     public $experience;
     public $training;
     public string $eligibility = "";
+    public bool $eligibilityIsFixed = false;
+    public string $positionEligibility = "";
     public string $other_involvement = "";
     public $requirements_file;
     public $application_id;
     public $position_id;
     public $existing_file_path = null;
 
-    public $deadlineTimestamp; 
+    public bool $agree_to_terms = false;
+
+    public $deadlineTimestamp;
     public $isSubmitting = false;
-    
-    // For dropdown data
+
     public $regions = [];
     public $provinces = [];
     public $cities = [];
     public $barangays = [];
 
     protected $rules = [
-        'first_name' => 'required|string|max:255',
-        'middle_name' => 'nullable|string|max:255',
-        'last_name' => 'required|string|max:255',
-        'suffix' => 'nullable|string|max:5',
-        'phone_number' => 'required|regex:/^09[0-9]{9}$/|size:11',
-        'region' => 'required|string|max:255',
-        'province' => 'required|string|max:255',
-        'city' => 'required|string|max:255',
-        'barangay' => 'required|string|max:255',
-        'street' => 'required|string|max:255',
-        'postal_code' => 'required|string|max:10',
-        'present_position' => 'required|string|max:255',
-        'education' => 'required|string|max:255',
-        'experience' => 'required|integer|min:0',
-        'training' => 'required|integer|min:0',
-        'eligibility' => 'required|string|max:255',
+        'first_name'        => 'required|string|max:255',
+        'middle_name'       => 'nullable|string|max:255',
+        'last_name'         => 'required|string|max:255',
+        'suffix'            => 'nullable|string|max:5',
+        'phone_number'      => 'required|regex:/^09[0-9]{9}$/|size:11',
+        'region'            => 'required|string|max:255',
+        'province'          => 'required|string|max:255',
+        'city'              => 'required|string|max:255',
+        'barangay'          => 'required|string|max:255',
+        'street'            => 'required|string|max:255',
+        'postal_code'       => 'required|string|max:10',
+        'present_position'  => 'required|string|max:255',
+        'education'         => 'required|string|max:255',
+        'experience'        => 'required|integer|min:0',
+        'training'          => 'required|integer|min:0',
+        'eligibility'       => 'required|string|max:255',
         'other_involvement' => 'required|string|max:255',
         'requirements_file' => 'nullable|mimes:pdf|max:102400',
+        'agree_to_terms'    => 'accepted',
     ];
 
     protected $messages = [
-        'phone_number.regex' => 'Phone number must start with 09 and contain exactly 11 digits.',
-        'phone_number.size' => 'Phone number must be exactly 11 digits.',
-        'requirements_file.max' => 'The file size must not exceed 100MB.',
+        'phone_number.regex'      => 'Phone number must start with 09 and contain exactly 11 digits.',
+        'phone_number.size'       => 'Phone number must be exactly 11 digits.',
+        'requirements_file.max'   => 'The file size must not exceed 100MB.',
+        'agree_to_terms.accepted' => 'You must agree to the Data Privacy Act terms before submitting.',
     ];
 
     public function mount($application_id)
@@ -109,7 +113,7 @@ class EditJobApplication extends Component
 
         $today = Carbon::today();
         $isWithinDateRange = $today->between(
-            Carbon::parse($position->start_date), 
+            Carbon::parse($position->start_date),
             Carbon::parse($position->end_date)
         );
 
@@ -118,53 +122,52 @@ class EditJobApplication extends Component
             return redirect()->route('apply-job');
         }
 
-        // Load applicant personal info including suffix
-        $this->first_name = $applicant->first_name;
-        $this->middle_name = $applicant->middle_name ?? '';
-        $this->last_name = $applicant->last_name;
-        $this->suffix = $applicant->suffix ?? '';
-        $this->phone_number = $applicant->phone_number ?? '';
-        $this->region = $applicant->region ?? '';
-        $this->province = $applicant->province ?? '';
-        $this->city = $applicant->city ?? '';
-        $this->barangay = $applicant->barangay ?? '';
-        $this->street = $applicant->street ?? '';
-        $this->postal_code = $applicant->postal_code ?? '';
+        $this->first_name     = $applicant->first_name;
+        $this->middle_name    = $applicant->middle_name ?? '';
+        $this->last_name      = $applicant->last_name;
+        $this->suffix         = $applicant->suffix ?? '';
+        $this->phone_number   = $applicant->phone_number ?? '';
+        $this->region         = $applicant->region ?? '';
+        $this->province       = $applicant->province ?? '';
+        $this->city           = $applicant->city ?? '';
+        $this->barangay       = $applicant->barangay ?? '';
+        $this->street         = $applicant->street ?? '';
+        $this->postal_code    = $applicant->postal_code ?? '';
 
-        // Load application data
-        $this->present_position = $application->present_position;
-        $this->education = $application->education;
-        $this->experience = $application->experience;
-        $this->training = $application->training;
-        $this->eligibility = $application->eligibility;
+        $this->present_position  = $application->present_position;
+        $this->education         = $application->education;
+        $this->experience        = $application->experience;
+        $this->training          = $application->training;
         $this->other_involvement = $application->other_involvement;
         $this->existing_file_path = $application->requirements_file;
 
-        // Load initial regions
+        $this->positionEligibility = $position->eligibility ?? '';
+        if ($this->isNoneRequiredEligibility($this->positionEligibility)) {
+            $this->eligibility        = 'None Required';
+            $this->eligibilityIsFixed = true;
+        } else {
+            $this->eligibility = $application->eligibility;
+        }
+
         $this->loadRegions();
-        
-        // If editing, load dependent data
-        if ($this->region) {
-            $this->loadProvinces();
-        }
-        if ($this->province) {
-            $this->loadCities();
-        }
-        if ($this->city) {
-            $this->loadBarangays();
-        }
+
+        if ($this->region)   $this->loadProvinces();
+        if ($this->province) $this->loadCities();
+        if ($this->city)     $this->loadBarangays();
 
         $deadline = Carbon::parse($position->end_date)->addDay()->startOfDay();
         $this->deadlineTimestamp = $deadline->timestamp;
 
-        $this->educationOptions = EducationalBackground::orderBy('name')
-        ->pluck('name')
-        ->toArray();
+        $this->educationOptions = EducationalBackground::orderBy('name')->pluck('name')->toArray();
+    }
+
+    private function isNoneRequiredEligibility(string $eligibility): bool
+    {
+        return stripos(trim($eligibility), 'None required') === 0;
     }
 
     public function loadRegions()
     {
-        // Fallback static data for Philippine regions
         $this->regions = [
             ['code' => '010000000', 'name' => 'Ilocos Region'],
             ['code' => '020000000', 'name' => 'Cagayan Valley'],
@@ -191,33 +194,32 @@ class EditJobApplication extends Component
                 $this->regions = $response->json();
             }
         } catch (\Exception $e) {
-            // Use fallback data
+            // Use fallback
         }
 
-        // Map region names to display format
         $this->mapRegionNames();
     }
 
     private function mapRegionNames()
     {
         $regionMapping = [
-            'Ilocos Region' => 'Region I',
-            'Cagayan Valley' => 'Region II',
-            'Central Luzon' => 'Region III',
-            'CALABARZON' => 'Region IV-A',
-            'MIMAROPA Region' => 'Region IV-B',
-            'Bicol Region' => 'Region V',
-            'Western Visayas' => 'Region VI',
-            'Central Visayas' => 'Region VII',
-            'Eastern Visayas' => 'Region VIII',
+            'Ilocos Region'       => 'Region I',
+            'Cagayan Valley'      => 'Region II',
+            'Central Luzon'       => 'Region III',
+            'CALABARZON'          => 'Region IV-A',
+            'MIMAROPA Region'     => 'Region IV-B',
+            'Bicol Region'        => 'Region V',
+            'Western Visayas'     => 'Region VI',
+            'Central Visayas'     => 'Region VII',
+            'Eastern Visayas'     => 'Region VIII',
             'Zamboanga Peninsula' => 'Region IX',
-            'Northern Mindanao' => 'Region X',
-            'Davao Region' => 'Region XI',
-            'SOCCSKSARGEN' => 'Region XII',
-            'NCR' => 'NCR',
-            'CAR' => 'CAR',
-            'Caraga' => 'Region XVI',
-            'BARMM' => 'BARMM',
+            'Northern Mindanao'   => 'Region X',
+            'Davao Region'        => 'Region XI',
+            'SOCCSKSARGEN'        => 'Region XII',
+            'NCR'                 => 'NCR',
+            'CAR'                 => 'CAR',
+            'Caraga'              => 'Region XVI',
+            'BARMM'               => 'BARMM',
         ];
 
         foreach ($this->regions as &$region) {
@@ -227,108 +229,88 @@ class EditJobApplication extends Component
 
     public function updatedRegion($value)
     {
-        $this->province = '';
-        $this->city = '';
-        $this->barangay = '';
+        $this->province  = '';
+        $this->city      = '';
+        $this->barangay  = '';
         $this->provinces = [];
-        $this->cities = [];
+        $this->cities    = [];
         $this->barangays = [];
-        
-        if ($value) {
-            $this->loadProvinces();
-        }
+        if ($value) $this->loadProvinces();
     }
 
     public function loadProvinces()
     {
         if (!$this->region) return;
-        
         try {
             $selectedRegion = collect($this->regions)->firstWhere('name', $this->region);
-            if ($selectedRegion) {
-            $response = Http::withOptions(['verify' => false])->get("https://psgc.gitlab.io/api/regions/{$selectedRegion['code']}/provinces/");
-                if ($response->successful()) {
-                    $this->provinces = $response->json();
-                }
-            }
+            if (!$selectedRegion) return;
+            $response = Http::withOptions(['verify' => false])->get(
+                "https://psgc.gitlab.io/api/regions/{$selectedRegion['code']}/provinces/"
+            );
+            if ($response->successful()) $this->provinces = $response->json();
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to load provinces. Please try again.');
+            session()->flash('error', 'Failed to load provinces.');
         }
     }
 
     public function updatedProvince($value)
     {
-        $this->city = '';
-        $this->barangay = '';
-        $this->cities = [];
+        $this->city      = '';
+        $this->barangay  = '';
+        $this->cities    = [];
         $this->barangays = [];
-        
-        if ($value) {
-            $this->loadCities();
-        }
+        if ($value) $this->loadCities();
     }
 
     public function loadCities()
     {
         if (!$this->province) return;
-        
         try {
             $selectedProvince = collect($this->provinces)->firstWhere('name', $this->province);
-            if ($selectedProvince) {
-                $response = Http::withOptions(['verify' => false])->get("https://psgc.gitlab.io/api/provinces/{$selectedProvince['code']}/cities-municipalities/");
-                if ($response->successful()) {
-                    $this->cities = $response->json();
-                }
-            }
+            if (!$selectedProvince) return;
+            $response = Http::withOptions(['verify' => false])->get(
+                "https://psgc.gitlab.io/api/provinces/{$selectedProvince['code']}/cities-municipalities/"
+            );
+            if ($response->successful()) $this->cities = $response->json();
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to load cities. Please try again.');
+            session()->flash('error', 'Failed to load cities.');
         }
     }
 
     public function updatedCity($value)
     {
-        $this->barangay = '';
+        $this->barangay  = '';
         $this->barangays = [];
-        
-        if ($value) {
-            $this->loadBarangays();
-        }
+        if ($value) $this->loadBarangays();
     }
 
     public function loadBarangays()
     {
         if (!$this->city) return;
-        
         try {
             $selectedCity = collect($this->cities)->firstWhere('name', $this->city);
-            if ($selectedCity) {
-                $response = Http::withOptions(['verify' => false])->get("https://psgc.gitlab.io/api/cities-municipalities/{$selectedCity['code']}/barangays/");
-                if ($response->successful()) {
-                    $this->barangays = $response->json();
-                }
-            }
+            if (!$selectedCity) return;
+            $response = Http::withOptions(['verify' => false])->get(
+                "https://psgc.gitlab.io/api/cities-municipalities/{$selectedCity['code']}/barangays/"
+            );
+            if ($response->successful()) $this->barangays = $response->json();
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to load barangays. Please try again.');
+            session()->flash('error', 'Failed to load barangays.');
         }
     }
 
     public function updatedPhoneNumber($value)
     {
-        // Remove any non-numeric characters
         $this->phone_number = preg_replace('/[^0-9]/', '', $value);
-        
-        // Ensure it starts with 09
         if (strlen($this->phone_number) > 0 && !str_starts_with($this->phone_number, '09')) {
             if (str_starts_with($this->phone_number, '9')) {
                 $this->phone_number = '0' . $this->phone_number;
-            } else if (strlen($this->phone_number) >= 2) {
+            } elseif (strlen($this->phone_number) >= 2) {
                 $this->phone_number = '09' . substr($this->phone_number, 2);
             } else {
                 $this->phone_number = '09';
             }
         }
-        
-        // Limit to 11 digits
         if (strlen($this->phone_number) > 11) {
             $this->phone_number = substr($this->phone_number, 0, 11);
         }
@@ -344,26 +326,17 @@ class EditJobApplication extends Component
         $this->dispatch('show-swal-confirm');
     }
 
-    /**
-     * Generate base64 encoded PDF for viewing in new tab
-     */
     public function getFileDataUrl()
     {
         $encryptionService = new FileEncryptionService();
 
-        // Check if file exists
         if (!$this->existing_file_path || !$encryptionService->fileExists($this->existing_file_path)) {
             return null;
         }
 
         try {
-            // Decrypt file
             $decryptedContents = $encryptionService->decryptFile($this->existing_file_path);
-            
-            // Convert to base64
             $base64 = base64_encode($decryptedContents);
-            
-            // Return data URL
             return 'data:application/pdf;base64,' . $base64;
         } catch (\Exception $e) {
             return null;
@@ -372,6 +345,10 @@ class EditJobApplication extends Component
 
     public function save()
     {
+        if ($this->eligibilityIsFixed) {
+            $this->eligibility = 'None Required';
+        }
+
         try {
             $this->validate();
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -383,42 +360,37 @@ class EditJobApplication extends Component
 
         $encryptionService = new FileEncryptionService();
 
-        // Handle file upload
         $encryptedPath = $this->existing_file_path;
         if ($this->requirements_file) {
-            // Delete old encrypted file
             if ($this->existing_file_path) {
                 $encryptionService->deleteEncryptedFile($this->existing_file_path);
             }
-            // Encrypt and store new file
             $encryptedPath = $encryptionService->encryptAndStore($this->requirements_file);
         }
 
-        // Update applicant
         $applicant = Applicant::updateOrCreate(
             ['user_id' => Auth::id()],
             [
-                'first_name' => $this->first_name,
-                'middle_name' => $this->middle_name,
-                'last_name' => $this->last_name,
-                'suffix' => $this->suffix,
+                'first_name'   => $this->first_name,
+                'middle_name'  => $this->middle_name,
+                'last_name'    => $this->last_name,
+                'suffix'       => $this->suffix,
                 'phone_number' => $this->phone_number,
-                'region' => $this->region,
-                'province' => $this->province,
-                'city' => $this->city,
-                'barangay' => $this->barangay,
-                'street' => $this->street,
-                'postal_code' => $this->postal_code,
+                'region'       => $this->region,
+                'province'     => $this->province,
+                'city'         => $this->city,
+                'barangay'     => $this->barangay,
+                'street'       => $this->street,
+                'postal_code'  => $this->postal_code,
             ]
         );
 
-        // Update application
         ModelsJobApplication::where('id', $this->application_id)->update([
-            'present_position' => $this->present_position,
-            'education' => $this->education,
-            'experience' => $this->experience,
-            'training' => $this->training,
-            'eligibility' => $this->eligibility,
+            'present_position'  => $this->present_position,
+            'education'         => $this->education,
+            'experience'        => $this->experience,
+            'training'          => $this->training,
+            'eligibility'       => $this->eligibility,
             'other_involvement' => $this->other_involvement,
             'requirements_file' => $encryptedPath,
         ]);

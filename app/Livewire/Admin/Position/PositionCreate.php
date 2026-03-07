@@ -14,8 +14,8 @@ use App\Models\EducationalBackground;
 class PositionCreate extends Component
 {
     public string $name = "";
-    public $college_id = "";
-    public $department_id = "";
+    public $college_id = null;
+    public $department_id = null;
     public $start_date;
     public $end_date;
     public string $specialization = "";
@@ -55,10 +55,7 @@ class PositionCreate extends Component
     {
         $this->colleges = College::orderBy('name')->get();
         $this->positionRanks = PositionRank::orderBy('id')->get();
-
-        $this->educationOptions = EducationalBackground::orderBy('name')
-            ->pluck('name')
-            ->toArray();
+        $this->educationOptions = EducationalBackground::orderBy('name')->pluck('name')->toArray();
     }
 
     public function updatedName($value)
@@ -77,13 +74,11 @@ class PositionCreate extends Component
 
     public function updatedCollegeId($value)
     {
+        $this->department_id = null;
         if ($value) {
-            $this->departments = Department::where('college_id', $value)
-                ->orderBy('name')
-                ->get();
+            $this->departments = Department::where('college_id', $value)->orderBy('name')->get();
         } else {
             $this->departments = [];
-            $this->department_id = "";
         }
     }
 
@@ -91,8 +86,8 @@ class PositionCreate extends Component
     {
         $this->validate([
             'name'           => 'required|string|max:255',
-            'college_id'     => 'required|exists:colleges,id',
-            'department_id'  => 'required|exists:departments,id',
+            'college_id'     => 'nullable|exists:colleges,id',
+            'department_id'  => 'nullable|exists:departments,id',
             'start_date'     => 'required|date',
             'end_date'       => 'required|date|after_or_equal:start_date',
             'specialization' => 'required|string|max:255',
@@ -106,8 +101,8 @@ class PositionCreate extends Component
         try {
             $position = new Position();
             $position->name           = $this->name;
-            $position->college_id     = $this->college_id;
-            $position->department_id  = $this->department_id;
+            $position->college_id     = $this->college_id ?: null;
+            $position->department_id  = $this->department_id ?: null;
             $position->start_date     = $this->start_date;
             $position->end_date       = $this->end_date;
             $position->specialization = $this->specialization;
@@ -118,7 +113,6 @@ class PositionCreate extends Component
             $position->save();
 
             DB::commit();
-
             session()->flash('success', 'Position has been created successfully');
             return redirect()->route('admin.position');
         } catch (Exception $e) {

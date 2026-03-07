@@ -456,12 +456,17 @@
                                 @error('panel_position') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
-                            {{-- College & Department are only shown/required for college-based positions --}}
                             @php
-                                $noCollegeDeptPositions = ['dean', 'chair_fsb', 'fai_president', 'clutches_president', 'director_hr'];
+                                // Positions that hide BOTH college and department
+                                $noCollegeDeptPositions = ['chair_fsb', 'fai_president', 'clutches_president', 'director_hr'];
                                 $isNoCollegeDept = in_array($panel_position, $noCollegeDeptPositions);
+
+                                // Positions that show college but NOT department
+                                $noDeptPositions = ['dean'];
+                                $isNoDept = in_array($panel_position, $noDeptPositions);
                             @endphp
 
+                            {{-- College: shown for all except no-college-dept positions --}}
                             @if(!$isNoCollegeDept)
                                 <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">College <span class="text-red-500">*</span></label>
@@ -475,8 +480,8 @@
                                     @error('college_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                                 </div>
 
-                                {{-- Department only shown for head & señior (not dean) --}}
-                                @if(!in_array($panel_position, ['dean']))
+                                {{-- Department: hidden for dean (and no-college-dept positions) --}}
+                                @if(!$isNoDept)
                                     <div class="mb-4">
                                         <label class="block text-sm font-medium text-gray-700 mb-2">
                                             Department <span class="text-red-500">*</span>

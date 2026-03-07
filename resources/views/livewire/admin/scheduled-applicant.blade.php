@@ -20,11 +20,13 @@
                 </div>
             </div>
 
-            <!-- Enhanced Table Card -->
+            <!-- Table Card -->
             <div class="bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn" style="animation-delay: 0.2s;">
+
                 <!-- Table Header with Filters -->
                 <div class="bg-[#0a6025] p-6">
                     <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+
                         <!-- Left: Title -->
                         <div class="flex items-center gap-3">
                             <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
@@ -33,7 +35,7 @@
                             <h2 class="text-2xl font-bold text-white">Scheduled Applicant List</h2>
                         </div>
 
-                        <!-- Right: Filters -->
+                        <!-- Right: Filters + Print -->
                         <div class="flex flex-wrap items-center gap-3">
 
                             <!-- Filter by Position Name -->
@@ -45,7 +47,7 @@
                                 @endforeach
                             </select>
 
-                            <!-- Filter by Interview Date (only shown when a position is selected) -->
+                            <!-- Filter by Interview Date -->
                             @if($selectedPositionName && $availableDates->isNotEmpty())
                             <select wire:model.live="selectedDate"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
@@ -56,6 +58,21 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @endif
+
+                            <!-- Print Button -->
+                            @if($selectedPositionName)
+                            <button
+                                wire:click="print"
+                                wire:loading.attr="disabled"
+                                class="flex items-center gap-2 bg-white text-[#0a6025] hover:bg-green-50 font-semibold rounded-lg px-4 py-2 text-sm transition-colors shadow disabled:opacity-60">
+                                <span wire:loading.remove wire:target="print">
+                                    <i class="fa-solid fa-print mr-1"></i> Print List
+                                </span>
+                                <span wire:loading wire:target="print" style="display:none;">
+                                    <i class="fa-solid fa-spinner fa-spin mr-1"></i> Preparing...
+                                </span>
+                            </button>
                             @endif
 
                         </div>
@@ -156,13 +173,26 @@
                                         {{ $applications->links() }}
                                     </div>
                                     @endif
+
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
+
+    {{-- JS: receive rendered HTML from Livewire and open it in a new tab for printing --}}
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('openPrintTab', (event) => {
+                const newTab = window.open('', '_blank');
+                newTab.document.open();
+                newTab.document.write(event.html);
+                newTab.document.close();
+            });
+        });
+    </script>
 </div>
