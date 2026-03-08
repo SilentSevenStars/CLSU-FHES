@@ -86,6 +86,7 @@
                     </div>
 
                     <form wire:submit.prevent="confirmSubmission">
+                        <div wire:key="performance-page-{{ $currentPage }}">
                         @if ($currentPage == 1)
                         <!-- Page 1: Instructional Competence/Skill -->
                         <div class="space-y-6">

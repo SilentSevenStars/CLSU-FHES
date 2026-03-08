@@ -32,18 +32,49 @@
             </div>
         @else
             <!-- Authorized Content -->
+
             <!-- Header -->
-            <div class="mb-8">
+            <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
                 <h1 class="text-3xl font-bold text-gray-900">NBC Dashboard</h1>
+
+                <!-- Print Report Button -->
+                <button
+                    wire:click="printReport"
+                    wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-medium rounded-lg text-sm transition-colors focus:ring-4 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <span wire:loading.remove wire:target="printReport">
+                        <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                            </path>
+                        </svg>
+                        Print Report
+                    </span>
+                    <span wire:loading wire:target="printReport" style="display:none;">
+                        <svg class="w-4 h-4 mr-1 inline animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        Preparing...
+                    </span>
+                </button>
             </div>
+
+            <!-- Flash: print error -->
+            @if(session()->has('print_error'))
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+                    {{ session('print_error') }}
+                </div>
+            @endif
 
             <!-- Infographics -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- Pending Today Card -->
+                <!-- Pending Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Pending Today</p>
+                            <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Pending Evaluations</p>
                             <p class="mt-2 text-4xl font-bold text-gray-900">{{ $pendingTodayCount }}</p>
                             <p class="mt-1 text-sm text-gray-500">Evaluations awaiting completion</p>
                         </div>
@@ -55,13 +86,13 @@
                     </div>
                 </div>
 
-                <!-- Complete Today Card -->
+                <!-- Complete Card -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Complete Today</p>
+                            <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Completed Evaluations</p>
                             <p class="mt-2 text-4xl font-bold text-gray-900">{{ $completeTodayCount }}</p>
-                            <p class="mt-1 text-sm text-gray-500">Evaluations completed today</p>
+                            <p class="mt-1 text-sm text-gray-500">Evaluations successfully completed</p>
                         </div>
                         <div class="bg-green-100 rounded-full p-4">
                             <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,8 +109,8 @@
                     <!-- Search -->
                     <div>
                         <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             id="search"
                             wire:model.live.debounce.300ms="search"
                             placeholder="Name or Position..."
@@ -90,7 +121,7 @@
                     <!-- Per Page -->
                     <div>
                         <label for="perPage" class="block text-sm font-medium text-gray-700 mb-2">Per Page</label>
-                        <select 
+                        <select
                             id="perPage"
                             wire:model.live="perPage"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -110,25 +141,30 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Name
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Email
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Position
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Status
-                                </th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions
-                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($evaluations as $evaluation)
+                                @php
+                                    // interview_date is the DEADLINE for submission
+                                    // If today > interview_date, the deadline has passed and evaluation is locked
+                                    $interviewDate = \Carbon\Carbon::parse($evaluation->interview_date)->startOfDay();
+                                    $isPastDeadline = today()->gt($interviewDate);
+
+                                    // Check assignment completion for the current NBC member
+                                    $userAssignment = \App\Models\NbcAssignment::where('evaluation_id', $evaluation->id)
+                                        ->whereHas('nbcCommittee', function($q) {
+                                            $q->where('user_id', auth()->id());
+                                        })
+                                        ->first();
+                                    $isComplete = $userAssignment && $userAssignment->status === 'complete';
+                                @endphp
+
                                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-gray-900">
@@ -137,66 +173,53 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-500">
-                                            {{ $evaluation->jobApplication->applicant->user->email }}
+                                            {{ $evaluation->jobApplication->applicant->user->email ?? 'N/A' }}
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm text-gray-900">
-                                            {{ $evaluation->jobApplication->position->name }}
+                                            {{ $evaluation->jobApplication->position->name ?? 'N/A' }}
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        @php
-                                            // Check if current user has an assignment for this evaluation
-                                            $userAssignment = \App\Models\NbcAssignment::where('evaluation_id', $evaluation->id)
-                                                ->whereHas('nbcCommittee', function($q) {
-                                                    $q->where('user_id', auth()->id());
-                                                })
-                                                ->first();
-                                        @endphp
-                                        
-                                        @if($userAssignment && $userAssignment->status === 'complete')
+                                        @if($isComplete)
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                <svg class="mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
-                                                    <circle cx="4" cy="4" r="3" />
-                                                </svg>
+                                                <svg class="mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
                                                 Complete
                                             </span>
                                         @else
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                <svg class="mr-1.5 h-2 w-2 text-yellow-400" fill="currentColor" viewBox="0 0 8 8">
-                                                    <circle cx="4" cy="4" r="3" />
-                                                </svg>
+                                                <svg class="mr-1.5 h-2 w-2 text-yellow-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg>
                                                 Pending
                                             </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        @php
-                                            // Re-check assignment for the button state
-                                            $userAssignment = \App\Models\NbcAssignment::where('evaluation_id', $evaluation->id)
-                                                ->whereHas('nbcCommittee', function($q) {
-                                                    $q->where('user_id', auth()->id());
-                                                })
-                                                ->first();
-                                            $isComplete = $userAssignment && $userAssignment->status === 'complete';
-                                        @endphp
-                                        
                                         @if($isComplete)
-                                            <!-- Disabled Button for Completed Evaluations -->
-                                            <button 
-                                                disabled
+                                            <!-- Already completed -->
+                                            <button disabled
                                                 class="inline-flex items-center px-3 py-1 bg-gray-400 text-white rounded-md cursor-not-allowed opacity-60"
-                                                title="Evaluation already completed"
-                                            >
+                                                title="Evaluation already completed">
                                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                 </svg>
                                                 Completed
                                             </button>
+
+                                        @elseif($isPastDeadline)
+                                            <!-- Past deadline — evaluation locked -->
+                                            <button disabled
+                                                class="inline-flex items-center px-3 py-1 bg-red-200 text-red-700 rounded-md cursor-not-allowed opacity-70"
+                                                title="The submission deadline has passed. Evaluation is no longer allowed.">
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m0 0v2m0-2h2m-2 0H10m2-9V4m0 0L9 7m3-3l3 3"></path>
+                                                </svg>
+                                                Locked
+                                            </button>
+
                                         @else
-                                            <!-- Active Button for Pending Evaluations -->
-                                            <button 
+                                            <!-- Active — can evaluate -->
+                                            <button
                                                 @click="selectedEvaluationId = {{ $evaluation->id }}; showChoiceModal = true"
                                                 class="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-150">
                                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -215,10 +238,9 @@
                                         </svg>
                                         <p class="mt-4 text-sm text-gray-500">No evaluations found</p>
                                         @if($search)
-                                            <button 
+                                            <button
                                                 wire:click="$set('search', '')"
-                                                class="mt-2 text-sm text-blue-600 hover:text-blue-800"
-                                            >
+                                                class="mt-2 text-sm text-blue-600 hover:text-blue-800">
                                                 Clear filters
                                             </button>
                                         @endif
@@ -243,7 +265,7 @@
     </div>
 
     <!-- Evaluation Method Choice Modal -->
-    <div 
+    <div
         x-show="showChoiceModal"
         x-cloak
         class="fixed inset-0 z-50 overflow-y-auto"
@@ -256,10 +278,10 @@
     >
         <!-- Backdrop -->
         <div class="fixed inset-0 bg-black bg-opacity-50" @click="showChoiceModal = false"></div>
-        
+
         <!-- Modal -->
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div 
+            <div
                 class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform scale-95"
@@ -273,10 +295,7 @@
                 <div class="px-6 py-4 border-b border-gray-200">
                     <div class="flex items-center justify-between">
                         <h3 class="text-2xl font-bold text-gray-900">Choose Evaluation Method</h3>
-                        <button 
-                            @click="showChoiceModal = false"
-                            class="text-gray-400 hover:text-gray-600 transition-colors"
-                        >
+                        <button @click="showChoiceModal = false" class="text-gray-400 hover:text-gray-600 transition-colors">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -284,16 +303,13 @@
                     </div>
                     <p class="mt-2 text-sm text-gray-600">Select how you would like to complete this evaluation</p>
                 </div>
-                
+
                 <!-- Content -->
                 <div class="px-6 py-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Quick Input Option -->
                         <div class="group cursor-pointer">
-                            <a 
-                                :href="`/nbc/evaluation/${selectedEvaluationId}`"
-                                class="block h-full"
-                            >
+                            <a :href="`/nbc/evaluation/${selectedEvaluationId}`" class="block h-full">
                                 <div class="h-full border-2 border-indigo-200 rounded-lg p-6 hover:border-indigo-500 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-indigo-50 to-white">
                                     <div class="flex flex-col items-center text-center">
                                         <div class="bg-indigo-100 rounded-full p-4 mb-4 group-hover:bg-indigo-200 transition-colors">
@@ -302,9 +318,7 @@
                                             </svg>
                                         </div>
                                         <h4 class="text-lg font-bold text-gray-900 mb-2">Quick Input</h4>
-                                        <p class="text-sm text-gray-600 mb-4">
-                                            Directly enter scores for the three main categories
-                                        </p>
+                                        <p class="text-sm text-gray-600 mb-4">Directly enter scores for the three main categories</p>
                                         <div class="mt-6 w-full">
                                             <span class="block w-full px-4 py-2 bg-indigo-600 text-white rounded-lg text-center font-medium group-hover:bg-indigo-700 transition-colors">
                                                 Use Quick Input
@@ -317,10 +331,7 @@
 
                         <!-- Detailed Form Option -->
                         <div class="group cursor-pointer">
-                            <a 
-                                :href="`/nbc/educational-qualification/${selectedEvaluationId}`"
-                                class="block h-full"
-                            >
+                            <a :href="`/nbc/educational-qualification/${selectedEvaluationId}`" class="block h-full">
                                 <div class="h-full border-2 border-blue-200 rounded-lg p-6 hover:border-blue-500 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-blue-50 to-white">
                                     <div class="flex flex-col items-center text-center">
                                         <div class="bg-blue-100 rounded-full p-4 mb-4 group-hover:bg-blue-200 transition-colors">
@@ -329,9 +340,7 @@
                                             </svg>
                                         </div>
                                         <h4 class="text-lg font-bold text-gray-900 mb-2">Detailed Forms</h4>
-                                        <p class="text-sm text-gray-600 mb-4">
-                                            Complete comprehensive evaluation across three sections
-                                        </p>
+                                        <p class="text-sm text-gray-600 mb-4">Complete comprehensive evaluation across three sections</p>
                                         <div class="mt-6 w-full">
                                             <span class="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-center font-medium group-hover:bg-blue-700 transition-colors">
                                                 Use Detailed Forms
@@ -353,6 +362,18 @@
             </div>
         </div>
     </div>
+
+    {{-- JS: open the rendered HTML in a new tab for printing --}}
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('openPrintTab', (event) => {
+                const newTab = window.open('', '_blank');
+                newTab.document.open();
+                newTab.document.write(event.html);
+                newTab.document.close();
+            });
+        });
+    </script>
 
     <style>
         [x-cloak] { display: none !important; }

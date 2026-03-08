@@ -19,43 +19,40 @@ class ExperienceServiceForm extends Component
     public $position;
     public $jobApplication;
     public $evaluationId;
-
-    // Whether the current user is a verifier
-    public bool $isVerifier = false;
-
-    // Evaluator's scores (read-only reference for verifiers)
-    public $evaluator_rs_2_1_1 = null;
-    public $evaluator_rs_2_1_2 = null;
-    public $evaluator_rs_2_2_1 = null;
-    public $evaluator_rs_2_3_1 = null;
-    public $evaluator_rs_2_3_2 = null;
-    public bool $evaluatorScoresExist = false;
-
-    // Form fields - RS values editable by both evaluator and verifier
-    public $rs_2_1_1 = 0;
-    public $rs_2_1_2 = 0;
-    public $rs_2_2_1 = 0;
-    public $rs_2_3_1 = 0;
-    public $rs_2_3_2 = 0;
-    public $requirements_file;
     public $existing_file_path = null;
+    public $showApplicantModal  = false;
 
-    public $showApplicantModal = false;
+    // ── Scores from the applicant's most recent PAST completed evaluation ──
+    // Read-only reference. Comes from a different (older) nbc_assignment
+    // for the SAME APPLICANT (any previous job application / position).
+    public $prev_q2_1_1 = 0;
+    public $prev_q2_1_2 = 0;
+    public $prev_q2_2_1 = 0;
+    public $prev_q2_3_1 = 0;
+    public $prev_q2_3_2 = 0;
 
-    // Computed property for RS subtotal
-    public function getRsSubtotalProperty()
+    // ── What this NBC member enters for THIS evaluation ──
+    // Saved to DB on next/previous/save so navigating back restores them.
+    public $new_q2_1_1 = 0;
+    public $new_q2_1_2 = 0;
+    public $new_q2_2_1 = 0;
+    public $new_q2_3_1 = 0;
+    public $new_q2_3_2 = 0;
+
+    // RS = prev (past eval) + new (current input, live)
+    public function getRsTotalProperty(): float
     {
-        return (float) $this->rs_2_1_1
-             + (float) $this->rs_2_1_2
-             + (float) $this->rs_2_2_1
-             + (float) $this->rs_2_3_1
-             + (float) $this->rs_2_3_2;
+        return ((float)$this->prev_q2_1_1 + (float)$this->new_q2_1_1)
+             + ((float)$this->prev_q2_1_2 + (float)$this->new_q2_1_2)
+             + ((float)$this->prev_q2_2_1 + (float)$this->new_q2_2_1)
+             + ((float)$this->prev_q2_3_1 + (float)$this->new_q2_3_1)
+             + ((float)$this->prev_q2_3_2 + (float)$this->new_q2_3_2);
     }
 
-    // Computed property for EP (overall) - MIN(RS subtotal, 25)
-    public function getEpSubtotalProperty()
+    // EP = MIN(RS, 25)
+    public function getEpSubtotalProperty(): float
     {
-        return min($this->rsSubtotal, 25);
+        return min($this->rsTotal, 25);
     }
 
     public function mount($evaluationId = null)
@@ -72,124 +69,99 @@ class ExperienceServiceForm extends Component
         $this->position           = $this->jobApplication->position;
         $this->existing_file_path = $this->jobApplication->requirements_file;
 
-        // Get NBC committee for current user
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
-
         if (!$nbcCommittee) {
             abort(403, 'You are not assigned as an NBC committee member.');
         }
 
-        $this->isVerifier = $nbcCommittee->isVerifier();
-
-        // If verifier, load the evaluator's scores for read-only reference
-        if ($this->isVerifier) {
-            $evaluatorAssignment = NbcAssignment::where('evaluation_id', $this->evaluation->id)
-                ->where('type', 'evaluate')
-                ->with('experienceService')
-                ->first();
-
-            if ($evaluatorAssignment && $evaluatorAssignment->experienceService) {
-                $es = $evaluatorAssignment->experienceService;
-                $this->evaluator_rs_2_1_1   = $es->rs_2_1_1;
-                $this->evaluator_rs_2_1_2   = $es->rs_2_1_2;
-                $this->evaluator_rs_2_2_1   = $es->rs_2_2_1;
-                $this->evaluator_rs_2_3_1   = $es->rs_2_3_1;
-                $this->evaluator_rs_2_3_2   = $es->rs_2_3_2;
-                $this->evaluatorScoresExist = true;
-            }
-        }
-
-        // Get or create assignment automatically
         $this->assignment = NbcAssignment::firstOrCreate([
             'nbc_committee_id' => $nbcCommittee->id,
             'evaluation_id'    => $this->evaluation->id,
         ], [
-            'status' => 'pending',
-            'type'   => $nbcCommittee->position === 'evaluator' ? 'evaluate' : 'verify',
+            'status'          => 'pending',
+            'evaluation_date' => now(),
         ]);
 
-        // Get or create experience service
-        if ($this->assignment->experienceService) {
-            $this->experienceService = $this->assignment->experienceService;
-            $this->loadExistingScores();
-        } else {
-            $this->experienceService = $this->createExperienceService();
+        if ($this->assignment->experience_service_id) {
+            $this->experienceService = ExperienceService::find($this->assignment->experience_service_id);
+        }
 
-            // Pre-fill verifier's editable fields with evaluator scores as a starting point
-            if ($this->isVerifier && $this->evaluatorScoresExist) {
-                $this->rs_2_1_1 = $this->evaluator_rs_2_1_1 ?? 0;
-                $this->rs_2_1_2 = $this->evaluator_rs_2_1_2 ?? 0;
-                $this->rs_2_2_1 = $this->evaluator_rs_2_2_1 ?? 0;
-                $this->rs_2_3_1 = $this->evaluator_rs_2_3_1 ?? 0;
-                $this->rs_2_3_2 = $this->evaluator_rs_2_3_2 ?? 0;
+        if (!$this->experienceService) {
+            $this->experienceService = ExperienceService::create([
+                'q2_1_1' => 0, 'q2_1_2' => 0, 'q2_2_1' => 0,
+                'q2_3_1' => 0, 'q2_3_2' => 0, 'subtotal' => 0,
+            ]);
+            $this->assignment->update(['experience_service_id' => $this->experienceService->id]);
+        }
+
+        // ── Load PREVIOUS evaluation scores (prev_) ──
+        // Most recent COMPLETED assignment for the SAME APPLICANT (any position),
+        // by this NBC member, with an evaluation_date strictly before this one.
+        $previousAssignment = NbcAssignment::where('nbc_committee_id', $nbcCommittee->id)
+            ->where('id', '!=', $this->assignment->id)
+            ->where('status', 'complete')
+            ->whereHas('evaluation.jobApplication', function ($q) {
+                $q->where('applicant_id', $this->applicant->id);
+            })
+            ->where('evaluation_date', '<', $this->assignment->evaluation_date)
+            ->orderByDesc('evaluation_date')
+            ->first();
+
+        if ($previousAssignment && $previousAssignment->experience_service_id) {
+            $prevEs = ExperienceService::find($previousAssignment->experience_service_id);
+            if ($prevEs) {
+                $this->prev_q2_1_1 = (float)($prevEs->q2_1_1 ?? 0);
+                $this->prev_q2_1_2 = (float)($prevEs->q2_1_2 ?? 0);
+                $this->prev_q2_2_1 = (float)($prevEs->q2_2_1 ?? 0);
+                $this->prev_q2_3_1 = (float)($prevEs->q2_3_1 ?? 0);
+                $this->prev_q2_3_2 = (float)($prevEs->q2_3_2 ?? 0);
             }
         }
-    }
 
-    protected function createExperienceService()
-    {
-        $service = ExperienceService::create([]);
-
-        $this->assignment->update([
-            'experience_service_id' => $service->id,
-        ]);
-
-        return $service;
-    }
-
-    protected function loadExistingScores()
-    {
-        $this->rs_2_1_1 = $this->experienceService->rs_2_1_1 ?? 0;
-        $this->rs_2_1_2 = $this->experienceService->rs_2_1_2 ?? 0;
-        $this->rs_2_2_1 = $this->experienceService->rs_2_2_1 ?? 0;
-        $this->rs_2_3_1 = $this->experienceService->rs_2_3_1 ?? 0;
-        $this->rs_2_3_2 = $this->experienceService->rs_2_3_2 ?? 0;
-    }
-
-    protected function saveData()
-    {
-        $this->validate([
-            'rs_2_1_1' => 'required|numeric|min:0|max:25',
-            'rs_2_1_2' => 'required|numeric|min:0|max:25',
-            'rs_2_2_1' => 'required|numeric|min:0|max:25',
-            'rs_2_3_1' => 'required|numeric|min:0|max:25',
-            'rs_2_3_2' => 'required|numeric|min:0|max:25',
-        ]);
-
-        $epSubtotal = $this->epSubtotal;
-
-        $this->experienceService->update([
-            'rs_2_1_1' => $this->rs_2_1_1,
-            'rs_2_1_2' => $this->rs_2_1_2,
-            'rs_2_2_1' => $this->rs_2_2_1,
-            'rs_2_3_1' => $this->rs_2_3_1,
-            'rs_2_3_2' => $this->rs_2_3_2,
-            'subtotal' => $epSubtotal,
-            'ep_2_1_1' => null,
-            'ep_2_1_2' => null,
-            'ep_2_2_1' => null,
-            'ep_2_3_1' => null,
-            'ep_2_3_2' => null,
-        ]);
-
-        $this->assignment->updateNbcScores();
+        // ── Load THIS evaluation's already-saved inputs into new_ fields ──
+        // Ensures inputs survive navigating away and back.
+        $this->new_q2_1_1 = (float)($this->experienceService->q2_1_1 ?? 0);
+        $this->new_q2_1_2 = (float)($this->experienceService->q2_1_2 ?? 0);
+        $this->new_q2_2_1 = (float)($this->experienceService->q2_2_1 ?? 0);
+        $this->new_q2_3_1 = (float)($this->experienceService->q2_3_1 ?? 0);
+        $this->new_q2_3_2 = (float)($this->experienceService->q2_3_2 ?? 0);
     }
 
     /**
-     * Generate base64 encoded PDF for viewing in new tab
+     * Persist current new_ inputs to DB.
+     * Stores ONLY this session's inputs (not prev+new accumulated).
+     * Final total (prev+new) is computed at display/submit time.
      */
+    protected function persistCurrentInputs(): void
+    {
+        $this->validate([
+            'new_q2_1_1' => 'required|numeric|min:0',
+            'new_q2_1_2' => 'required|numeric|min:0',
+            'new_q2_2_1' => 'required|numeric|min:0',
+            'new_q2_3_1' => 'required|numeric|min:0',
+            'new_q2_3_2' => 'required|numeric|min:0',
+        ]);
+
+        $this->experienceService->update([
+            'q2_1_1'   => (float)$this->new_q2_1_1,
+            'q2_1_2'   => (float)$this->new_q2_1_2,
+            'q2_2_1'   => (float)$this->new_q2_2_1,
+            'q2_3_1'   => (float)$this->new_q2_3_1,
+            'q2_3_2'   => (float)$this->new_q2_3_2,
+            'subtotal' => $this->epSubtotal, // prev+new capped at 25
+        ]);
+    }
+
     public function getFileDataUrl()
     {
         $encryptionService = new FileEncryptionService();
-
         if (!$this->existing_file_path || !$encryptionService->fileExists($this->existing_file_path)) {
             return null;
         }
-
         try {
-            $decryptedContents = $encryptionService->decryptFile($this->existing_file_path);
-            $base64 = base64_encode($decryptedContents);
-            return 'data:application/pdf;base64,' . $base64;
+            return 'data:application/pdf;base64,' . base64_encode(
+                $encryptionService->decryptFile($this->existing_file_path)
+            );
         } catch (\Exception $e) {
             return null;
         }
@@ -202,15 +174,13 @@ class ExperienceServiceForm extends Component
 
     public function previous()
     {
-        $this->saveData();
-        session()->flash('message', 'Experience and service saved successfully.');
+        $this->persistCurrentInputs();
         return redirect()->route('nbc.educational-qualification', ['evaluationId' => $this->evaluation->id]);
     }
 
     public function next()
     {
-        $this->saveData();
-        session()->flash('message', 'Experience and service saved successfully.');
+        $this->persistCurrentInputs();
         return redirect()->route('nbc.professional-development', ['evaluationId' => $this->evaluation->id]);
     }
 

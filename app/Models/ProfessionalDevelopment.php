@@ -3,10 +3,88 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProfessionalDevelopment extends Model
 {
     protected $guarded = [];
+
+    protected $fillable = [
+        'subtotal',
+        'creative_work_id',
+        'activity_id',
+        'recognition_id',
+        'award_id',
+        'outreach_id',
+        'licensure_id',
+    ];
+
+    protected $casts = [
+        'subtotal' => 'decimal:3',
+        'creative_work_id' => 'integer',
+        'activity_id' => 'integer',
+        'recognition_id' => 'integer',
+        'award_id' => 'integer',
+        'outreach_id' => 'integer',
+        'licensure_id' => 'integer',
+    ];
+
+    /**
+     * Get the creative work associated with this professional development
+     */
+    public function creativeWork(): BelongsTo
+    {
+        return $this->belongsTo(CreativeWork::class);
+    }
+
+    /**
+     * Get the activity associated with this professional development
+     */
+    public function activity(): BelongsTo
+    {
+        return $this->belongsTo(Activity::class);
+    }
+
+    /**
+     * Get the recognition associated with this professional development
+     */
+    public function recognition(): BelongsTo
+    {
+        return $this->belongsTo(Recognition::class);
+    }
+
+    /**
+     * Get the award associated with this professional development
+     */
+    public function award(): BelongsTo
+    {
+        return $this->belongsTo(Award::class);
+    }
+
+    /**
+     * Get the outreach associated with this professional development
+     */
+    public function outreach(): BelongsTo
+    {
+        return $this->belongsTo(Outreach::class);
+    }
+
+    /**
+     * Get the licensure associated with this professional development
+     */
+    public function licensure(): BelongsTo
+    {
+        return $this->belongsTo(Licensure::class);
+    }
+
+    /**
+     * Get all NBC assignments for this professional development
+     */
+    public function nbcAssignments(): HasMany
+    {
+        return $this->hasMany(NbcAssignment::class);
+    }
 
     protected function cap(float $value, float $max): float
     {

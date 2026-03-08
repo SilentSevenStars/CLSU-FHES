@@ -87,10 +87,15 @@ class Dashboard extends Component
         } elseif ($panelPos === 'dean') {
             if (is_null($panel->college_id)) {
                 // Dean with no college assigned → sees ALL applications
+
             } else {
-                // Dean with a college → filter by college only
+                // Dean with a college → filter by that college,
+                // but also include positions where college_id is null (university-wide positions)
                 $query->whereHas('position', function ($q) use ($panel) {
-                    $q->where('college_id', $panel->college_id);
+                    $q->where(function ($inner) use ($panel) {
+                        $inner->where('college_id', $panel->college_id)
+                              ->orWhereNull('college_id');
+                    });
                 });
             }
 
@@ -99,16 +104,33 @@ class Dashboard extends Component
                 // No college assigned → sees ALL applications (across all colleges/departments)
 
             } elseif (is_null($panel->department_id)) {
-                // College assigned but no department → sees all applications within that college
+                // College assigned but no department → sees all applications within that college,
+                // plus positions where college_id is null (university-wide positions)
                 $query->whereHas('position', function ($q) use ($panel) {
-                    $q->where('college_id', $panel->college_id);
+                    $q->where(function ($inner) use ($panel) {
+                        $inner->where('college_id', $panel->college_id)
+                              ->orWhereNull('college_id');
+                    });
                 });
 
             } else {
-                // Both college and department assigned → filter by both
+                // Both college and department assigned → filter by both,
+                // but also show:
+                //   - positions in the same college where department_id is null
+                //   - positions where college_id is null (university-wide positions)
                 $query->whereHas('position', function ($q) use ($panel) {
-                    $q->where('college_id', $panel->college_id)
-                      ->where('department_id', $panel->department_id);
+                    $q->where(function ($inner) use ($panel) {
+                        // Exact college + department match
+                        $inner->where('college_id', $panel->college_id)
+                              ->where('department_id', $panel->department_id);
+                    })->orWhere(function ($inner) use ($panel) {
+                        // Same college but no department assigned on the position
+                        $inner->where('college_id', $panel->college_id)
+                              ->whereNull('department_id');
+                    })->orWhere(function ($inner) {
+                        // Position has no college assigned (university-wide)
+                        $inner->whereNull('college_id');
+                    });
                 });
             }
         }

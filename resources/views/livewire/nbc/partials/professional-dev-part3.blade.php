@@ -1,649 +1,175 @@
-<div class="border-l-4 border-indigo-500 pl-4 mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-        3.3 Academic Distinctions (maximum of 30 points)
-    </h3>
+{{-- Page 3: Sections 3.3–3.6 --}}
 
-    {{-- Column headers for verifier --}}
-    @if($isVerifier)
-        <div class="grid grid-cols-12 gap-4 mb-3">
-            <div class="col-span-8"></div>
-            <div class="col-span-2 text-center">
-                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-blue-600 bg-blue-50 border border-blue-200 rounded px-2 py-1 w-full">
-                    Evaluator Score
-                </span>
-            </div>
-            <div class="col-span-2 text-center">
-                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 w-full">
-                    Your Score
-                </span>
-            </div>
-        </div>
-    @endif
+{{-- Column Headers --}}
+<div class="grid grid-cols-12 gap-4 mb-3">
+    <div class="col-span-8"></div>
+    <div class="col-span-2 text-center">
+        <span class="inline-block text-xs font-semibold uppercase tracking-wide text-gray-600 bg-gray-100 border border-gray-300 rounded px-2 py-1 w-full">Previous</span>
+    </div>
+    <div class="col-span-2 text-center">
+        <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 w-full">Add New</span>
+    </div>
+</div>
+
+{{-- 3.3 Academic Distinctions --}}
+<div class="border-l-4 border-indigo-500 pl-4 mb-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">3.3 Academic Distinctions (maximum of 30 points)</h3>
 
     <div class="space-y-4">
-        <!-- 3.3.1 Latin honors -->
         <div class="bg-gray-50 rounded-lg p-4">
-            <p class="text-sm font-medium text-gray-700 mb-3">
-                3.3.1 For earned latin honors graduated from a SUC, CHED supervised institution
-            </p>
-
+            <p class="text-sm font-medium text-gray-700 mb-3">3.3.1 For earned latin honors from a SUC / CHED supervised institution</p>
             <div class="space-y-3 pl-4">
+                @foreach([
+                    ['new_q3_3_1_a','prev_q3_3_1_a','a. International'],
+                    ['new_q3_3_1_b','prev_q3_3_1_b','b. National'],
+                    ['new_q3_3_1_c','prev_q3_3_1_c','c. Local'],
+                ] as [$nf,$pf,$label])
                 <div class="grid grid-cols-12 gap-4 items-center">
-                    <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                        <label class="block text-sm text-gray-600">a. International</label>
-                    </div>
-                    @if($isVerifier)
-                        <div class="col-span-2">
-                            <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                                {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_1_a'] ?? 0), 2) : '—' }}
-                            </div>
-                        </div>
-                    @endif
-                    <div class="col-span-2">
-                        <input type="number" wire:model.live="rs_3_3_1_a" step="0.01" min="0"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-center">
-                    </div>
+                    <div class="col-span-8"><label class="block text-sm text-gray-600">{{ $label }}</label></div>
+                    <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($$pf, 3) }}</div></div>
+                    <div class="col-span-2"><input type="number" wire:model.live="{{ $nf }}" step="0.001" min="0" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
                 </div>
-
-                <div class="grid grid-cols-12 gap-4 items-center">
-                    <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                        <label class="block text-sm text-gray-600">b. National</label>
-                    </div>
-                    @if($isVerifier)
-                        <div class="col-span-2">
-                            <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                                {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_1_b'] ?? 0), 2) : '—' }}
-                            </div>
-                        </div>
-                    @endif
-                    <div class="col-span-2">
-                        <input type="number" wire:model.live="rs_3_3_1_b" step="0.01" min="0"
-                            class="w-full px-3 py-2 border rounded-lg text-center">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-12 gap-4 items-center">
-                    <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                        <label class="block text-sm text-gray-600">c. Local</label>
-                    </div>
-                    @if($isVerifier)
-                        <div class="col-span-2">
-                            <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                                {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_1_c'] ?? 0), 2) : '—' }}
-                            </div>
-                        </div>
-                    @endif
-                    <div class="col-span-2">
-                        <input type="number" wire:model.live="rs_3_3_1_c" step="0.01" min="0"
-                            class="w-full px-3 py-2 border rounded-lg text-center">
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
 
-        <!-- 3.3.2 Academic awards -->
         <div class="bg-gray-50 rounded-lg p-4">
-            <p class="text-sm font-medium text-gray-700 mb-2">
-                3.3.2 Academic awards
-            </p>
+            <p class="text-sm font-medium text-gray-700 mb-2">3.3.2 Academic awards</p>
             <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                    <label class="block text-sm text-gray-600">RS Score</label>
-                </div>
-                @if($isVerifier)
-                    <div class="col-span-2">
-                        <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                            {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_2'] ?? 0), 2) : '—' }}
-                        </div>
-                    </div>
-                @endif
-                <div class="col-span-2">
-                    <input type="number" wire:model.live="rs_3_3_2" step="0.01" min="0"
-                        class="w-full px-3 py-2 border rounded-lg text-center">
-                </div>
+                <div class="col-span-8"><label class="block text-sm text-gray-600">RS Score</label></div>
+                <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($prev_q3_3_2, 3) }}</div></div>
+                <div class="col-span-2"><input type="number" wire:model.live="new_q3_3_2" step="0.001" min="0" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
             </div>
         </div>
 
-        <!-- 3.3.3 Scholarship/Fellowship -->
         <div class="bg-gray-50 rounded-lg p-4">
-            <p class="text-sm font-medium text-gray-700 mb-3">
-                3.3.3 Scholarship/Fellowship. This may be degree or non-degree granting
-            </p>
-
+            <p class="text-sm font-medium text-gray-700 mb-3">3.3.3 Scholarship/Fellowship (degree or non-degree granting)</p>
             <div class="space-y-4 pl-4">
-                <!-- International competitive -->
-                <div class="border-l-2 border-blue-300 pl-3">
-                    <p class="text-sm font-semibold text-gray-700 mb-2">a. International competitive</p>
+                @foreach([
+                    ['a. International competitive', [
+                        ['new_q3_3_3_a_doctorate','prev_q3_3_3_a_doctorate','Doctorate'],
+                        ['new_q3_3_3_a_masters','prev_q3_3_3_a_masters','Masters'],
+                        ['new_q3_3_3_a_nondegree','prev_q3_3_3_a_nondegree','Non-Degree'],
+                    ]],
+                    ['b. International, non-competitive', [
+                        ['new_q3_3_3_b_doctorate','prev_q3_3_3_b_doctorate','Doctorate'],
+                        ['new_q3_3_3_b_masters','prev_q3_3_3_b_masters','Masters'],
+                        ['new_q3_3_3_b_nondegree','prev_q3_3_3_b_nondegree','Non-Degree'],
+                    ]],
+                    ['c. National/Regional, competitive', [
+                        ['new_q3_3_3_c_doctorate','prev_q3_3_3_c_doctorate','Doctorate'],
+                        ['new_q3_3_3_c_masters','prev_q3_3_3_c_masters','Masters'],
+                        ['new_q3_3_3_c_nondegree','prev_q3_3_3_c_nondegree','Non-Degree'],
+                    ]],
+                    ['d. National/Regional, non-competitive', [
+                        ['new_q3_3_3_d_doctorate','prev_q3_3_3_d_doctorate','Doctorate'],
+                        ['new_q3_3_3_d_masters','prev_q3_3_3_d_masters','Masters'],
+                    ]],
+                ] as [$groupLabel, $items])
+                <div class="border-l-2 border-indigo-300 pl-3">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">{{ $groupLabel }}</p>
                     <div class="space-y-2">
+                        @foreach($items as [$nf,$pf,$sublabel])
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Doctorate</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_a_doctorate'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_a_doctorate" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
+                            <div class="col-span-8"><label class="block text-xs text-gray-600">{{ $sublabel }}</label></div>
+                            <div class="col-span-2"><div class="px-2 py-1 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-xs">{{ number_format($$pf, 3) }}</div></div>
+                            <div class="col-span-2"><input type="number" wire:model.live="{{ $nf }}" step="0.001" min="0" class="w-full px-2 py-1 border rounded text-center text-sm" placeholder="+0"></div>
                         </div>
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Masters</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_a_masters'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_a_masters" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Non-Degree</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_a_nondegree'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_a_nondegree" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
+                        @endforeach
                     </div>
                 </div>
+                @endforeach
 
-                <!-- International, non-competitive -->
-                <div class="border-l-2 border-blue-300 pl-3">
-                    <p class="text-sm font-semibold text-gray-700 mb-2">b. International, non-competitive</p>
-                    <div class="space-y-2">
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Doctorate</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_b_doctorate'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_b_doctorate" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Masters</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_b_masters'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_b_masters" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Non-Degree</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_b_nondegree'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_b_nondegree" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- National/Regional, competitive -->
-                <div class="border-l-2 border-blue-300 pl-3">
-                    <p class="text-sm font-semibold text-gray-700 mb-2">c. National/Regional, competitive</p>
-                    <div class="space-y-2">
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Doctorate</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_c_doctorate'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_c_doctorate" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Masters</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_c_masters'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_c_masters" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Non-Degree</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_c_nondegree'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_c_nondegree" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- National/Regional, non-competitive -->
-                <div class="border-l-2 border-blue-300 pl-3">
-                    <p class="text-sm font-semibold text-gray-700 mb-2">d. National/Regional, non-competitive</p>
-                    <div class="space-y-2">
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Doctorate</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_d_doctorate'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_d_doctorate" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-xs text-gray-600">Masters</label>
-                            </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_d_masters'] ?? 0), 2) : '—' }}
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="col-span-2">
-                                <input type="number" wire:model.live="rs_3_3_3_d_masters" step="0.01" min="0"
-                                    class="w-full px-2 py-1 border rounded text-center text-sm">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Local, competitive or non-competitive -->
-                <div class="border-l-2 border-blue-300 pl-3">
+                <div class="border-l-2 border-indigo-300 pl-3">
                     <p class="text-sm font-semibold text-gray-700 mb-2">e. Local, competitive or non-competitive</p>
                     <div class="grid grid-cols-12 gap-4 items-center">
-                        <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                            <label class="block text-xs text-gray-600">RS Score</label>
-                        </div>
-                        @if($isVerifier)
-                            <div class="col-span-2">
-                                <div class="px-2 py-1 bg-blue-50 border border-blue-300 rounded text-center font-semibold text-blue-700 text-xs">
-                                    {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_3_3_e'] ?? 0), 2) : '—' }}
-                                </div>
-                            </div>
-                        @endif
-                        <div class="col-span-2">
-                            <input type="number" wire:model.live="rs_3_3_3_e" step="0.01" min="0"
-                                class="w-full px-2 py-1 border rounded text-center text-sm">
-                        </div>
+                        <div class="col-span-8"><label class="block text-xs text-gray-600">RS Score</label></div>
+                        <div class="col-span-2"><div class="px-2 py-1 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-xs">{{ number_format($prev_q3_3_3_e, 3) }}</div></div>
+                        <div class="col-span-2"><input type="number" wire:model.live="new_q3_3_3_e" step="0.001" min="0" class="w-full px-2 py-1 border rounded text-center text-sm" placeholder="+0"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Subtotal 3.3 -->
     <div class="mt-4 pt-4 border-t border-gray-300">
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                <label class="block text-base font-bold text-gray-900">
-                    Section 3.3 Subtotal (MAX 30)
-                </label>
-            </div>
-            @if($isVerifier)
-                @php
-                    $evalSub33 = min(
-                        collect(['rs_3_3_1_a','rs_3_3_1_b','rs_3_3_1_c','rs_3_3_2',
-                                 'rs_3_3_3_a_doctorate','rs_3_3_3_a_masters','rs_3_3_3_a_nondegree',
-                                 'rs_3_3_3_b_doctorate','rs_3_3_3_b_masters','rs_3_3_3_b_nondegree',
-                                 'rs_3_3_3_c_doctorate','rs_3_3_3_c_masters','rs_3_3_3_c_nondegree',
-                                 'rs_3_3_3_d_doctorate','rs_3_3_3_d_masters','rs_3_3_3_e'])
-                            ->sum(fn($f) => (float)($evaluatorScores[$f] ?? 0)),
-                        30
-                    );
-                @endphp
-                <div class="col-span-2">
-                    <div class="text-xs text-center text-blue-600 mb-1 font-medium">Evaluator</div>
-                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-bold text-blue-700">
-                        {{ $evaluatorScoresExist ? number_format($evalSub33, 2) : '—' }}
-                    </div>
-                </div>
-                <div class="col-span-2">
-                    <div class="text-xs text-center text-green-700 mb-1 font-medium">Yours</div>
-                    <div class="px-3 py-2 bg-green-50 border border-green-400 rounded-lg text-center font-bold text-green-800">
-                        {{ number_format($this->subtotal33, 2) }}
-                    </div>
-                </div>
-            @else
-                <div class="col-span-2">
-                    <div class="px-3 py-2 bg-indigo-100 border border-indigo-300 rounded-lg text-center font-semibold">
-                        {{ number_format($this->subtotal33, 2) }}
-                    </div>
-                </div>
-            @endif
+            <div class="col-span-8"><label class="block text-base font-bold text-gray-900">Section 3.3 Subtotal (MAX 30)</label></div>
+            <div class="col-span-4"><div class="px-3 py-2 bg-indigo-100 border border-indigo-300 rounded-lg text-center font-bold text-indigo-900">{{ number_format($this->subtotal33, 3) }}</div></div>
         </div>
     </div>
 </div>
 
-<!-- Section 3.4 - Awards of Distinction -->
+{{-- 3.4 Awards --}}
 <div class="border-l-4 border-pink-500 pl-4 mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-        3.4 Awards of distinction received in recognition of
-    </h3>
-
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">3.4 Awards of distinction received in recognition of</h3>
     <div class="space-y-3">
+        @foreach([
+            ['new_q3_4_a','prev_q3_4_a','a. International competitive'],
+            ['new_q3_4_b','prev_q3_4_b','b. National/Regional'],
+            ['new_q3_4_c','prev_q3_4_c','c. Local'],
+        ] as [$nf,$pf,$label])
         <div class="bg-gray-50 rounded-lg p-4">
             <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                    <label class="block text-sm text-gray-600">a. International competitive</label>
-                </div>
-                @if($isVerifier)
-                    <div class="col-span-2">
-                        <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                            {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_4_a'] ?? 0), 2) : '—' }}
-                        </div>
-                    </div>
-                @endif
-                <div class="col-span-2">
-                    <input type="number" wire:model.live="rs_3_4_a" step="0.01" min="0"
-                        class="w-full px-3 py-2 border rounded-lg text-center">
-                </div>
+                <div class="col-span-8"><label class="block text-sm text-gray-600">{{ $label }}</label></div>
+                <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($$pf, 3) }}</div></div>
+                <div class="col-span-2"><input type="number" wire:model.live="{{ $nf }}" step="0.001" min="0" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
             </div>
         </div>
-
-        <div class="bg-gray-50 rounded-lg p-4">
-            <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                    <label class="block text-sm text-gray-600">b. National/Regional</label>
-                </div>
-                @if($isVerifier)
-                    <div class="col-span-2">
-                        <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                            {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_4_b'] ?? 0), 2) : '—' }}
-                        </div>
-                    </div>
-                @endif
-                <div class="col-span-2">
-                    <input type="number" wire:model.live="rs_3_4_b" step="0.01" min="0"
-                        class="w-full px-3 py-2 border rounded-lg text-center">
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-gray-50 rounded-lg p-4">
-            <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                    <label class="block text-sm text-gray-600">c. Local</label>
-                </div>
-                @if($isVerifier)
-                    <div class="col-span-2">
-                        <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                            {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_4_c'] ?? 0), 2) : '—' }}
-                        </div>
-                    </div>
-                @endif
-                <div class="col-span-2">
-                    <input type="number" wire:model.live="rs_3_4_c" step="0.01" min="0"
-                        class="w-full px-3 py-2 border rounded-lg text-center">
-                </div>
-            </div>
+        @endforeach
+    </div>
+    <div class="mt-4 pt-4 border-t border-gray-300">
+        <div class="grid grid-cols-12 gap-4 items-center">
+            <div class="col-span-8"><label class="block text-base font-bold text-gray-900">Section 3.4 Subtotal</label></div>
+            <div class="col-span-4"><div class="px-3 py-2 bg-pink-100 border border-pink-300 rounded-lg text-center font-bold text-pink-900">{{ number_format($this->subtotal34, 3) }}</div></div>
         </div>
     </div>
 </div>
 
-<!-- Section 3.5 - Community Outreach (max 5 pts) -->
+{{-- 3.5 Community Outreach --}}
 <div class="border-l-4 border-yellow-500 pl-4 mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-        3.5 Community Outreach (maximum of 5 points)
-    </h3>
-
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">3.5 Community Outreach (maximum of 5 points)</h3>
     <div class="bg-gray-50 rounded-lg p-4">
-        <p class="text-sm font-medium text-gray-700 mb-2">
-            3.5.1 For every year of participation in service-oriented projects in the community
-        </p>
+        <p class="text-sm font-medium text-gray-700 mb-2">3.5.1 For every year of participation in service-oriented community projects</p>
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                <label class="block text-sm text-gray-600">RS Score (Maximum 5 points)</label>
-            </div>
-            @if($isVerifier)
-                <div class="col-span-2">
-                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                        {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_5_1'] ?? 0), 2) : '—' }}
-                    </div>
-                </div>
-            @endif
-            <div class="col-span-2">
-                <input type="number" wire:model.live="rs_3_5_1" step="0.01" min="0" max="5"
-                    class="w-full px-3 py-2 border rounded-lg text-center">
-            </div>
+            <div class="col-span-8"><label class="block text-sm text-gray-600">RS Score (Q3_3_5_1, max 5)</label></div>
+            <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($prev_q3_3_5_1, 3) }}</div></div>
+            <div class="col-span-2"><input type="number" wire:model.live="new_q3_3_5_1" step="0.001" min="0" max="5" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
         </div>
-        @error('rs_3_5_1') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+        @error('new_q3_3_5_1') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
     </div>
-
-    <!-- Subtotal 3.5 -->
     <div class="mt-4 pt-4 border-t border-gray-300">
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                <label class="block text-base font-bold text-gray-900">
-                    Section 3.5 Subtotal (MAX 5)
-                </label>
-            </div>
-            @if($isVerifier)
-                <div class="col-span-2">
-                    <div class="text-xs text-center text-blue-600 mb-1 font-medium">Evaluator</div>
-                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-bold text-blue-700">
-                        {{ $evaluatorScoresExist ? number_format(min((float)($evaluatorScores['rs_3_5_1'] ?? 0), 5), 2) : '—' }}
-                    </div>
-                </div>
-                <div class="col-span-2">
-                    <div class="text-xs text-center text-green-700 mb-1 font-medium">Yours</div>
-                    <div class="px-3 py-2 bg-green-50 border border-green-400 rounded-lg text-center font-bold text-green-800">
-                        {{ number_format($this->subtotal35, 2) }}
-                    </div>
-                </div>
-            @else
-                <div class="col-span-2">
-                    <div class="px-3 py-2 bg-yellow-100 border border-yellow-300 rounded-lg text-center font-semibold">
-                        {{ number_format($this->subtotal35, 2) }}
-                    </div>
-                </div>
-            @endif
+            <div class="col-span-8"><label class="block text-base font-bold text-gray-900">Section 3.5 Subtotal (MAX 5)</label></div>
+            <div class="col-span-4"><div class="px-3 py-2 bg-yellow-100 border border-yellow-300 rounded-lg text-center font-bold text-yellow-900">{{ number_format($this->subtotal35, 3) }}</div></div>
         </div>
     </div>
 </div>
 
-<!-- Section 3.6 - Professional Examinations (max 10 pts) -->
+{{-- 3.6 Professional Examinations --}}
 <div class="border-l-4 border-red-500 pl-4 mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-        3.6 Professional Examinations (maximum of 10 points)
-    </h3>
-
-    <p class="text-sm text-gray-700 mb-4">
-        3.6.1 For every relevant licensure and other professional examinations passed
-    </p>
-
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">3.6 Professional Examinations (maximum of 10 points)</h3>
+    <p class="text-sm text-gray-700 mb-4">3.6.1 For every relevant licensure and other professional examinations passed</p>
     <div class="space-y-3">
+        @foreach([
+            ['new_q3_6_1_a','prev_q3_6_1_a','a. Engineering, Accounting, Medicine, Law, Teacher\'s Board, etc.'],
+            ['new_q3_6_1_b','prev_q3_6_1_b','b. Career Executive Service / Career Service Executive Examinations'],
+            ['new_q3_6_1_c','prev_q3_6_1_c','c. Marine Board / Master Electrician / Professional Radio Operator / similar certificates'],
+            ['new_q3_6_1_d','prev_q3_6_1_d','d. Other trade skill certificates'],
+        ] as [$nf,$pf,$label])
         <div class="bg-gray-50 rounded-lg p-4">
             <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                    <label class="block text-sm text-gray-600">
-                        a. Engineering, Accounting, Medicine, Law, Teacher's Board, etc.
-                    </label>
-                </div>
-                @if($isVerifier)
-                    <div class="col-span-2">
-                        <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                            {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_6_1_a'] ?? 0), 2) : '—' }}
-                        </div>
-                    </div>
-                @endif
-                <div class="col-span-2">
-                    <input type="number" wire:model.live="rs_3_6_1_a" step="0.01" min="0"
-                        class="w-full px-3 py-2 border rounded-lg text-center">
-                </div>
+                <div class="col-span-8"><label class="block text-sm text-gray-600">{{ $label }}</label></div>
+                <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($$pf, 3) }}</div></div>
+                <div class="col-span-2"><input type="number" wire:model.live="{{ $nf }}" step="0.001" min="0" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
             </div>
-            @error('rs_3_6_1_a') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
         </div>
-
-        <div class="bg-gray-50 rounded-lg p-4">
-            <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                    <label class="block text-sm text-gray-600">
-                        b. Career Executive Service Officer's Examinations/ Career Service Executive Examinations
-                    </label>
-                </div>
-                @if($isVerifier)
-                    <div class="col-span-2">
-                        <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                            {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_6_1_b'] ?? 0), 2) : '—' }}
-                        </div>
-                    </div>
-                @endif
-                <div class="col-span-2">
-                    <input type="number" wire:model.live="rs_3_6_1_b" step="0.01" min="0"
-                        class="w-full px-3 py-2 border rounded-lg text-center">
-                </div>
-            </div>
-            @error('rs_3_6_1_b') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
-        </div>
-
-        <div class="bg-gray-50 rounded-lg p-4">
-            <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                    <label class="block text-sm text-gray-600">
-                        c. Marine Board/Seaman Certificate; Master Electrician/Master Plumber Certificate etc.; Plant Mechanic Certificate; Professional Radio Operator Certificate
-                    </label>
-                </div>
-                @if($isVerifier)
-                    <div class="col-span-2">
-                        <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                            {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_6_1_c'] ?? 0), 2) : '—' }}
-                        </div>
-                    </div>
-                @endif
-                <div class="col-span-2">
-                    <input type="number" wire:model.live="rs_3_6_1_c" step="0.01" min="0"
-                        class="w-full px-3 py-2 border rounded-lg text-center">
-                </div>
-            </div>
-            @error('rs_3_6_1_c') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
-        </div>
-
-        <div class="bg-gray-50 rounded-lg p-4">
-            <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                    <label class="block text-sm text-gray-600">
-                        d. Other trade skill Certificates
-                    </label>
-                </div>
-                @if($isVerifier)
-                    <div class="col-span-2">
-                        <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                            {{ $evaluatorScoresExist ? number_format((float)($evaluatorScores['rs_3_6_1_d'] ?? 0), 2) : '—' }}
-                        </div>
-                    </div>
-                @endif
-                <div class="col-span-2">
-                    <input type="number" wire:model.live="rs_3_6_1_d" step="0.01" min="0"
-                        class="w-full px-3 py-2 border rounded-lg text-center">
-                </div>
-            </div>
-            @error('rs_3_6_1_d') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
-        </div>
+        @endforeach
     </div>
-
-    <!-- Subtotal 3.6 -->
     <div class="mt-4 pt-4 border-t border-gray-300">
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                <label class="block text-base font-bold text-gray-900">
-                    Section 3.6 Subtotal (MAX 10)
-                </label>
-            </div>
-            @if($isVerifier)
-                @php
-                    $evalSub36 = min(
-                        collect(['rs_3_6_1_a','rs_3_6_1_b','rs_3_6_1_c','rs_3_6_1_d'])
-                            ->sum(fn($f) => (float)($evaluatorScores[$f] ?? 0)),
-                        10
-                    );
-                @endphp
-                <div class="col-span-2">
-                    <div class="text-xs text-center text-blue-600 mb-1 font-medium">Evaluator</div>
-                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-bold text-blue-700">
-                        {{ $evaluatorScoresExist ? number_format($evalSub36, 2) : '—' }}
-                    </div>
-                </div>
-                <div class="col-span-2">
-                    <div class="text-xs text-center text-green-700 mb-1 font-medium">Yours</div>
-                    <div class="px-3 py-2 bg-green-50 border border-green-400 rounded-lg text-center font-bold text-green-800">
-                        {{ number_format($this->subtotal36, 2) }}
-                    </div>
-                </div>
-            @else
-                <div class="col-span-2">
-                    <div class="px-3 py-2 bg-red-100 border border-red-300 rounded-lg text-center font-semibold">
-                        {{ number_format($this->subtotal36, 2) }}
-                    </div>
-                </div>
-            @endif
+            <div class="col-span-8"><label class="block text-base font-bold text-gray-900">Section 3.6 Subtotal (MAX 10)</label></div>
+            <div class="col-span-4"><div class="px-3 py-2 bg-red-100 border border-red-300 rounded-lg text-center font-bold text-red-900">{{ number_format($this->subtotal36, 3) }}</div></div>
         </div>
     </div>
 </div>

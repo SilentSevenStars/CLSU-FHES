@@ -9,7 +9,7 @@
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Professional Development Form</h1>
                 <p class="mt-1 text-sm text-gray-600">
-                    {{ $assignment->isEvaluator() ? 'Evaluator' : 'Verifier' }} Assessment - Part {{ $currentPage }} of 3
+                    Part {{ $currentPage }} of 3
                 </p>
             </div>
             <button 

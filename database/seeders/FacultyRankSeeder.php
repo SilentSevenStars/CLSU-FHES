@@ -38,6 +38,7 @@ class FacultyRankSeeder extends Seeder
             ['name' => 'Professor IV', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'Professor V', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'Professor VI', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'College/University Professor', 'created_at' => $now, 'updated_at' => $now],
         ];
 
         DB::table('position_ranks')->insert($ranks);

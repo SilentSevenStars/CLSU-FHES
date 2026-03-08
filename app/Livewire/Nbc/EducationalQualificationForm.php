@@ -19,37 +19,35 @@ class EducationalQualificationForm extends Component
     public $position;
     public $jobApplication;
     public $evaluationId;
-
-    // Whether the current user is a verifier
-    public bool $isVerifier = false;
-
-    // Evaluator's scores (read-only reference for verifiers)
-    public $evaluator_rs_1_1 = null;
-    public $evaluator_rs_1_2 = null;
-    public $evaluator_rs_1_3 = null;
-    public bool $evaluatorScoresExist = false;
-
-    // Form fields - RS values editable by both evaluator and verifier
-    public $rs_1_1 = 0;
-    public $rs_1_2 = 0;
-    public $rs_1_3 = 0;
-    public $requirements_file;
     public $existing_file_path = null;
+    public $showApplicantModal  = false;
 
-    public $showApplicantModal = false;
+    // ── Scores from the applicant's most recent PAST completed evaluation ──
+    // These are read-only. They come from a DIFFERENT (older) nbc_assignment
+    // for the SAME APPLICANT (any previous job application / position).
+    public $prev_q1_1 = 0;
+    public $prev_q1_2 = 0;
+    public $prev_q1_3 = 0;
 
-    // Computed property for RS subtotal
-    public function getRsSubtotalProperty()
+    // ── What this NBC member enters for THIS evaluation ──
+    // Saved to educational_qualifications immediately on Save / Next / Previous
+    // so navigating away and back restores them.
+    public $new_q1_1 = 0;
+    public $new_q1_2 = 0;
+    public $new_q1_3 = 0;
+
+    // RS = prev (past eval) + new (current input, live)
+    public function getRsTotalProperty(): float
     {
-        return (float) $this->rs_1_1
-             + (float) $this->rs_1_2
-             + (float) $this->rs_1_3;
+        return (float)$this->prev_q1_1 + (float)$this->new_q1_1
+             + (float)$this->prev_q1_2 + (float)$this->new_q1_2
+             + (float)$this->prev_q1_3 + (float)$this->new_q1_3;
     }
 
-    // Computed property for EP (overall) - MIN(RS subtotal, 85)
-    public function getEpSubtotalProperty()
+    // EP = MIN(RS, 85)
+    public function getEpSubtotalProperty(): float
     {
-        return min($this->rsSubtotal, 85);
+        return min($this->rsTotal, 85);
     }
 
     public function mount($evaluationId = null)
@@ -66,112 +64,103 @@ class EducationalQualificationForm extends Component
         $this->position           = $this->jobApplication->position;
         $this->existing_file_path = $this->jobApplication->requirements_file;
 
-        // Get NBC committee for current user
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
-
         if (!$nbcCommittee) {
             abort(403, 'You are not assigned as an NBC committee member.');
         }
 
-        $this->isVerifier = $nbcCommittee->isVerifier();
-
-        // If verifier, load the evaluator's scores for read-only reference
-        if ($this->isVerifier) {
-            $evaluatorAssignment = NbcAssignment::where('evaluation_id', $this->evaluation->id)
-                ->where('type', 'evaluate')
-                ->with('educationalQualification')
-                ->first();
-
-            if ($evaluatorAssignment && $evaluatorAssignment->educationalQualification) {
-                $eq = $evaluatorAssignment->educationalQualification;
-                $this->evaluator_rs_1_1     = $eq->rs_1_1;
-                $this->evaluator_rs_1_2     = $eq->rs_1_2;
-                $this->evaluator_rs_1_3     = $eq->rs_1_3;
-                $this->evaluatorScoresExist = true;
-            }
-        }
-
-        // Get or create assignment automatically
+        // Get or create THIS assignment
         $this->assignment = NbcAssignment::firstOrCreate([
             'nbc_committee_id' => $nbcCommittee->id,
             'evaluation_id'    => $this->evaluation->id,
         ], [
-            'status' => 'pending',
-            'type'   => $nbcCommittee->position === 'evaluator' ? 'evaluate' : 'verify',
+            'status'          => 'pending',
+            'evaluation_date' => now(),
         ]);
 
-        // Get or create educational qualification
-        if ($this->assignment->educationalQualification) {
-            $this->educationalQualification = $this->assignment->educationalQualification;
-            $this->loadExistingScores();
-        } else {
-            $this->educationalQualification = $this->createEducationalQualification();
+        // Get or create EducationalQualification for THIS assignment
+        if ($this->assignment->educational_qualification_id) {
+            $this->educationalQualification = EducationalQualification::find(
+                $this->assignment->educational_qualification_id
+            );
+        }
 
-            // Pre-fill verifier's editable fields with evaluator scores as a starting point
-            if ($this->isVerifier && $this->evaluatorScoresExist) {
-                $this->rs_1_1 = $this->evaluator_rs_1_1 ?? 0;
-                $this->rs_1_2 = $this->evaluator_rs_1_2 ?? 0;
-                $this->rs_1_3 = $this->evaluator_rs_1_3 ?? 0;
+        if (!$this->educationalQualification) {
+            $this->educationalQualification = EducationalQualification::create([
+                'q1_1' => 0, 'q1_2' => 0, 'q1_3' => 0, 'subtotal' => 0,
+            ]);
+            $this->assignment->update([
+                'educational_qualification_id' => $this->educationalQualification->id,
+            ]);
+        }
+
+        // ── Load PREVIOUS evaluation scores (prev_) ──
+        // Find the most recent COMPLETED assignment for the SAME APPLICANT
+        // by this NBC member, with an evaluation_date BEFORE this assignment's datetime.
+        // This covers any previous job application (Instructor I, II, etc.)
+        $previousAssignment = NbcAssignment::where('nbc_committee_id', $nbcCommittee->id)
+            ->where('id', '!=', $this->assignment->id)
+            ->where('status', 'complete')
+            ->whereHas('evaluation.jobApplication', function ($q) {
+                $q->where('applicant_id', $this->applicant->id);
+            })
+            ->where('evaluation_date', '<', $this->assignment->evaluation_date)
+            ->orderByDesc('evaluation_date')
+            ->first();
+
+        if ($previousAssignment && $previousAssignment->educational_qualification_id) {
+            $prevEq = EducationalQualification::find($previousAssignment->educational_qualification_id);
+            if ($prevEq) {
+                $this->prev_q1_1 = (float)($prevEq->q1_1 ?? 0);
+                $this->prev_q1_2 = (float)($prevEq->q1_2 ?? 0);
+                $this->prev_q1_3 = (float)($prevEq->q1_3 ?? 0);
             }
         }
+
+        // ── Load THIS evaluation's already-saved inputs into new_ fields ──
+        // This makes inputs survive navigating away and back (prev button from ES form).
+        $this->new_q1_1 = (float)($this->educationalQualification->q1_1 ?? 0);
+        $this->new_q1_2 = (float)($this->educationalQualification->q1_2 ?? 0);
+        $this->new_q1_3 = (float)($this->educationalQualification->q1_3 ?? 0);
     }
 
-    protected function createEducationalQualification()
+    /**
+     * Persist current new_ inputs to the DB.
+     * We store ONLY the current session's inputs (not prev + new accumulated).
+     * The final total (prev + new) is computed at display/submit time.
+     */
+    protected function persistCurrentInputs(): void
     {
-        $qualification = EducationalQualification::create([]);
-
-        $this->assignment->update([
-            'educational_qualification_id' => $qualification->id,
+        $this->validate([
+            'new_q1_1' => 'required|numeric|min:0',
+            'new_q1_2' => 'required|numeric|min:0',
+            'new_q1_3' => 'required|numeric|min:0',
         ]);
 
-        return $qualification;
-    }
-
-    protected function loadExistingScores()
-    {
-        $this->rs_1_1 = $this->educationalQualification->rs_1_1 ?? 0;
-        $this->rs_1_2 = $this->educationalQualification->rs_1_2 ?? 0;
-        $this->rs_1_3 = $this->educationalQualification->rs_1_3 ?? 0;
+        $this->educationalQualification->update([
+            'q1_1'     => (float)$this->new_q1_1,
+            'q1_2'     => (float)$this->new_q1_2,
+            'q1_3'     => (float)$this->new_q1_3,
+            'subtotal' => $this->epSubtotal, // prev+new capped at 85
+        ]);
     }
 
     public function save()
     {
-        $this->validate([
-            'rs_1_1' => 'required|numeric|min:0|max:85',
-            'rs_1_2' => 'required|numeric|min:0|max:85',
-            'rs_1_3' => 'required|numeric|min:0|max:10',
-        ]);
-
-        $epSubtotal = $this->epSubtotal;
-
-        $this->educationalQualification->update([
-            'rs_1_1'   => $this->rs_1_1,
-            'rs_1_2'   => $this->rs_1_2,
-            'rs_1_3'   => $this->rs_1_3,
-            'subtotal' => $epSubtotal,
-            'ep_1_1'   => null,
-            'ep_1_2'   => null,
-            'ep_1_3'   => null,
-        ]);
-
-        $this->assignment->updateNbcScores();
+        $this->persistCurrentInputs();
+        session()->flash('message', 'Educational qualification saved.');
     }
 
-    /**
-     * Generate base64 encoded PDF for viewing in new tab
-     */
     public function getFileDataUrl()
     {
         $encryptionService = new FileEncryptionService();
-
         if (!$this->existing_file_path || !$encryptionService->fileExists($this->existing_file_path)) {
             return null;
         }
-
         try {
-            $decryptedContents = $encryptionService->decryptFile($this->existing_file_path);
-            $base64 = base64_encode($decryptedContents);
-            return 'data:application/pdf;base64,' . $base64;
+            return 'data:application/pdf;base64,' . base64_encode(
+                $encryptionService->decryptFile($this->existing_file_path)
+            );
         } catch (\Exception $e) {
             return null;
         }
@@ -189,8 +178,7 @@ class EducationalQualificationForm extends Component
 
     public function next()
     {
-        $this->save();
-        session()->flash('message', 'Educational qualification saved successfully.');
+        $this->persistCurrentInputs();
         return redirect()->route('nbc.experience-service', ['evaluationId' => $this->evaluation->id]);
     }
 

@@ -108,6 +108,8 @@ class JobApplication extends Component
         if ($applicant) {
             $existingApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
                 ->where('position_id', $position_id)
+                ->where('archive', false)
+                ->where('status', '!=', 'hired')
                 ->first();
 
             if ($existingApplication) {
@@ -115,9 +117,13 @@ class JobApplication extends Component
                 return redirect()->route('apply-job');
             }
 
-            $anyApplication = ModelsJobApplication::where('applicant_id', $applicant->id)->exists();
+            // Only block if there's an active (non-archived, non-hired) application
+            $anyActiveApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
+                ->where('archive', false)
+                ->where('status', '!=', 'hired')
+                ->exists();
 
-            if ($anyApplication) {
+            if ($anyActiveApplication) {
                 session()->flash('error', 'You already have an active application. You can only apply to one position at a time.');
                 return redirect()->route('apply-job');
             }
@@ -322,8 +328,12 @@ class JobApplication extends Component
 
         $applicant = Applicant::where('user_id', Auth::id())->first();
         if ($applicant) {
-            $anyApplication = ModelsJobApplication::where('applicant_id', $applicant->id)->exists();
-            if ($anyApplication) {
+            // Only block if there's an active (non-archived, non-hired) application
+            $anyActiveApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
+                ->where('archive', false)
+                ->where('status', '!=', 'hired')
+                ->exists();
+            if ($anyActiveApplication) {
                 session()->flash('error', 'You already have an active application.');
                 return redirect()->route('apply-job');
             }

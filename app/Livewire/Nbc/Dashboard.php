@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Evaluation;
 use App\Models\NbcCommittee;
+use App\Models\NbcAssignment;
 use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends Component
@@ -51,10 +52,11 @@ class Dashboard extends Component
             'jobApplication.applicant.user',
             'jobApplication.position',
         ])
-        // Filter by today's interview date only — no position restriction
-        ->whereDate('interview_date', today());
+        // Show all evaluations where today is on or before the interview_date (deadline)
+        // interview_date is the DEADLINE — as long as today <= interview_date, it is accessible
+        ->whereDate('interview_date', '>=', today());
 
-        // Search filter - name or position
+        // Search filter - name or position (no position restriction — all positions are included)
         if ($this->search) {
             $query->where(function ($q) {
                 $q->whereHas('jobApplication.applicant', function ($applicantQuery) {
@@ -68,7 +70,7 @@ class Dashboard extends Component
             });
         }
 
-        // Sort: pending first, complete last
+        // Sort: pending first, complete last; then alphabetically by applicant last_name
         $query->orderByRaw('
             CASE
                 WHEN EXISTS (
@@ -84,7 +86,13 @@ class Dashboard extends Component
                 ELSE 0
             END
         ', [Auth::id()])
-        ->orderBy('created_at', 'desc');
+        ->orderBy(
+            \App\Models\Applicant::select('last_name')
+                ->join('job_applications', 'job_applications.applicant_id', '=', 'applicants.id')
+                ->whereColumn('job_applications.id', 'evaluations.job_application_id')
+                ->limit(1),
+            'asc'
+        );
 
         return $query->paginate($this->perPage);
     }
@@ -97,7 +105,8 @@ class Dashboard extends Component
             return 0;
         }
 
-        return Evaluation::whereDate('interview_date', today())
+        // Count evaluations where deadline has not yet passed AND not yet completed by this member
+        return Evaluation::whereDate('interview_date', '>=', today())
             ->whereDoesntHave('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
                 $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
                     ->where('status', 'complete');
@@ -113,13 +122,76 @@ class Dashboard extends Component
             return 0;
         }
 
-        return Evaluation::whereDate('interview_date', today())
-            ->whereHas('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
+        // Count evaluations that this member has already completed (regardless of deadline)
+        return Evaluation::whereHas('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
                 $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
-                    ->where('status', 'complete')
-                    ->whereDate('updated_at', today());
+                    ->where('status', 'complete');
             })
             ->count();
+    }
+
+    /**
+     * Print the NBC evaluation report for all active evaluations (deadline not yet passed).
+     * Shows all applicants (pending and complete) sorted by last name.
+     */
+    public function printReport()
+    {
+        $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
+
+        $evaluations = Evaluation::with([
+            'jobApplication.applicant.user',
+            'jobApplication.position',
+        ])
+        ->whereDate('interview_date', '>=', today())
+        ->get()
+        ->sortBy(fn ($e) => strtolower($e->jobApplication->applicant->last_name))
+        ->values();
+
+        if ($evaluations->isEmpty()) {
+            session()->flash('print_error', 'No applicants available for evaluation.');
+            return;
+        }
+
+        $reportData = $evaluations->map(function ($evaluation, $index) use ($nbcCommittee) {
+            $a = $evaluation->jobApplication->applicant;
+            $p = $evaluation->jobApplication->position;
+
+            // Format name as "LAST, First M."
+            $middleInitial = $a->middle_name
+                ? ' ' . strtoupper(substr($a->middle_name, 0, 1)) . '.'
+                : '';
+            $fullName = strtoupper($a->last_name) . ', ' . $a->first_name . $middleInitial;
+
+            // Check assignment status for this NBC member
+            $assignment = NbcAssignment::where('evaluation_id', $evaluation->id)
+                ->where('nbc_committee_id', $nbcCommittee->id)
+                ->first();
+
+            $status = ($assignment && $assignment->status === 'complete') ? 'Complete' : 'Pending';
+
+            return [
+                'number'   => $index + 1,
+                'name'     => $fullName,
+                'position' => $p->name ?? 'N/A',
+                'email'    => $a->user->email ?? 'N/A',
+                'status'   => $status,
+            ];
+        })->toArray();
+
+        $totalApplicants = count($reportData);
+        $completedCount  = collect($reportData)->where('status', 'Complete')->count();
+        $pendingCount    = $totalApplicants - $completedCount;
+
+        $html = view('print.nbc-report', [
+            'reportData'      => $reportData,
+            'interviewDate'   => today()->format('F d, Y'),
+            'totalApplicants' => $totalApplicants,
+            'completedCount'  => $completedCount,
+            'pendingCount'    => $pendingCount,
+            'generatedDate'   => now()->format('F d, Y'),
+        ])->render();
+
+        $this->dispatch('openPrintTab', html: $html);
     }
 
     public function render()

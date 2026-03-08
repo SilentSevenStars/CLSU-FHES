@@ -22,14 +22,6 @@ class Nbc extends Model
     ];
 
     /**
-     * Get all NBC assignments for this NBC record
-     */
-    public function nbcAssignments(): HasMany
-    {
-        return $this->hasMany(NbcAssignment::class);
-    }
-
-    /**
      * Calculate and update total score
      */
     public function updateTotalScore(): void
@@ -38,25 +30,5 @@ class Nbc extends Model
             + $this->experience 
             + $this->professional_development;
         $this->save();
-    }
-
-    /**
-     * Update scores from assignment data
-     */
-    public function updateScoresFromAssignment(NbcAssignment $assignment): void
-    {
-        if ($assignment->educationalQualification) {
-            $this->educational_qualification = $assignment->educationalQualification->subtotal ?? 0;
-        }
-
-        if ($assignment->experienceService) {
-            $this->experience = $assignment->experienceService->subtotal ?? 0;
-        }
-
-        if ($assignment->professionalDevelopment) {
-            $this->professional_development = $assignment->professionalDevelopment->ep_score ?? 0;
-        }
-
-        $this->updateTotalScore();
     }
 }

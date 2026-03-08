@@ -14,14 +14,17 @@ return new class extends Migration
         Schema::create('educational_qualifications', function (Blueprint $table) {
             $table->id();
             $table->decimal('subtotal', 8, 2)->default(0);
-            $table->decimal('rs_1_1', 8, 2)->nullable();
-            $table->decimal('ep_1_1', 8, 2)->nullable();
+            // $table->decimal('rs_1_1', 8, 2)->nullable();
+            // $table->decimal('ep_1_1', 8, 2)->nullable();
 
-            $table->decimal('rs_1_2', 8, 2)->nullable();
-            $table->decimal('ep_1_2', 8, 2)->nullable();
+            // $table->decimal('rs_1_2', 8, 2)->nullable();
+            // $table->decimal('ep_1_2', 8, 2)->nullable();
 
-            $table->decimal('rs_1_3', 8, 2)->nullable();
-            $table->decimal('ep_1_3', 8, 2)->nullable();
+            // $table->decimal('rs_1_3', 8, 2)->nullable();
+            // $table->decimal('ep_1_3', 8, 2)->nullable();
+            $table->decimal('q1_1', 8, 3)->nullable();
+            $table->decimal('q1_2', 8, 3)->nullable();
+            $table->decimal('q1_3', 8, 3)->nullable();
             $table->timestamps();
         });
     }

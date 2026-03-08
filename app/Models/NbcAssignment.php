@@ -16,9 +16,8 @@ class NbcAssignment extends Model
         'educational_qualification_id',
         'experience_service_id',
         'professional_development_id',
-        'nbc_id',
         'status',
-        'type',
+        'evaluation_date',
     ];
 
     protected $casts = [
@@ -66,57 +65,4 @@ class NbcAssignment extends Model
         return $this->belongsTo(ProfessionalDevelopment::class);
     }
 
-    /**
-     * Get the NBC record
-     */
-    public function nbc(): BelongsTo
-    {
-        return $this->belongsTo(Nbc::class);
-    }
-
-    /**
-     * Check if this is an evaluator assignment
-     */
-    public function isEvaluator(): bool
-    {
-        return $this->type === 'evaluate';
-    }
-
-    /**
-     * Check if this is a verifier assignment
-     */
-    public function isVerifier(): bool
-    {
-        return $this->type === 'verify';
-    }
-
-    /**
-     * Create or update NBC record with current scores
-     */
-    public function updateNbcScores(): void
-    {
-        if (!$this->nbc_id) {
-            $nbc = Nbc::create([]);
-            $this->update(['nbc_id' => $nbc->id]);
-            $this->load('nbc');
-        }
-
-        $this->nbc->updateScoresFromAssignment($this);
-    }
-
-    /**
-     * Boot method to handle model events
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::created(function ($assignment) {
-            // Create NBC record when assignment is created
-            if (!$assignment->nbc_id) {
-                $nbc = Nbc::create([]);
-                $assignment->update(['nbc_id' => $nbc->id]);
-            }
-        });
-    }
 }

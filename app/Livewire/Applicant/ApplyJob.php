@@ -53,7 +53,10 @@ class ApplyJob extends Component
     {
         $user = Auth::user();
         if ($user && $user->applicant) {
+            // Only show non-archived applications as "applied" - allows re-application after hired/archived
             $this->applied = JobApplication::where('applicant_id', $user->applicant->id)
+                ->where('archive', false)
+                ->where('status', '!=', 'hired')
                 ->pluck('position_id')
                 ->toArray();
         } else {

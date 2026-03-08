@@ -9,30 +9,20 @@ class ExperienceService extends Model
 {
     protected $fillable = [
         'subtotal',
-        'rs_2_1_1',
-        'ep_2_1_1',
-        'rs_2_1_2',
-        'ep_2_1_2',
-        'rs_2_2_1',
-        'ep_2_2_1',
-        'rs_2_3_1',
-        'ep_2_3_1',
-        'rs_2_3_2',
-        'ep_2_3_2',
+        'q2_1_1',
+        'q2_1_2',
+        'q2_2_1',
+        'q2_3_1',
+        'q2_3_2',
     ];
 
     protected $casts = [
-        'subtotal' => 'decimal:2',
-        'rs_2_1_1' => 'decimal:2',
-        'ep_2_1_1' => 'decimal:2',
-        'rs_2_1_2' => 'decimal:2',
-        'ep_2_1_2' => 'decimal:2',
-        'rs_2_2_1' => 'decimal:2',
-        'ep_2_2_1' => 'decimal:2',
-        'rs_2_3_1' => 'decimal:2',
-        'ep_2_3_1' => 'decimal:2',
-        'rs_2_3_2' => 'decimal:2',
-        'ep_2_3_2' => 'decimal:2',
+        'subtotal' => 'decimal:3',
+        'q2_1_1' => 'decimal:3',
+        'q2_1_2' => 'decimal:3',
+        'q2_2_1' => 'decimal:3',
+        'q2_3_1' => 'decimal:3',
+        'q2_3_2' => 'decimal:3',
     ];
 
     /**
@@ -44,35 +34,11 @@ class ExperienceService extends Model
     }
 
     /**
-     * Calculate the total RS score
-     */
-    public function getRsTotalAttribute(): float
-    {
-        return round(
-            ($this->rs_2_1_1 ?? 0) +
-            ($this->rs_2_1_2 ?? 0) +
-            ($this->rs_2_2_1 ?? 0) +
-            ($this->rs_2_3_1 ?? 0) +
-            ($this->rs_2_3_2 ?? 0),
-            2
-        );
-    }
-
-    /**
-     * Calculate the EP score: MIN(RS Total, 25)
-     * This is stored in the 'subtotal' field
-     */
-    public function getEpScoreAttribute(): float
-    {
-        return round(min($this->rsTotal, 25), 2);
-    }
-
-    /**
-     * Get the total score (alias for backward compatibility)
+     * Get the total score
      */
     public function getTotalScoreAttribute(): float
     {
-        return $this->subtotal ?? $this->epScore;
+        return $this->subtotal ?? 0;
     }
 
     /**
@@ -80,11 +46,11 @@ class ExperienceService extends Model
      */
     public function hasScores(): bool
     {
-        return !is_null($this->rs_2_1_1) &&
-               !is_null($this->rs_2_1_2) &&
-               !is_null($this->rs_2_2_1) &&
-               !is_null($this->rs_2_3_1) &&
-               !is_null($this->rs_2_3_2);
+        return !is_null($this->q2_1_1) &&
+               !is_null($this->q2_1_2) &&
+               !is_null($this->q2_2_1) &&
+               !is_null($this->q2_3_1) &&
+               !is_null($this->q2_3_2);
     }
 
     /**
@@ -92,11 +58,12 @@ class ExperienceService extends Model
      */
     public function scopeCompleted($query)
     {
-        return $query->whereNotNull('rs_2_1_1')
-                     ->whereNotNull('rs_2_1_2')
-                     ->whereNotNull('rs_2_2_1')
-                     ->whereNotNull('rs_2_3_1')
-                     ->whereNotNull('rs_2_3_2')
+        return $query->whereNotNull('q2_1_1')
+                     ->whereNotNull('q2_1_2')
+                     ->whereNotNull('q2_2_1')
+                     ->whereNotNull('q2_3_1')
+                     ->whereNotNull('q2_3_2')
                      ->whereNotNull('subtotal');
     }
 }
+

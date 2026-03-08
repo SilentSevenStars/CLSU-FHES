@@ -18,13 +18,14 @@ return new class extends Migration
             $table->foreignId('educational_qualification_id')->nullable()->constrained('educational_qualifications')->onDelete('cascade');
             $table->foreignId('experience_service_id')->nullable()->constrained('experience_services')->onDelete('cascade');
             $table->foreignId('professional_development_id')->nullable()->constrained('professional_developments')->onDelete('cascade');
-            $table->foreignId('nbc_id')->nullable()->constrained()->onDelete('cascade');
+            // $table->foreignId('nbc_id')->nullable()->constrained()->onDelete('cascade');
             $table->enum('status', ['pending', 'complete'])->default('pending');
-            $table->enum('type', ['evaluate', 'verify'])->default('evaluate');
+            $table->datetime('evaluation_date');
+            // $table->enum('type', ['evaluate', 'verify'])->default('evaluate');
             $table->timestamps();
 
             $table->index(['nbc_committee_id', 'status']);
-            $table->index(['evaluation_id', 'type']);
+            // $table->index(['evaluation_id', 'type']);
         });
     }
 

@@ -60,8 +60,7 @@
                 <div class="p-8">
 
                     <!-- Instructions -->
-                    <div
-                        class="mb-8 bg-gradient-to-r from-[#0A6025]/10 to-green-50 border-l-4 border-[#0A6025] p-6 rounded-lg">
+                    <div class="mb-8 bg-gradient-to-r from-[#0A6025]/10 to-green-50 border-l-4 border-[#0A6025] p-6 rounded-lg">
                         <div class="flex items-start gap-3">
                             <svg class="w-6 h-6 text-[#0A6025] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -72,17 +71,22 @@
                                 <h3 class="font-bold text-lg mb-2 text-[#0A6025]">To the interviewer:</h3>
                                 <p class="text-gray-700">
                                     A particular subject matter is given to the applicant. He may be opt to find to
-                                    select a subject matter
-                                    which is within his/her area of specialization and is allowed to prepare within
-                                    period of five minutes.
+                                    select a subject matter which is within his/her area of specialization and is
+                                    allowed to prepare within period of five minutes.
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     <form wire:submit.prevent="confirmSubmission">
+                        <div wire:key="interview-page-{{ $currentPage }}">
                         @if ($currentPage == 1)
-                        <!-- Page 1: General Appearance through Alertness -->
+                        {{--
+                            PAGE 1 — General Appearance, Manner of Speaking, Physical Conditioning, Alertness
+                            IMPORTANT: use wire:model.number on every radio so Livewire stores integers,
+                            not strings. This prevents the type-mismatch bug where going back to page 1
+                            shows wrong (or no) radio selected because int 4 !== string "4".
+                        --}}
                         <div class="space-y-8">
                             <!-- I. General Appearance -->
                             <div class="border-b pb-6">
@@ -104,7 +108,8 @@
                                     <div class="flex gap-8">
                                         @for ($i = 5; $i >= 1; $i--)
                                         <label class="flex items-center justify-center w-12">
-                                            <input type="radio" wire:model="general_appearance" value="{{ $i }}"
+                                            {{-- wire:model.number ensures the value is cast to int on bind --}}
+                                            <input type="radio" wire:model.number="general_appearance" value="{{ $i }}"
                                                 class="w-6 h-6 cursor-pointer">
                                         </label>
                                         @endfor
@@ -115,7 +120,7 @@
                                 @enderror
                             </div>
 
-                            <!-- II. Manner Speaking -->
+                            <!-- II. Manner of Speaking -->
                             <div class="border-b pb-6">
                                 <div class="flex justify-between items-start mb-4">
                                     <h4 class="font-bold text-lg">II. Manner Speaking:</h4>
@@ -134,7 +139,7 @@
                                     <div class="flex gap-8">
                                         @for ($i = 5; $i >= 1; $i--)
                                         <label class="flex items-center justify-center w-12">
-                                            <input type="radio" wire:model="manner_of_speaking" value="{{ $i }}"
+                                            <input type="radio" wire:model.number="manner_of_speaking" value="{{ $i }}"
                                                 class="w-6 h-6 cursor-pointer">
                                         </label>
                                         @endfor
@@ -164,7 +169,7 @@
                                     <div class="flex gap-8">
                                         @for ($i = 5; $i >= 1; $i--)
                                         <label class="flex items-center justify-center w-12">
-                                            <input type="radio" wire:model="physical_conditions" value="{{ $i }}"
+                                            <input type="radio" wire:model.number="physical_conditions" value="{{ $i }}"
                                                 class="w-6 h-6 cursor-pointer">
                                         </label>
                                         @endfor
@@ -190,15 +195,14 @@
                                 <div class="flex justify-between items-start">
                                     <p class="text-gray-700 flex-1 pr-4">
                                         Consider the applicant's ability to comprehend your questions speedily and
-                                        anticipate your thought.
-                                        Has the capacity to transfer attention from one subject to another quickly? Is
-                                        there a lag in his/her
-                                        reaction to your discussion? How mentally alert is he/she?
+                                        anticipate your thought. Has the capacity to transfer attention from one subject
+                                        to another quickly? Is there a lag in his/her reaction to your discussion?
+                                        How mentally alert is he/she?
                                     </p>
                                     <div class="flex gap-8 flex-shrink-0">
                                         @for ($i = 5; $i >= 1; $i--)
                                         <label class="flex items-center justify-center w-12">
-                                            <input type="radio" wire:model="alertness" value="{{ $i }}"
+                                            <input type="radio" wire:model.number="alertness" value="{{ $i }}"
                                                 class="w-6 h-6 cursor-pointer">
                                         </label>
                                         @endfor
@@ -212,11 +216,6 @@
 
                         <!-- Navigation Buttons Page 1 -->
                         <div class="flex justify-center gap-4 mt-8">
-                            @if (session()->has('error'))
-                            <div class="w-full text-center mb-4">
-                                <span class="text-red-500 font-semibold">{{ session('error') }}</span>
-                            </div>
-                            @endif
                             <button type="button" wire:click="nextPage"
                                 class="bg-[#0A6025] hover:bg-[#0B712C] text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
                                 Next →
@@ -224,7 +223,10 @@
                         </div>
 
                         @elseif ($currentPage == 2)
-                        <!-- Page 2: Self Confidence through Maturity of Judgement -->
+                        {{--
+                            PAGE 2 — Self Confidence, Ability to Present Ideas, Maturity of Judgement
+                            Same wire:model.number fix applied here.
+                        --}}
                         <div class="space-y-8">
                             <!-- V. Self Confidence -->
                             <div class="border-b pb-6">
@@ -246,7 +248,7 @@
                                     <div class="flex gap-8">
                                         @for ($i = 5; $i >= 1; $i--)
                                         <label class="flex items-center justify-center w-12">
-                                            <input type="radio" wire:model="self_confidence" value="{{ $i }}"
+                                            <input type="radio" wire:model.number="self_confidence" value="{{ $i }}"
                                                 class="w-6 h-6 cursor-pointer">
                                         </label>
                                         @endfor
@@ -276,7 +278,7 @@
                                     <div class="flex gap-8">
                                         @for ($i = 5; $i >= 1; $i--)
                                         <label class="flex items-center justify-center w-12">
-                                            <input type="radio" wire:model="ability_to_present_ideas" value="{{ $i }}"
+                                            <input type="radio" wire:model.number="ability_to_present_ideas" value="{{ $i }}"
                                                 class="w-6 h-6 cursor-pointer">
                                         </label>
                                         @endfor
@@ -301,13 +303,13 @@
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <p class="text-gray-700 flex-1">
-                                        Could he/she judiculously act on a given situation? Does his/her judegement
-                                        reflectanalytical vision?
+                                        Could he/she judiculously act on a given situation? Does his/her judgement
+                                        reflect analytical vision?
                                     </p>
                                     <div class="flex gap-8">
                                         @for ($i = 5; $i >= 1; $i--)
                                         <label class="flex items-center justify-center w-12">
-                                            <input type="radio" wire:model="maturity_of_judgement" value="{{ $i }}"
+                                            <input type="radio" wire:model.number="maturity_of_judgement" value="{{ $i }}"
                                                 class="w-6 h-6 cursor-pointer">
                                         </label>
                                         @endfor
@@ -321,30 +323,26 @@
 
                         <!-- Navigation Buttons Page 2 -->
                         <div class="mt-8">
-                            @if (session()->has('error'))
-                            <div class="w-full text-center mb-4">
-                                <span class="text-red-500 font-semibold">{{ session('error') }}</span>
-                            </div>
-                            @endif
                             <div class="flex justify-center gap-4">
                                 <button type="button" wire:click="previousPage"
                                     class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
                                     ← Return
                                 </button>
                                 @php
-                                $applicantPosition = $evaluation->jobApplication->position->name ?? null;
+                                    $applicantPosition = $evaluation->jobApplication->position->name ?? null;
                                 @endphp
                                 <button type="submit"
                                     class="bg-[#0A6025] hover:bg-[#0B712C] text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
                                     @if($applicantPosition === 'Instructor I')
-                                    Next →
+                                        Next →
                                     @else
-                                    Submit ✓
+                                        Submit ✓
                                     @endif
                                 </button>
                             </div>
                         </div>
                         @endif
+                        </div>
                     </form>
                 </div>
             </div>
@@ -363,12 +361,10 @@
                 <h3 class="text-2xl font-bold text-gray-900">Applicant Details</h3>
                 <button wire:click="toggleApplicantModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
-
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -396,34 +392,28 @@
                         <p class="mt-1 text-base text-gray-900">{{ $position->college->name ?? 'N/A' }}</p>
                     </div>
                 </div>
-
                 @if($applicant->region || $applicant->city)
                 <div class="pt-4 border-t">
                     <p class="text-sm font-medium text-gray-500 mb-2">Address</p>
                     <p class="text-base text-gray-900">
-                        {{ collect([$applicant->street, $applicant->barangay, $applicant->city, $applicant->province,
-                        $applicant->region_display])->filter()->join(', ') }}
+                        {{ collect([$applicant->street, $applicant->barangay, $applicant->city, $applicant->province, $applicant->region_display])->filter()->join(', ') }}
                     </p>
                 </div>
                 @endif
-
                 @if($jobApplication->requirements_file)
                 <div class="pt-4 border-t">
                     <p class="text-sm font-medium text-gray-500 mb-2">Requirements File</p>
                     <button type="button" wire:click="$dispatch('open-pdf-viewer')"
                         class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-150">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                         View Requirements File
                     </button>
                 </div>
                 @endif
             </div>
-
             <div class="flex justify-end mt-6 pt-4 border-t">
                 <button wire:click="toggleApplicantModal"
                     class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150">
@@ -435,79 +425,48 @@
     @endif
 
     <!-- PDF VIEWER MODAL -->
-    <div x-data="{ 
-        open: false,
-        loading: false,
-        pdfUrl: null,
+    <div x-data="{
+        open: false, loading: false, pdfUrl: null,
         async openPdfViewer() {
-            this.loading = true;
-            this.open = true;
+            this.loading = true; this.open = true;
             try {
                 const dataUrl = await @this.call('getFileDataUrl');
-                if (dataUrl) {
-                    this.pdfUrl = dataUrl;
-                }
+                if (dataUrl) { this.pdfUrl = dataUrl; }
             } catch (error) {
-                console.error('Error loading PDF:', error);
-                alert('Error loading PDF file');
-                this.open = false;
-            } finally {
-                this.loading = false;
-            }
+                alert('Error loading PDF file'); this.open = false;
+            } finally { this.loading = false; }
         }
-    }" x-on:open-pdf-viewer.window="openPdfViewer()" x-show="open" x-cloak class="fixed inset-0 z-50 overflow-hidden"
-        style="display: none;">
-        <!-- Backdrop -->
+    }" x-on:open-pdf-viewer.window="openPdfViewer()" x-show="open" x-cloak
+        class="fixed inset-0 z-50 overflow-hidden" style="display: none;">
         <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
-
-        <!-- Modal Content -->
         <div class="relative w-full h-full flex items-center justify-center">
             <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
-                <!-- Header -->
                 <div class="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
                     <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
-                    <button @click="open = false; pdfUrl = null;"
-                        class="text-gray-400 hover:text-gray-600 transition p-2">
+                    <button @click="open = false; pdfUrl = null;" class="text-gray-400 hover:text-gray-600 transition p-2">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
-
-                <!-- PDF Viewer -->
                 <div class="flex-1 overflow-hidden bg-gray-100">
                     <div x-show="loading" class="flex items-center justify-center h-full">
-                        <div class="text-center">
-                            <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" fill="none"
-                                viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
-                            </svg>
-                            <p class="text-gray-600">Loading PDF...</p>
-                        </div>
+                        <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
+                        </svg>
                     </div>
-                    <iframe x-show="!loading && pdfUrl" :src="pdfUrl" class="w-full h-full" frameborder="0">
-                    </iframe>
+                    <iframe x-show="!loading && pdfUrl" :src="pdfUrl" class="w-full h-full" frameborder="0"></iframe>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Error Handler -->
-    <div x-data x-on:show-error.window="
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: $event.detail.message,
-            confirmButtonColor: '#d33'
-        });
-    "></div>
+    <div x-data x-on:show-error.window="Swal.fire({ icon: 'error', title: 'Error', text: $event.detail.message, confirmButtonColor: '#d33' });"></div>
 
     <!-- SweetAlert2 Integration -->
-    <div x-data="{ 
+    <div x-data="{
         init() {
             window.addEventListener('show-swal-confirm', () => {
                 Swal.fire({
@@ -519,12 +478,9 @@
                     cancelButtonColor: '#d33',
                     confirmButtonText: 'Yes, Submit'
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        @this.call('saveInterview');
-                    }
+                    if (result.isConfirmed) { @this.call('saveInterview'); }
                 });
             });
-
             window.addEventListener('interview-saved', () => {
                 Swal.fire({
                     title: 'Success!',
@@ -533,17 +489,11 @@
                     confirmButtonText: 'OK',
                     confirmButtonColor: '#0A6025'
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '{{ route('panel.dashboard') }}';
-                    }
+                    if (result.isConfirmed) { window.location.href = '{{ route('panel.dashboard') }}'; }
                 });
             });
         }
-    }">
-    </div>
-    <style>
-        [x-cloak] {
-            display: none !important;
-        }
-    </style>
+    }"></div>
+
+    <style>[x-cloak] { display: none !important; }</style>
 </div>

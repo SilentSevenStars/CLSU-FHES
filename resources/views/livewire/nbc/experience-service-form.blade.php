@@ -4,14 +4,10 @@
         <div class="mb-6 flex items-center justify-between">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Experience and Length of Service Form</h1>
-                <p class="mt-1 text-sm text-gray-600">
-                    {{ $assignment->nbcCommittee->isEvaluator() ? 'Evaluator' : 'Verifier' }} Assessment - {{ $assignment->nbcCommittee->position_name }}
-                </p>
+                <p class="mt-1 text-sm text-gray-600">Add new points below — they will be added to your existing score.</p>
             </div>
-            <button
-                wire:click="toggleApplicantModal"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150"
-            >
+            <button wire:click="toggleApplicantModal"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150">
                 View Applicant Details
             </button>
         </div>
@@ -22,28 +18,15 @@
             </div>
         @endif
 
-        @if (session()->has('info'))
-            <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4">
-                <p class="text-blue-700">{{ session('info') }}</p>
-            </div>
-        @endif
-
-        {{-- Verifier notice banner --}}
-        @if($isVerifier)
-            <div class="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg flex items-start gap-3">
-                <svg class="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <div>
-                    <p class="font-semibold text-amber-800 text-sm">Verifier Mode</p>
-                    <p class="text-amber-700 text-sm mt-0.5">
-                        The evaluator's scores are shown in
-                        <span class="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">blue</span>
-                        for reference. Correct any value in your column if needed.
-                    </p>
-                </div>
-            </div>
-        @endif
+        <!-- Info Banner -->
+        <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg flex items-start gap-3">
+            <svg class="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-blue-700 text-sm">
+                <span class="font-semibold">Previous Points</span> shows your saved score. Enter only new additional points — they accumulate on save.
+            </p>
+        </div>
 
         <!-- Applicant Info Card -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -64,275 +47,161 @@
         </div>
 
         <form>
-            <!-- Main Experience Form -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
                 <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
                     <h2 class="text-xl font-bold text-white">2.0 EXPERIENCE AND LENGTH OF SERVICE ... 25 pts.</h2>
                 </div>
 
-                {{-- Column header row for verifier --}}
-                @if($isVerifier)
-                    <div class="px-6 pt-5 pb-1">
-                        <div class="grid grid-cols-12 gap-4">
-                            <div class="col-span-8"></div>
-                            <div class="col-span-2 text-center">
-                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-blue-600 bg-blue-50 border border-blue-200 rounded px-2 py-1 w-full">
-                                    Evaluator Score
-                                </span>
-                            </div>
-                            <div class="col-span-2 text-center">
-                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 w-full">
-                                    Your Score
-                                </span>
-                            </div>
+                <!-- Column Headers -->
+                <div class="px-6 pt-5 pb-1">
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-8"></div>
+                        <div class="col-span-2 text-center">
+                            <span class="inline-block text-xs font-semibold uppercase tracking-wide text-gray-600 bg-gray-100 border border-gray-300 rounded px-2 py-1 w-full">
+                                Previous Points
+                            </span>
+                        </div>
+                        <div class="col-span-2 text-center">
+                            <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 w-full">
+                                Add New Points
+                            </span>
                         </div>
                     </div>
-                @endif
+                </div>
 
                 <div class="p-6 space-y-6">
-                    <!-- Section 2.1 - Academic Experience -->
-                    <div class="border-l-4 border-blue-500 pl-4">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                            2.1 Academic Experience
-                        </h3>
 
-                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                            <div class="space-y-3 text-sm text-gray-700">
-                                <div class="pl-4">
-                                    <div class="font-medium">2.1.1 For every year of full-time academic service</div>
-                                    <div class="pl-6 text-gray-600">in a state institution of higher learning</div>
-                                </div>
-                                <div class="pl-4">
-                                    <div class="font-medium">2.1.2 for every year of full-time academic service</div>
-                                    <div class="pl-6 text-gray-600">in the institution of higher learning other than</div>
-                                    <div class="pl-6 text-gray-600">SUC's, CHED supervised and TESDA Schools</div>
-                                    <div class="pl-6 text-gray-600">service in private or public research institution</div>
-                                </div>
-                            </div>
+                    <!-- Section 2.1 Academic Experience -->
+                    <div class="border-l-4 border-blue-500 pl-4">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">2.1 Academic Experience</h3>
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm text-gray-700 space-y-2">
+                            <div class="pl-4 font-medium">2.1.1 For every year of full-time academic service in a state institution of higher learning</div>
+                            <div class="pl-4 font-medium">2.1.2 For every year of full-time academic service in other institutions (non-SUC/CHED/TESDA)</div>
                         </div>
 
                         <!-- 2.1.1 -->
                         <div class="grid grid-cols-12 gap-4 items-center mb-3">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Section 2.1.1 Score (State Institution) - RS
-                                </label>
+                            <div class="col-span-8">
+                                <label class="block text-sm font-medium text-gray-700">2.1.1 State Institution (Q2_1_1)</label>
                             </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                                        {{ $evaluatorScoresExist ? number_format((float)$evaluator_rs_2_1_1, 2) : '—' }}
-                                    </div>
+                            <div class="col-span-2">
+                                <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
+                                    {{ number_format($prev_q2_1_1, 3) }}
                                 </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_1_1" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @else
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_1_1" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @endif
+                            </div>
+                            <div class="col-span-2">
+                                <input type="number" wire:model.live="new_q2_1_1" step="0.001" min="0" max="25"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-center" placeholder="+0">
+                            </div>
                         </div>
-                        @error('rs_2_1_1') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                        @error('new_q2_1_1') <span class="text-red-600 text-sm block mb-2">{{ $message }}</span> @enderror
 
                         <!-- 2.1.2 -->
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Section 2.1.2 Score (Other Institution) - RS
-                                </label>
+                            <div class="col-span-8">
+                                <label class="block text-sm font-medium text-gray-700">2.1.2 Other Institution (Q2_1_2)</label>
                             </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                                        {{ $evaluatorScoresExist ? number_format((float)$evaluator_rs_2_1_2, 2) : '—' }}
-                                    </div>
+                            <div class="col-span-2">
+                                <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
+                                    {{ number_format($prev_q2_1_2, 3) }}
                                 </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_1_2" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @else
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_1_2" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @endif
+                            </div>
+                            <div class="col-span-2">
+                                <input type="number" wire:model.live="new_q2_1_2" step="0.001" min="0" max="25"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-center" placeholder="+0">
+                            </div>
                         </div>
-                        @error('rs_2_1_2') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                        @error('new_q2_1_2') <span class="text-red-600 text-sm block mt-1">{{ $message }}</span> @enderror
                     </div>
 
-                    <!-- Section 2.2 - Administrative Experience -->
+                    <!-- Section 2.2 Administrative Experience -->
                     <div class="border-l-4 border-green-500 pl-4">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                            2.2 Administrative Experience
-                        </h3>
-
-                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                            <div class="space-y-2 text-sm text-gray-700">
-                                <div class="pl-4 font-medium">2.2.1 For every full-time year of administrative experience as:</div>
-                                <div class="pl-8">a. President</div>
-                                <div class="pl-8">b. Vice President</div>
-                                <div class="pl-8">c. Dean/Director/School Superintendent</div>
-                                <div class="pl-8">d. Principal/Supervisor / Department Chairperson/ Head of Unit</div>
-                            </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">2.2 Administrative Experience</h3>
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm text-gray-700 space-y-1">
+                            <div class="pl-4 font-medium">2.2.1 For every full-time year as President / VP / Dean / Director / Principal / Supervisor / Dept. Chair</div>
                         </div>
-
-                        <!-- 2.2.1 -->
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Section 2.2.1 Score (Administrative) - RS
-                                </label>
+                            <div class="col-span-8">
+                                <label class="block text-sm font-medium text-gray-700">2.2.1 Administrative (Q2_2_1)</label>
                             </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                                        {{ $evaluatorScoresExist ? number_format((float)$evaluator_rs_2_2_1, 2) : '—' }}
-                                    </div>
+                            <div class="col-span-2">
+                                <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
+                                    {{ number_format($prev_q2_2_1, 3) }}
                                 </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_2_1" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @else
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_2_1" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @endif
+                            </div>
+                            <div class="col-span-2">
+                                <input type="number" wire:model.live="new_q2_2_1" step="0.001" min="0" max="25"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-center" placeholder="+0">
+                            </div>
                         </div>
-                        @error('rs_2_2_1') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                        @error('new_q2_2_1') <span class="text-red-600 text-sm block mt-1">{{ $message }}</span> @enderror
                     </div>
 
-                    <!-- Section 2.3.1 - Professional/Technical Experience -->
+                    <!-- Section 2.3.1 Professional/Technical -->
                     <div class="border-l-4 border-purple-500 pl-4">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                            2.3.1 Professional/Technical Experience
-                        </h3>
-
-                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                            <div class="space-y-2 text-sm text-gray-700">
-                                <div class="pl-4 font-medium">For every year of full-time Professional/ and technical experience as:</div>
-                                <div class="pl-8">a. Manager/Entrepreneur/ consultant</div>
-                                <div class="pl-8">b. Supervisor/Head of Unit</div>
-                                <div class="pl-8">c. Rank and File</div>
-                            </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">2.3.1 Professional/Technical Experience</h3>
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm text-gray-700 space-y-1">
+                            <div class="pl-4 font-medium">For every year as Manager / Entrepreneur / Consultant / Supervisor / Rank and File</div>
                         </div>
-
-                        <!-- 2.3.1 -->
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Section 2.3.1 Score (Professional/Technical) - RS
-                                </label>
+                            <div class="col-span-8">
+                                <label class="block text-sm font-medium text-gray-700">2.3.1 Professional/Technical (Q2_3_1)</label>
                             </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                                        {{ $evaluatorScoresExist ? number_format((float)$evaluator_rs_2_3_1, 2) : '—' }}
-                                    </div>
+                            <div class="col-span-2">
+                                <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
+                                    {{ number_format($prev_q2_3_1, 3) }}
                                 </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_3_1" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @else
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_3_1" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @endif
+                            </div>
+                            <div class="col-span-2">
+                                <input type="number" wire:model.live="new_q2_3_1" step="0.001" min="0" max="25"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-center" placeholder="+0">
+                            </div>
                         </div>
-                        @error('rs_2_3_1') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                        @error('new_q2_3_1') <span class="text-red-600 text-sm block mt-1">{{ $message }}</span> @enderror
                     </div>
 
-                    <!-- Section 2.3.2 - Public/Private Institution Experience -->
+                    <!-- Section 2.3.2 Teaching/Cooperating -->
                     <div class="border-l-4 border-orange-500 pl-4">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                            2.3.2 Public/Private Institution Experience
-                        </h3>
-
-                        <div class="bg-gray-50 rounded-lg p-4 mb-4">
-                            <div class="space-y-2 text-sm text-gray-700">
-                                <div class="pl-4 font-medium">For every year of experience in the public and private institutions as:</div>
-                                <div class="pl-8">a. Cooperating Teacher</div>
-                                <div class="pl-8">b. Basic Education Teacher</div>
-                            </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">2.3.2 Public/Private Institution Experience</h3>
+                        <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm text-gray-700 space-y-1">
+                            <div class="pl-4 font-medium">For every year as Cooperating Teacher / Basic Education Teacher</div>
                         </div>
-
-                        <!-- 2.3.2 -->
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-10' }}">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Section 2.3.2 Score (Teaching) - RS
-                                </label>
+                            <div class="col-span-8">
+                                <label class="block text-sm font-medium text-gray-700">2.3.2 Teaching (Q2_3_2)</label>
                             </div>
-                            @if($isVerifier)
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-semibold text-blue-700 text-sm">
-                                        {{ $evaluatorScoresExist ? number_format((float)$evaluator_rs_2_3_2, 2) : '—' }}
-                                    </div>
+                            <div class="col-span-2">
+                                <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
+                                    {{ number_format($prev_q2_3_2, 3) }}
                                 </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_3_2" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @else
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="rs_2_3_2" step="0.01" min="0" max="25"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center" placeholder="RS">
-                                </div>
-                            @endif
+                            </div>
+                            <div class="col-span-2">
+                                <input type="number" wire:model.live="new_q2_3_2" step="0.001" min="0" max="25"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-center" placeholder="+0">
+                            </div>
                         </div>
-                        @error('rs_2_3_2') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                        @error('new_q2_3_2') <span class="text-red-600 text-sm block mt-1">{{ $message }}</span> @enderror
                     </div>
 
-                    <!-- Subtotal Display -->
+                    <!-- Subtotal -->
                     <div class="border-t-2 border-gray-300 pt-4">
                         <div class="grid grid-cols-12 gap-4 items-center">
-                            <div class="{{ $isVerifier ? 'col-span-8' : 'col-span-8' }}">
+                            <div class="col-span-6">
                                 <label class="block text-lg font-bold text-gray-900">SUBTOTAL</label>
-                                <p class="text-xs text-gray-600 mt-1">EP = MIN(RS Subtotal, 25)</p>
+                                <p class="text-xs text-gray-600 mt-1">EP = MIN(Previous + New Total, 25)</p>
                             </div>
-
-                            @if($isVerifier)
-                                @php
-                                    $evalRS = (float)($evaluator_rs_2_1_1 ?? 0) + (float)($evaluator_rs_2_1_2 ?? 0)
-                                            + (float)($evaluator_rs_2_2_1 ?? 0) + (float)($evaluator_rs_2_3_1 ?? 0)
-                                            + (float)($evaluator_rs_2_3_2 ?? 0);
-                                    $evalEP = min($evalRS, 25);
-                                @endphp
-                                <div class="col-span-2">
-                                    <div class="text-xs text-center text-blue-600 mb-1 font-medium">Evaluator EP</div>
-                                    <div class="px-3 py-2 bg-blue-50 border border-blue-300 rounded-lg text-center font-bold text-blue-800">
-                                        {{ $evaluatorScoresExist ? number_format($evalEP, 2) : '—' }}
-                                    </div>
+                            <div class="col-span-3">
+                                <div class="text-xs text-center text-gray-600 mb-1">RS Running Total</div>
+                                <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-semibold">
+                                    {{ number_format($this->rsTotal, 3) }}
                                 </div>
-                                <div class="col-span-2">
-                                    <div class="text-xs text-center text-green-700 mb-1 font-medium">Your EP</div>
-                                    <div class="px-3 py-2 bg-green-50 border border-green-400 rounded-lg text-center font-bold text-green-800">
-                                        {{ number_format($this->epSubtotal, 2) }}
-                                    </div>
+                            </div>
+                            <div class="col-span-3">
+                                <div class="text-xs text-center text-green-700 mb-1">EP (capped at 25)</div>
+                                <div class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-center font-bold text-green-800">
+                                    {{ number_format($this->epSubtotal, 3) }}
                                 </div>
-                            @else
-                                <div class="col-span-4 grid grid-cols-2 gap-2">
-                                    <div>
-                                        <div class="text-xs text-center text-gray-600 mb-1">RS Total</div>
-                                        <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-semibold">
-                                            {{ number_format($this->rsSubtotal, 2) }}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="text-xs text-center text-gray-600 mb-1">EP</div>
-                                        <div class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-center font-semibold">
-                                            {{ number_format($this->epSubtotal, 2) }}
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -345,7 +214,7 @@
                     </button>
                     <button type="button" wire:click="next"
                         class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-150">
-                        Next →
+                        Save & Next →
                     </button>
                 </div>
             </div>
@@ -354,133 +223,72 @@
 
     <!-- Applicant Details Modal -->
     @if($showApplicantModal)
-        <div
-            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-            x-data="{ show: @entangle('showApplicantModal') }"
-            x-show="show"
-            x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-        >
+        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+            x-data="{ show: @entangle('showApplicantModal') }" x-show="show"
+            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
             <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-lg bg-white">
                 <div class="flex items-center justify-between border-b pb-3 mb-4">
                     <h3 class="text-2xl font-bold text-gray-900">Applicant Details</h3>
-                    <button wire:click="toggleApplicantModal" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
+                    <button wire:click="toggleApplicantModal" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
-                <div class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Full Name</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $applicant->full_name }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Email</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $applicant->user->email }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Phone Number</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $applicant->phone_number ?? 'N/A' }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Position Applied</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $position->name }}</p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-sm font-medium text-gray-500">Address</p>
-                            <p class="mt-1 text-base text-gray-900">
-                                {{ $applicant->street }}, {{ $applicant->barangay }}, {{ $applicant->city }}, {{ $applicant->province }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Present Position</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $jobApplication->present_position }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Education</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $jobApplication->education }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Experience (Years)</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $jobApplication->experience }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Eligibility</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $jobApplication->eligibility }}</p>
-                        </div>
-                        <div class="col-span-2">
-                            <p class="text-sm font-medium text-gray-500">Requirements File</p>
-                            @if($existing_file_path)
-                                <button type="button" wire:click="$dispatch('open-pdf-viewer')"
-                                    class="mt-1 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                    View File
-                                </button>
-                            @else
-                                <p class="mt-1 text-base text-gray-500">No file uploaded</p>
-                            @endif
-                        </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><p class="text-sm font-medium text-gray-500">Full Name</p><p class="mt-1 text-base text-gray-900">{{ $applicant->full_name }}</p></div>
+                    <div><p class="text-sm font-medium text-gray-500">Email</p><p class="mt-1 text-base text-gray-900">{{ $applicant->user->email }}</p></div>
+                    <div><p class="text-sm font-medium text-gray-500">Phone Number</p><p class="mt-1 text-base text-gray-900">{{ $applicant->phone_number ?? 'N/A' }}</p></div>
+                    <div><p class="text-sm font-medium text-gray-500">Position Applied</p><p class="mt-1 text-base text-gray-900">{{ $position->name }}</p></div>
+                    <div class="col-span-2"><p class="text-sm font-medium text-gray-500">Address</p><p class="mt-1 text-base text-gray-900">{{ $applicant->street }}, {{ $applicant->barangay }}, {{ $applicant->city }}, {{ $applicant->province }}</p></div>
+                    <div><p class="text-sm font-medium text-gray-500">Present Position</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->present_position }}</p></div>
+                    <div><p class="text-sm font-medium text-gray-500">Education</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->education }}</p></div>
+                    <div><p class="text-sm font-medium text-gray-500">Experience (Years)</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->experience }}</p></div>
+                    <div><p class="text-sm font-medium text-gray-500">Eligibility</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->eligibility }}</p></div>
+                    <div class="col-span-2">
+                        <p class="text-sm font-medium text-gray-500">Requirements File</p>
+                        @if($existing_file_path)
+                            <button type="button" wire:click="$dispatch('open-pdf-viewer')"
+                                class="mt-1 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                View File
+                            </button>
+                        @else
+                            <p class="mt-1 text-base text-gray-500">No file uploaded</p>
+                        @endif
                     </div>
                 </div>
                 <div class="flex justify-end mt-6 pt-4 border-t">
-                    <button wire:click="toggleApplicantModal" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150">
-                        Close
-                    </button>
+                    <button wire:click="toggleApplicantModal" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">Close</button>
                 </div>
             </div>
         </div>
     @endif
 
-    <!-- PDF VIEWER MODAL -->
+    <!-- PDF Viewer Modal -->
     <div x-data="{
-        open: false,
-        loading: false,
-        pdfUrl: null,
+        open: false, loading: false, pdfUrl: null,
         async openPdfViewer() {
-            this.loading = true;
-            this.open = true;
-            try {
-                const dataUrl = await @this.call('getFileDataUrl');
-                if (dataUrl) { this.pdfUrl = dataUrl; }
-            } catch (error) {
-                console.error('Error loading PDF:', error);
-                alert('Error loading PDF file');
-                this.open = false;
-            } finally {
-                this.loading = false;
-            }
+            this.loading = true; this.open = true;
+            try { const dataUrl = await @this.call('getFileDataUrl'); if (dataUrl) { this.pdfUrl = dataUrl; } }
+            catch (e) { alert('Error loading PDF'); this.open = false; }
+            finally { this.loading = false; }
         }
     }"
     x-on:open-pdf-viewer.window="openPdfViewer()"
-    x-show="open"
-    x-cloak
-    class="fixed inset-0 z-50 overflow-hidden"
-    style="display: none;">
-        <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
+    x-show="open" x-cloak class="fixed inset-0 z-50 overflow-hidden" style="display:none;">
+        <div class="absolute inset-0 bg-black bg-opacity-75" @click="open=false; pdfUrl=null;"></div>
         <div class="relative w-full h-full flex items-center justify-center">
             <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
                 <div class="flex items-center justify-between px-6 py-4 border-b">
                     <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
-                    <button @click="open = false; pdfUrl = null;" class="text-gray-400 hover:text-gray-600 transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
+                    <button @click="open=false; pdfUrl=null;" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
                 <div class="flex-1 overflow-hidden">
                     <div x-show="loading" class="flex items-center justify-center h-full">
                         <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                         </svg>
                     </div>
                     <iframe x-show="!loading && pdfUrl" :src="pdfUrl" class="w-full h-full" frameborder="0"></iframe>
