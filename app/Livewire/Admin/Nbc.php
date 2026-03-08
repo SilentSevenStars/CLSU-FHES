@@ -6,8 +6,6 @@ use Livewire\Component;
 use App\Models\Evaluation;
 use App\Models\Applicant;
 use App\Models\NbcAssignment;
-use App\Models\Nbc as NbcModel;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class Nbc extends Component
 {
@@ -40,34 +38,24 @@ class Nbc extends Component
         $this->positions = [];
         $this->interviewDates = [];
 
-        // Load all applicants with at least one approved application right away
         $this->searchResults = Applicant::with('user')
             ->whereHas('jobApplications', function ($q) {
                 $q->where('status', 'approve');
             })
             ->orderBy('last_name')
             ->get()
-            ->map(function ($applicant) {
-                return [
-                    'id'        => $applicant->id,
-                    'full_name' => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
-                ];
-            })
+            ->map(fn($applicant) => [
+                'id'        => $applicant->id,
+                'full_name' => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
+            ])
             ->toArray();
     }
 
-    /**
-     * Close search modal
-     */
     public function closeSearchModal()
     {
         $this->showSearchModal = false;
     }
 
-    /**
-     * Filter the already-loaded results as the user types.
-     * No minimum character requirement — list is always visible.
-     */
     public function updatedTempSearchTerm()
     {
         $this->showDropdown = true;
@@ -79,55 +67,33 @@ class Nbc extends Component
 
         $search = strtolower(trim($this->tempSearchTerm));
 
-        if ($search === '') {
-            // Show all when input is empty
-            $this->searchResults = Applicant::with('user')
-                ->whereHas('jobApplications', function ($q) {
-                    $q->where('status', 'approve');
-                })
-                ->orderBy('last_name')
-                ->get()
-                ->map(function ($applicant) {
-                    return [
-                        'id'        => $applicant->id,
-                        'full_name' => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
-                    ];
-                })
-                ->toArray();
-        } else {
-            // Filter by typed text
-            $this->searchResults = Applicant::with('user')
-                ->whereHas('jobApplications', function ($q) {
-                    $q->where('status', 'approve');
-                })
-                ->where(function ($q) use ($search) {
-                    $q->whereRaw("LOWER(first_name) LIKE ?", ["%{$search}%"])
-                      ->orWhereRaw("LOWER(last_name) LIKE ?", ["%{$search}%"])
-                      ->orWhereRaw("LOWER(middle_name) LIKE ?", ["%{$search}%"]);
-                })
-                ->orderBy('last_name')
-                ->get()
-                ->map(function ($applicant) {
-                    return [
-                        'id'        => $applicant->id,
-                        'full_name' => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
-                    ];
-                })
-                ->toArray();
+        $query = Applicant::with('user')
+            ->whereHas('jobApplications', function ($q) {
+                $q->where('status', 'approve');
+            });
+
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->whereRaw("LOWER(first_name) LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("LOWER(last_name) LIKE ?", ["%{$search}%"])
+                  ->orWhereRaw("LOWER(middle_name) LIKE ?", ["%{$search}%"]);
+            });
         }
+
+        $this->searchResults = $query->orderBy('last_name')
+            ->get()
+            ->map(fn($applicant) => [
+                'id'        => $applicant->id,
+                'full_name' => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
+            ])
+            ->toArray();
     }
 
-    /**
-     * Show dropdown when input is focused (called from blade via wire:focus).
-     */
     public function showAllApplicants()
     {
         $this->showDropdown = true;
     }
 
-    /**
-     * Select an applicant from dropdown
-     */
     public function selectApplicant($applicantId, $applicantName)
     {
         $this->selectedApplicantId = $applicantId;
@@ -137,9 +103,6 @@ class Nbc extends Component
         $this->loadPositionsForSelectedApplicant();
     }
 
-    /**
-     * Load ALL positions (no whitelist) for the selected applicant.
-     */
     public function loadPositionsForSelectedApplicant()
     {
         $this->positions = [];
@@ -169,9 +132,6 @@ class Nbc extends Component
             ->toArray();
     }
 
-    /**
-     * Load interview dates when position is selected.
-     */
     public function updatedTempSelectedPosition()
     {
         $this->interviewDates = [];
@@ -190,10 +150,8 @@ class Nbc extends Component
         $this->interviewDates = $applicant->jobApplications()
             ->with(['position', 'evaluation'])
             ->where('status', 'approve')
-            ->whereHas('position', function ($q) {
-                $q->where('name', $this->tempSelectedPosition);
-            })
-            ->whereHas('evaluation')
+            ->whereHas('position', fn($q) => $q->where('name', $this->tempSelectedPosition))
+            ->whereHas('evaluation', fn($q) => $q->whereHas('nbcAssignments', fn($a) => $a->where('status', 'complete')))
             ->get()
             ->pluck('evaluation.interview_date')
             ->filter()
@@ -203,9 +161,6 @@ class Nbc extends Component
             ->toArray();
     }
 
-    /**
-     * Perform search from modal.
-     */
     public function performSearch()
     {
         if (empty($this->tempSearchTerm) || empty($this->tempSelectedPosition) || empty($this->tempSelectedInterviewDate)) {
@@ -218,10 +173,10 @@ class Nbc extends Component
             return;
         }
 
-        $this->searchTerm = $this->tempSearchTerm;
-        $this->selectedPosition = $this->tempSelectedPosition;
+        $this->searchTerm            = $this->tempSearchTerm;
+        $this->selectedPosition      = $this->tempSelectedPosition;
         $this->selectedInterviewDate = $this->tempSelectedInterviewDate;
-        $this->applicantId = $this->selectedApplicantId;
+        $this->applicantId           = $this->selectedApplicantId;
 
         $this->loadNbcData();
 
@@ -233,175 +188,198 @@ class Nbc extends Component
         $this->closeSearchModal();
     }
 
-    /**
-     * Clear search
-     */
     public function clearSearch()
     {
-        $this->searchTerm = '';
-        $this->selectedPosition = null;
+        $this->searchTerm            = '';
+        $this->selectedPosition      = null;
         $this->selectedInterviewDate = null;
-        $this->positions = [];
-        $this->interviewDates = [];
-        $this->nbcData = [];
-        $this->applicantId = null;
-        $this->tempSearchTerm = '';
-        $this->tempSelectedPosition = null;
+        $this->positions             = [];
+        $this->interviewDates        = [];
+        $this->nbcData               = [];
+        $this->applicantId           = null;
+        $this->tempSearchTerm        = '';
+        $this->tempSelectedPosition  = null;
         $this->tempSelectedInterviewDate = null;
-        $this->searchResults = [];
-        $this->showDropdown = false;
-        $this->selectedApplicantId = null;
+        $this->searchResults         = [];
+        $this->showDropdown          = false;
+        $this->selectedApplicantId   = null;
     }
 
     /**
-     * Resolve the best NBC record for a given evaluation_id.
-     * Priority: verify assignment > evaluate assignment.
+     * Resolve component subtotals from the best nbc_assignment for a given evaluation.
      */
-    protected function resolveNbcRecord(int $evaluationId): ?NbcModel
+    protected function resolveComponentScores(int $evaluationId, ?string $beforeDate = null): ?array
     {
-        $verifyAssignment = NbcAssignment::where('evaluation_id', $evaluationId)
-            ->where('type', 'verify')
-            ->whereNotNull('nbc_id')
-            ->first();
+        $query = NbcAssignment::with([
+                'educationalQualification',
+                'experienceService',
+                'professionalDevelopment',
+            ])
+            ->where('evaluation_id', $evaluationId)
+            ->where('status', 'complete')
+            ->whereNotNull('educational_qualification_id')
+            ->whereNotNull('experience_service_id')
+            ->whereNotNull('professional_development_id');
 
-        if ($verifyAssignment && $verifyAssignment->nbc) {
-            return $verifyAssignment->nbc;
+        if ($beforeDate) {
+            $query->where('evaluation_date', '<', $beforeDate);
         }
 
-        $evaluateAssignment = NbcAssignment::where('evaluation_id', $evaluationId)
-            ->where('type', 'evaluate')
-            ->whereNotNull('nbc_id')
-            ->first();
+        $assignment = $query->orderBy('evaluation_date', 'desc')->first();
 
-        return $evaluateAssignment?->nbc;
+        if (!$assignment) {
+            return null;
+        }
+
+        $education    = (float) ($assignment->educationalQualification->subtotal ?? 0);
+        $experience   = (float) ($assignment->experienceService->subtotal ?? 0);
+        $professional = (float) ($assignment->professionalDevelopment->subtotal ?? 0);
+        $total        = $education + $experience + $professional;
+
+        return [
+            'evaluation_date' => $assignment->evaluation_date,
+            'education'       => round($education, 2),
+            'experience'      => round($experience, 2),
+            'professional'    => round($professional, 2),
+            'total'           => round($total, 2),
+        ];
     }
 
     /**
-     * Load NBC data and compute scores.
+     * Load NBC data and compute previous / additional / total points.
      */
     public function loadNbcData()
     {
+        $this->nbcData = [];
+
         if (!$this->applicantId || empty($this->selectedPosition) || empty($this->selectedInterviewDate)) {
-            $this->nbcData = [];
             return;
         }
 
-        $applicant = Applicant::with(['jobApplications.position'])
-            ->find($this->applicantId);
+        $applicant = Applicant::with(['jobApplications.position'])->find($this->applicantId);
 
         if (!$applicant) {
-            $this->nbcData = [];
             return;
         }
 
         $evaluation = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
-            $q->where('applicant_id', $applicant->id)
-                ->where('status', 'approve')
-                ->whereHas('position', function ($posQ) {
-                    $posQ->where('name', $this->selectedPosition);
-                });
-        })
-        ->where('interview_date', $this->selectedInterviewDate)
-        ->first();
-
-        if (!$evaluation) {
-            $this->nbcData = [];
-            return;
-        }
-
-        $nbcRecord = $this->resolveNbcRecord($evaluation->id);
-
-        if (!$nbcRecord) {
-            $this->nbcData = [];
-            return;
-        }
-
-        $currentEducation    = $nbcRecord->educational_qualification ?? 0;
-        $currentExperience   = $nbcRecord->experience ?? 0;
-        $currentProfessional = $nbcRecord->professional_development ?? 0;
-        $currentTotal        = $nbcRecord->total_score ?? 0;
-
-        $previousEvaluation = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
                 $q->where('applicant_id', $applicant->id)
-                    ->where('status', 'approve');
+                  ->where('status', 'approve')
+                  ->whereHas('position', fn($posQ) => $posQ->where('name', $this->selectedPosition));
             })
-            ->where('interview_date', '<', $this->selectedInterviewDate)
-            ->whereHas('nbcAssignments', function ($q) {
-                $q->whereNotNull('nbc_id');
-            })
-            ->orderBy('interview_date', 'desc')
+            ->where('interview_date', $this->selectedInterviewDate)
             ->first();
 
-        $previousNbc           = null;
-        $previousInterviewDate = null;
-
-        if ($previousEvaluation) {
-            $previousNbc           = $this->resolveNbcRecord($previousEvaluation->id);
-            $previousInterviewDate = $previousEvaluation->interview_date;
+        if (!$evaluation) {
+            return;
         }
 
-        $previousEducation    = $previousNbc?->educational_qualification;
-        $previousExperience   = $previousNbc?->experience;
-        $previousProfessional = $previousNbc?->professional_development;
-        $previousTotal        = $previousNbc?->total_score;
+        $currentScores = $this->resolveComponentScores($evaluation->id);
 
-        $position = $applicant->jobApplications()
-            ->whereHas('position', function ($q) {
-                $q->where('name', $this->selectedPosition);
+        if (!$currentScores) {
+            return;
+        }
+
+        $currentEvaluationDate = $currentScores['evaluation_date'];
+
+        $allEvaluationIds = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
+                $q->where('applicant_id', $applicant->id)
+                  ->where('status', 'approve');
             })
-            ->first()
-            ->position;
+            ->pluck('id');
+
+        $previousAssignment = NbcAssignment::with([
+                'educationalQualification',
+                'experienceService',
+                'professionalDevelopment',
+            ])
+            ->whereIn('evaluation_id', $allEvaluationIds)
+            ->where('status', 'complete')
+            ->whereNotNull('educational_qualification_id')
+            ->whereNotNull('experience_service_id')
+            ->whereNotNull('professional_development_id')
+            ->where('evaluation_date', '<', $currentEvaluationDate)
+            ->orderBy('evaluation_date', 'desc')
+            ->first();
+
+        $previousScores         = null;
+        $previousEvaluationDate = null;
+
+        if ($previousAssignment) {
+            $prevEducation    = (float) ($previousAssignment->educationalQualification->subtotal ?? 0);
+            $prevExperience   = (float) ($previousAssignment->experienceService->subtotal ?? 0);
+            $prevProfessional = (float) ($previousAssignment->professionalDevelopment->subtotal ?? 0);
+            $prevTotal        = $prevEducation + $prevExperience + $prevProfessional;
+
+            $previousScores = [
+                'education'    => round($prevEducation, 2),
+                'experience'   => round($prevExperience, 2),
+                'professional' => round($prevProfessional, 2),
+                'total'        => round($prevTotal, 2),
+            ];
+
+            $previousEvaluationDate = $previousAssignment->evaluation_date;
+        }
+
+        $additionalEducation    = $currentScores['education']    - ($previousScores['education']    ?? 0);
+        $additionalExperience   = $currentScores['experience']   - ($previousScores['experience']   ?? 0);
+        $additionalProfessional = $currentScores['professional'] - ($previousScores['professional'] ?? 0);
+        $additionalTotal        = $currentScores['total']        - ($previousScores['total']        ?? 0);
+
+        $positionApplication = $applicant->jobApplications()
+            ->whereHas('position', fn($q) => $q->where('name', $this->selectedPosition))
+            ->first();
+
+        $position     = $positionApplication ? $positionApplication->position : null;
+        $positionName = $position ? $position->name : '';
+        $collegeName  = $position && $position->college ? $position->college->name : '';
 
         $this->nbcData = [[
             'evaluation_id'           => $evaluation->id,
             'name'                    => trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}"),
-            'position'                => $position->name,
-            'college'                 => $position->college->name,
+            'position'                => $positionName,
+            'college'                 => $collegeName,
             'interview_date'          => $evaluation->interview_date,
-            'previous_interview_date' => $previousInterviewDate,
+            'previous_interview_date' => $previousEvaluationDate,
 
-            'previous_education'    => $previousEducation    !== null ? round($previousEducation, 2)    : '',
-            'previous_experience'   => $previousExperience   !== null ? round($previousExperience, 2)   : '',
-            'previous_professional' => $previousProfessional !== null ? round($previousProfessional, 2) : '',
-            'previous_total'        => $previousTotal        !== null ? round($previousTotal, 2)        : '',
+            'previous_education'    => $previousScores ? $previousScores['education']    : '',
+            'previous_experience'   => $previousScores ? $previousScores['experience']   : '',
+            'previous_professional' => $previousScores ? $previousScores['professional'] : '',
+            'previous_total'        => $previousScores ? $previousScores['total']        : '',
 
-            'additional_education'    => round($currentEducation, 2),
-            'additional_experience'   => round($currentExperience, 2),
-            'additional_professional' => round($currentProfessional, 2),
-            'additional_total'        => round($currentTotal, 2),
+            'additional_education'    => round($additionalEducation, 2),
+            'additional_experience'   => round($additionalExperience, 2),
+            'additional_professional' => round($additionalProfessional, 2),
+            'additional_total'        => round($additionalTotal, 2),
 
-            'ep_education_subtotal'    => 0,
-            'ep_experience_subtotal'   => 0,
-            'ep_professional_subtotal' => 0,
-            'ep_total_subtotal'        => 0,
-
-            'total_education'    => round($currentEducation, 2),
-            'total_experience'   => round($currentExperience, 2),
-            'total_professional' => round($currentProfessional, 2),
-            'grand_total'        => round($currentTotal, 2),
-            'projected_points'   => round($currentTotal, 2),
+            'total_education'    => $currentScores['education'],
+            'total_experience'   => $currentScores['experience'],
+            'total_professional' => $currentScores['professional'],
+            'grand_total'        => $currentScores['total'],
+            'projected_points'   => $currentScores['total'],
         ]];
     }
 
-    public function export()
+    /**
+     * Print — renders the NBC report blade to HTML and opens it in a new tab.
+     * Same approach as the Screening component (dispatch openPrintTab).
+     */
+    public function print()
     {
         if (empty($this->nbcData)) {
-            session()->flash('error', 'No data to export. Please search for an applicant first.');
+            session()->flash('error', 'No data to print. Please search for an applicant first.');
             return;
         }
 
-        $data = $this->nbcData[0];
-
-        $pdf = Pdf::loadView('pdf.nbc-report', [
-            'data'          => $data,
+        // reuse the existing PDF blade which is tailored for a single applicant's
+        // NBC report. this mirrors the export() method but renders HTML so it
+        // can be opened in a new browser tab for printing.
+        $html = view('pdf.nbc-report', [
+            'data'          => $this->nbcData[0],
             'generatedDate' => now()->format('F d, Y'),
-        ]);
+        ])->render();
 
-        $pdf->setPaper('legal', 'portrait');
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, 'nbc-report-' . now()->format('Y-m-d') . '.pdf');
+        $this->dispatch('openPrintTab', html: $html);
     }
 
     public function render()

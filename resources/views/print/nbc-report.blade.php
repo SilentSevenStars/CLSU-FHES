@@ -209,6 +209,18 @@
 </div>
 
 @php
+    // support both dashboard-style printing (multiple rows) and the
+    // admin single-record case. if $reportData isn't supplied we try to
+    // fall back to $data that the admin component passes.
+    if (!isset($reportData)) {
+        $reportData = isset($data) ? [$data] : [];
+    }
+
+    $interviewDate    = $interviewDate ?? ($reportData[0]['interview_date'] ?? '');
+    $totalApplicants  = $totalApplicants ?? count($reportData);
+    $completedCount   = $completedCount  ?? collect($reportData)->where('status', 'Complete')->count();
+    $pendingCount     = $pendingCount    ?? ($totalApplicants - $completedCount);
+
     $rowsPerPage = 15;
     $dataChunks  = array_chunk($reportData, $rowsPerPage);
     $totalPages  = count($dataChunks);
