@@ -29,15 +29,9 @@
 @endif
 
 <!-- Main content -->
-@if(in_array(Auth::user()->role, ['applicant', 'admin', 'panel']))
-<main class="p-4 sm:ml-16 min-h-screen">
-    {{ $slot }}
-</main>
-@else
 <main class="p-4 sm:ml-64 min-h-screen">
     {{ $slot }}
 </main>
-@endif
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 {{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
 <script src="{{ asset('js/sweetalert.js') }}"></script>

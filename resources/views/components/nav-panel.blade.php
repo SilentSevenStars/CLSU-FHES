@@ -1,12 +1,10 @@
 <aside id="panel-sidebar" 
-    class="group fixed top-0 left-0 z-50 h-screen transition-all duration-300 ease-in-out
-           w-64 sm:w-16 sm:hover:w-64
-           -translate-x-full sm:translate-x-0
+    class="fixed top-0 left-0 z-50 h-screen w-64
            bg-white border-r border-gray-200
-           overflow-hidden
-           sm:hover:shadow-2xl">
+           overflow-y-auto transform transition-transform duration-300 ease-in-out
+           -translate-x-full sm:translate-x-0">
    
-   <div class="h-full flex flex-col justify-between bg-[#0B712C] px-2 py-4 overflow-y-auto">
+   <div class="h-full flex flex-col justify-between bg-[#0B712C] px-2 py-4">
       
       <!-- Close Button (Mobile) -->
       <button id="panel-sidebar-close" 
@@ -22,9 +20,9 @@
          <!-- Logo -->
          <div class="flex justify-center mb-6 mt-2">
             <a href="{{ route('panel.dashboard') }}" class="flex items-center justify-center">
-               <img src="{{ asset('image/clsu-logo-green.png') }}" 
+               <img src="{{ asset('image/clsu.png') }}" 
                     alt="CLSU Logo" 
-                    class="h-12 w-auto sm:group-hover:h-28 transition-all duration-300">
+                    class="h-20 w-auto">
             </a>
          </div>
 
@@ -35,9 +33,7 @@
                   class="flex items-center p-3 rounded-lg
                   {{ request()->routeIs('panel.dashboard') ? 'bg-[#0A6025] text-white' : 'text-white hover:bg-[#0A6025]' }}">
                   <i class="fa-solid fa-house text-xl w-5 flex-shrink-0"></i>
-                  <span class="ml-4 whitespace-nowrap 
-                      block sm:hidden sm:group-hover:block
-                      transition-all duration-300">
+                  <span class="ml-4 whitespace-nowrap block">
                      Dashboard
                   </span>
                </a>
@@ -46,7 +42,7 @@
       </div>
 
       <!-- User Profile Section (Desktop) -->
-      <div class="mb-2 hidden sm:block relative">
+      <div class="mb-2 relative">
         @php
             $nameParts = explode(' ', Auth::user()->name);
             $initials = strtoupper(substr($nameParts[0], 0, 1) . substr(end($nameParts), 0, 1));
@@ -58,16 +54,12 @@
                 {{ $initials }}
             </div>
             <div class="flex flex-col text-left text-white flex-grow ml-3 overflow-hidden">
-               <span class="text-sm font-semibold whitespace-nowrap
-                   block sm:hidden sm:group-hover:block
-                   transition-all duration-300">
+               <span class="text-sm font-semibold whitespace-nowrap block">
                   {{ Auth::user()->name }}
                </span>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" 
-                 class="w-4 h-4 text-gray-200 flex-shrink-0
-                 block sm:hidden sm:group-hover:block
-                 transition-all duration-300" 
+                 class="w-4 h-4 text-gray-200 flex-shrink-0" 
                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
