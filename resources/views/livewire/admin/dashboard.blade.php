@@ -1,17 +1,36 @@
-<div class="p-6">
+<div class="flex-1 bg-gradient-to-br from-slate-50 to-green-50 p-6 overflow-auto min-h-screen">
+    <div class="max-w-7xl mx-auto">
 
-    <h1 class="text-3xl font-bold mb-6">Admin Dashboard</h1>
+        <!-- Page header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-extrabold text-[#0A6025] mb-2">Admin Dashboard</h1>
+            <p class="text-gray-600 text-sm">
+                Overview of applicants per position and per college for {{ $currentMonthName }}, {{ $currentYear }}.
+            </p>
+        </div>
 
-    <div class="bg-white p-5 rounded-lg shadow mb-10">
-        <h2 class="text-xl font-semibold mb-3">Applicants per Position ({{ $currentMonthName }}, {{ $currentYear }})</h2>
-        <canvas id="positionChart" height="120"></canvas>
+        <!-- Charts -->
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-10">
+            <h2 class="text-lg md:text-xl font-semibold text-gray-900 mb-1">
+                Applicants per Position
+                <span class="block text-sm font-normal text-gray-500">
+                    {{ $currentMonthName }}, {{ $currentYear }}
+                </span>
+            </h2>
+            <canvas id="positionChart" height="120"></canvas>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-10">
+            <h2 class="text-lg md:text-xl font-semibold text-gray-900 mb-1">
+                Applicants per College
+                <span class="block text-sm font-normal text-gray-500">
+                    {{ $currentMonthName }}, {{ $currentYear }}
+                </span>
+            </h2>
+            <canvas id="collegeChart" height="120"></canvas>
+        </div>
+
     </div>
-
-    <div class="bg-white p-5 rounded-lg shadow mb-10">
-        <h2 class="text-xl font-semibold mb-3">Applicants per College ({{ $currentMonthName }}, {{ $currentYear }})</h2>
-        <canvas id="collegeChart" height="120"></canvas>
-    </div>
-
 </div>
 
 <script>

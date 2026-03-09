@@ -9,12 +9,13 @@
             this.nbcOpen = false;
             this.managementOpen = false;
         }
-    }" class="fixed top-0 left-0 z-50 h-screen w-64
+    }" @mouseleave="closeAll()" class="fixed top-0 left-0 z-50 h-screen w-64
            bg-white border-r border-gray-200
            overflow-y-auto transform transition-transform duration-300 ease-in-out
            -translate-x-full sm:translate-x-0">
 
    <div class="h-full flex flex-col justify-between bg-[#0B712C] px-2 py-4">
+
       <!-- Close Button (Mobile) -->
       <button id="admin-sidebar-close"
          class="absolute top-4 right-4 sm:hidden text-white hover:bg-[#0A6025] rounded-lg p-2 z-50"
@@ -131,7 +132,7 @@
                <button @click="nbcOpen = !nbcOpen"
                   class="flex items-center w-full p-3 rounded-lg text-white hover:bg-[#0A6025]">
                   <i class="fa-solid fa-scale-balanced text-xl w-5"></i>
-                  <span class="ml-4 flex-1 block">NBC</span>
+                  <span class="ml-4 flex-1 block sm:hidden sm:group-hover:block">NBC</span>
                   <i class="fa-solid fa-chevron-down text-xs" :class="nbcOpen ? 'rotate-180' : ''"></i>
                </button>
 
@@ -238,8 +239,8 @@
                   {{ Auth::user()->name }}
                </span>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-200 flex-shrink-0
-                 " fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-200 flex-shrink-0"
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
          </button>

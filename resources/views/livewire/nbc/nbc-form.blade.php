@@ -1,92 +1,101 @@
-<div class="min-h-screen bg-gray-50 py-8"
+<div
     x-data="{
         showSubmitModal: false,
         showSaveModal: false
-    }">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-6 flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">NBC Evaluation Form</h1>
-                <p class="mt-1 text-sm text-gray-600">
-                    {{ $assignment->isEvaluator() ? 'Evaluator' : 'Verifier' }} Assessment
-                </p>
-            </div>
-            <button
-                wire:click="toggleApplicantModal"
-                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150"
-            >
-                View Applicant Details
-            </button>
-        </div>
-
-        @if (session()->has('message'))
-            <div class="mb-6 bg-green-50 border-l-4 border-green-400 p-4">
-                <p class="text-green-700">{{ session('message') }}</p>
-            </div>
-        @endif
-
-        {{-- Verifier notice banner --}}
-        @if($isVerifier)
-            <div class="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg flex items-start gap-3">
-                <svg class="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+    }"
+>
+    <div class="flex-1 bg-gradient-to-br from-slate-50 to-green-50 py-8 min-h-screen">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Header -->
+            <div class="mb-6 flex items-center justify-between">
                 <div>
-                    <p class="font-semibold text-amber-800 text-sm">Verifier Mode</p>
-                    <p class="text-amber-700 text-sm mt-0.5">
-                        The evaluator's scores are shown in
-                        <span class="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">blue</span>
-                        for reference. Enter your verification scores on the right — correct any value if needed.
+                    <h1 class="text-3xl font-extrabold text-[#0A6025]">NBC Evaluation Form</h1>
+                    <p class="mt-1 text-sm text-gray-600 flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                                     {{ $assignment->isEvaluator() ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700' }}">
+                            {{ $assignment->isEvaluator() ? 'Evaluator View' : 'Verifier View' }}
+                        </span>
+                        <span class="text-xs text-gray-500">NBC Committee</span>
                     </p>
                 </div>
+                <button
+                    wire:click="toggleApplicantModal"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A6025] text-white rounded-lg shadow-sm hover:bg-[#0B712C] transition-colors duration-150"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 12h10M5 16h6" />
+                    </svg>
+                    <span class="text-sm font-medium">View Applicant Details</span>
+                </button>
             </div>
-        @endif
 
-        <!-- Applicant Info Card -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">Applicant Name</p>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">{{ $applicant->full_name }}</p>
+            @if (session()->has('message'))
+                <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-lg shadow-sm">
+                    <p class="text-emerald-800 text-sm font-medium">{{ session('message') }}</p>
                 </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-500">Position Applied</p>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->name }}</p>
+            @endif
+
+            {{-- Verifier notice banner --}}
+            @if($isVerifier)
+                <div class="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg flex items-start gap-3 shadow-sm">
+                    <svg class="w-5 h-5 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div>
+                        <p class="font-semibold text-amber-800 text-sm">Verifier Mode</p>
+                        <p class="text-amber-700 text-sm mt-0.5">
+                            The evaluator's scores are shown in
+                            <span class="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-semibold">blue</span>
+                            for reference. Enter your verification scores on the right — correct any value if needed.
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-sm font-medium text-gray-500">Department</p>
-                    <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->department->name ?? 'N/A' }}</p>
+            @endif
+
+            <!-- Applicant Info Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Applicant Name</p>
+                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $applicant->full_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Position Applied</p>
+                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Department</p>
+                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->department->name ?? 'N/A' }}</p>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <form wire:submit.prevent="save">
-            <!-- Main NBC Form -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
-                    <h2 class="text-xl font-bold text-white">NBC Evaluation Scores</h2>
-                </div>
+            <form wire:submit.prevent="save">
+                <!-- Main NBC Form -->
+                <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
+                    <div class="bg-gradient-to-r from-[#0A6025] to-emerald-700 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white">NBC Evaluation Scores</h2>
+                    </div>
 
-                {{-- Column headers for verifier --}}
-                @if($isVerifier)
-                    <div class="px-8 pt-6 pb-0">
-                        <div class="flex items-center justify-end gap-4">
-                            <div class="w-48 text-center">
-                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-blue-600 bg-blue-50 border border-blue-200 rounded px-3 py-1 w-full">
-                                    Evaluator Score
-                                </span>
-                            </div>
-                            <div class="w-48 text-center">
-                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-3 py-1 w-full">
-                                    Your Score
-                                </span>
+                    {{-- Column headers for verifier --}}
+                    @if($isVerifier)
+                        <div class="px-8 pt-6 pb-0">
+                            <div class="flex items-center justify-end gap-4">
+                                <div class="w-48 text-center">
+                                    <span class="inline-block text-xs font-semibold uppercase tracking-wide text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-1 w-full">
+                                        Evaluator Score
+                                    </span>
+                                </div>
+                                <div class="w-48 text-center">
+                                    <span class="inline-block text-xs font-semibold uppercase tracking-wide text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-1 w-full">
+                                        Your Score
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
 
-                <div class="p-8 space-y-8">
+                    <div class="p-8 space-y-8">
                     <!-- Educational Qualification Score -->
                     <div class="border-l-4 border-blue-500 pl-6">
                         <div class="flex items-center justify-between mb-4">
@@ -114,11 +123,11 @@
                                         step="0.001"
                                         min="0"
                                         max="85"
-                                        class="w-full px-4 py-3 text-lg border-2 {{ $isVerifier ? 'border-green-400 focus:ring-green-500' : 'border-gray-300 focus:ring-blue-500' }} rounded-lg focus:ring-2 focus:border-transparent text-center font-semibold"
+                                        class="w-full px-4 py-3 text-lg border-2 {{ $isVerifier ? 'border-emerald-400 focus:ring-emerald-500' : 'border-gray-300 focus:ring-[#0A6025]' }} rounded-lg focus:ring-2 focus:border-transparent text-center font-semibold"
                                         placeholder="0.000"
                                     >
                                     @if($isVerifier)
-                                        <p class="text-xs text-center text-green-600 mt-1">Your Score</p>
+                                        <p class="text-xs text-center text-emerald-600 mt-1">Your Score</p>
                                     @endif
                                 </div>
                             </div>
@@ -129,7 +138,7 @@
                     </div>
 
                     <!-- Experience Score -->
-                    <div class="border-l-4 border-green-500 pl-6">
+                    <div class="border-l-4 border-emerald-500 pl-6">
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900">
@@ -155,11 +164,11 @@
                                         step="0.001"
                                         min="0"
                                         max="25"
-                                        class="w-full px-4 py-3 text-lg border-2 {{ $isVerifier ? 'border-green-400 focus:ring-green-500' : 'border-gray-300 focus:ring-green-500' }} rounded-lg focus:ring-2 focus:border-transparent text-center font-semibold"
+                                        class="w-full px-4 py-3 text-lg border-2 {{ $isVerifier ? 'border-emerald-400 focus:ring-emerald-500' : 'border-gray-300 focus:ring-emerald-500' }} rounded-lg focus:ring-2 focus:border-transparent text-center font-semibold"
                                         placeholder="0.000"
                                     >
                                     @if($isVerifier)
-                                        <p class="text-xs text-center text-green-600 mt-1">Your Score</p>
+                                        <p class="text-xs text-center text-emerald-600 mt-1">Your Score</p>
                                     @endif
                                 </div>
                             </div>
@@ -170,7 +179,7 @@
                     </div>
 
                     <!-- Professional Development Score -->
-                    <div class="border-l-4 border-purple-500 pl-6">
+                    <div class="border-l-4 border-indigo-500 pl-6">
                         <div class="flex items-center justify-between mb-4">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900">
@@ -196,11 +205,11 @@
                                         step="0.001"
                                         min="0"
                                         max="90"
-                                        class="w-full px-4 py-3 text-lg border-2 {{ $isVerifier ? 'border-green-400 focus:ring-green-500' : 'border-gray-300 focus:ring-purple-500' }} rounded-lg focus:ring-2 focus:border-transparent text-center font-semibold"
+                                        class="w-full px-4 py-3 text-lg border-2 {{ $isVerifier ? 'border-emerald-400 focus:ring-emerald-500' : 'border-gray-300 focus:ring-indigo-500' }} rounded-lg focus:ring-2 focus:border-transparent text-center font-semibold"
                                         placeholder="0.000"
                                     >
                                     @if($isVerifier)
-                                        <p class="text-xs text-center text-green-600 mt-1">Your Score</p>
+                                        <p class="text-xs text-center text-emerald-600 mt-1">Your Score</p>
                                     @endif
                                 </div>
                             </div>
@@ -211,11 +220,11 @@
                     </div>
 
                     <!-- Total Score Display -->
-                    <div class="border-t-2 border-gray-300 pt-6 mt-8">
-                        <div class="bg-indigo-50 rounded-lg p-6">
+                    <div class="border-t-2 border-gray-200 pt-6 mt-8">
+                        <div class="bg-emerald-50 rounded-lg p-6">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h3 class="text-xl font-bold text-gray-900">
+                                        <h3 class="text-xl font-bold text-gray-900">
                                         TOTAL SCORE
                                     </h3>
                                     <p class="text-sm text-gray-600 mt-1">
@@ -239,17 +248,17 @@
                                             </div>
                                         </div>
                                         <div class="text-center">
-                                            <p class="text-xs text-green-700 font-medium mb-1">Your Total</p>
-                                            <div class="px-6 py-3 bg-green-100 border-2 border-green-400 rounded-lg text-center">
-                                                <div class="text-3xl font-bold text-green-900">
+                                            <p class="text-xs text-emerald-700 font-medium mb-1">Your Total</p>
+                                            <div class="px-6 py-3 bg-emerald-100 border-2 border-emerald-400 rounded-lg text-center">
+                                                <div class="text-3xl font-bold text-emerald-900">
                                                     {{ number_format($this->totalScore, 3) }}
                                                 </div>
                                                 <div class="text-xs text-green-700 mt-1">points</div>
                                             </div>
                                         </div>
                                     @else
-                                        <div class="px-8 py-4 bg-indigo-100 border-2 border-indigo-300 rounded-lg text-center">
-                                            <div class="text-4xl font-bold text-indigo-900">
+                                        <div class="px-8 py-4 bg-emerald-100 border-2 border-emerald-300 rounded-lg text-center">
+                                            <div class="text-4xl font-bold text-emerald-900">
                                                 {{ number_format($this->totalScore, 3) }}
                                             </div>
                                             <div class="text-xs text-indigo-700 mt-1">points</div>
@@ -259,36 +268,40 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                    </div>
 
-                <!-- Action Buttons -->
-                <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                    <button
-                        type="button"
-                        wire:click="return"
-                        class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
-                    >
-                        ← Return to Dashboard
-                    </button>
-                    <div class="flex gap-3">
+                    <!-- Action Buttons -->
+                    <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
                         <button
                             type="button"
-                            @click="showSaveModal = true"
-                            class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-150"
+                            wire:click="return"
+                            class="inline-flex items-center gap-2 px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
                         >
-                            Save Progress
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            <span>Return to Dashboard</span>
                         </button>
-                        <button
-                            type="button"
-                            @click="showSubmitModal = true"
-                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150"
-                        >
-                            Submit Evaluation
-                        </button>
+                        <div class="flex gap-3">
+                            <button
+                                type="button"
+                                @click="showSaveModal = true"
+                                class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors duration-150"
+                            >
+                                Save Progress
+                            </button>
+                            <button
+                                type="button"
+                                @click="showSubmitModal = true"
+                                class="px-6 py-2 bg-[#0A6025] text-white rounded-lg hover:bg-[#0B712C] transition-colors duration-150"
+                            >
+                                Submit Evaluation
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 
     <!-- Applicant Details Modal -->

@@ -1,9 +1,11 @@
-<div class="min-h-screen bg-gray-50 py-8"
+<div
     x-data="{
         showChoiceModal: false,
         selectedEvaluationId: null
-    }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    }"
+>
+    <div class="flex-1 bg-gradient-to-br from-slate-50 to-green-50 p-6 overflow-auto min-h-screen">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         @php
             $nbcCommittee = \App\Models\NbcCommittee::where('user_id', auth()->id())->first();
         @endphp
@@ -35,7 +37,16 @@
 
             <!-- Header -->
             <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
-                <h1 class="text-3xl font-bold text-gray-900">NBC Dashboard</h1>
+                <div>
+                    <h1 class="text-4xl font-extrabold text-[#0A6025] mb-1">NBC Dashboard</h1>
+                    <p class="text-gray-600 text-sm flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[#0A6025]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0119 9v10a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>View and manage NBC evaluation assignments</span>
+                    </p>
+                </div>
 
                 <!-- Print Report Button -->
                 <button
@@ -71,7 +82,7 @@
             <!-- Infographics -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <!-- Pending Card -->
-                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Pending Evaluations</p>
@@ -87,7 +98,7 @@
                 </div>
 
                 <!-- Complete Card -->
-                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
+                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Completed Evaluations</p>
@@ -104,18 +115,25 @@
             </div>
 
             <!-- Filters and Search -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Search -->
                     <div>
                         <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                        <input
-                            type="text"
-                            id="search"
-                            wire:model.live.debounce.300ms="search"
-                            placeholder="Name or Position..."
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                id="search"
+                                wire:model.live.debounce.300ms="search"
+                                placeholder="Name or Position..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025]"
+                            >
+                        </div>
                     </div>
 
                     <!-- Per Page -->
@@ -124,7 +142,7 @@
                         <select
                             id="perPage"
                             wire:model.live="perPage"
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025]"
                         >
                             <option value="10">10</option>
                             <option value="25">25</option>
@@ -136,16 +154,16 @@
             </div>
 
             <!-- Evaluations Table -->
-            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-white rounded-xl shadow-xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                        <thead class="bg-[#0A6025]">
                             <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Name</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Email</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Position</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -221,7 +239,7 @@
                                             <!-- Active — can evaluate -->
                                             <button
                                                 @click="selectedEvaluationId = {{ $evaluation->id }}; showChoiceModal = true"
-                                                class="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-150">
+                                                class="inline-flex items-center px-3 py-1 bg-[#0A6025] text-white rounded-md hover:bg-[#0B712C] transition-colors duration-150">
                                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                 </svg>
@@ -262,6 +280,7 @@
                 Showing {{ $evaluations->firstItem() ?? 0 }} to {{ $evaluations->lastItem() ?? 0 }} of {{ $evaluations->total() }} results
             </div>
         @endif
+        </div>
     </div>
 
     <!-- Evaluation Method Choice Modal -->

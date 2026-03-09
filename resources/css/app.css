@@ -5,3 +5,48 @@
 [x-cloak] {
     display: none;
 }
+
+/* Placeholder text styling */
+::placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+}
+
+/* WebKit browsers */
+::-webkit-input-placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+}
+
+/* Mozilla Firefox 4 to 18 */
+::-moz-placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+}
+
+/* Mozilla Firefox 19+ */
+::-moz-placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+}
+
+/* Internet Explorer 10+ */
+:-ms-input-placeholder {
+    color: #6b7280 !important;
+    opacity: 1 !important;
+}
+
+/* Dropdown option styling */
+select option {
+    color: #6b7280 !important;
+}
+
+/* Dropdown option styling for WebKit browsers */
+select option:disabled {
+    color: #9ca3af !important;
+}
+
+/* Default selected option styling */
+select option[value=""] {
+    color: #6b7280 !important;
+}
