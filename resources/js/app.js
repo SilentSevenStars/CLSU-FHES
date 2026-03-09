@@ -111,3 +111,37 @@ window.togglePanelSidebar = function() {
         sidebar.classList.toggle("-translate-x-full");
     }
 };
+
+// Handle select dropdown text color - gray for placeholder, black for selected value
+document.addEventListener("DOMContentLoaded", function() {
+    function updateSelectColor(select) {
+        if (select.value && select.value !== "") {
+            select.classList.add("has-value");
+        } else {
+            select.classList.remove("has-value");
+        }
+    }
+
+    // Apply to all existing selects
+    document.querySelectorAll("select").forEach(function(select) {
+        updateSelectColor(select);
+        select.addEventListener("change", function() {
+            updateSelectColor(select);
+        });
+    });
+
+    // Handle Livewire updates (for dynamically loaded selects)
+    if (typeof Livewire !== "undefined") {
+        Livewire.hook("morph.updated", ({ el }) => {
+            el.querySelectorAll("select").forEach(function(select) {
+                updateSelectColor(select);
+                if (!select.hasAttribute("data-color-handler")) {
+                    select.setAttribute("data-color-handler", "true");
+                    select.addEventListener("change", function() {
+                        updateSelectColor(select);
+                    });
+                }
+            });
+        });
+    }
+});

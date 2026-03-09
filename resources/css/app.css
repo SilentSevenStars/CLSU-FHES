@@ -6,47 +6,67 @@
     display: none;
 }
 
-/* Placeholder text styling */
-::placeholder {
-    color: #6b7280 !important;
+/* Placeholder text styling - lighter gray so it's clearly a placeholder */
+input::placeholder,
+textarea::placeholder {
+    @apply text-gray-400;
     opacity: 1 !important;
 }
 
 /* WebKit browsers */
-::-webkit-input-placeholder {
-    color: #6b7280 !important;
+input::-webkit-input-placeholder,
+textarea::-webkit-input-placeholder {
+    @apply text-gray-400;
     opacity: 1 !important;
 }
 
-/* Mozilla Firefox 4 to 18 */
-::-moz-placeholder {
-    color: #6b7280 !important;
-    opacity: 1 !important;
-}
-
-/* Mozilla Firefox 19+ */
-::-moz-placeholder {
-    color: #6b7280 !important;
+/* Mozilla Firefox */
+input::-moz-placeholder,
+textarea::-moz-placeholder {
+    @apply text-gray-400;
     opacity: 1 !important;
 }
 
 /* Internet Explorer 10+ */
-:-ms-input-placeholder {
-    color: #6b7280 !important;
+input:-ms-input-placeholder,
+textarea:-ms-input-placeholder {
+    @apply text-gray-400;
     opacity: 1 !important;
 }
 
-/* Dropdown option styling */
+/* All dropdown select elements - gray text by default */
+select {
+    color: #6b7280 !important;
+}
+
+/* All dropdown options - gray text color */
 select option {
     color: #6b7280 !important;
 }
 
-/* Dropdown option styling for WebKit browsers */
-select option:disabled {
+/* Selected option in dropdown list - black for readability when selected */
+select option:checked:not([value=""]) {
+    color: #111827 !important;
+}
+
+/* Select dropdown default/placeholder options - lighter gray */
+select option[value=""] {
+    @apply text-gray-400;
     color: #9ca3af !important;
 }
 
-/* Default selected option styling */
-select option[value=""] {
-    color: #6b7280 !important;
+/* Select disabled options - lighter gray */
+select option:disabled {
+    @apply text-gray-300;
+    color: #d1d5db !important;
+}
+
+/* When select has a non-empty value, make the select element text black */
+select:has(option:checked:not([value=""])) {
+    color: #111827 !important;
+}
+
+/* Fallback for browsers that don't support :has() - use JavaScript class */
+select.has-value {
+    color: #111827 !important;
 }
