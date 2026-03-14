@@ -400,7 +400,14 @@
                     </h3>
                 </div>
 
-                <form wire:submit.prevent="save">
+                <form wire:submit.prevent="save" autocomplete="off">
+
+                    {{-- Honeypot: tricks the browser into autofilling these hidden fields instead of the real ones --}}
+                    <div style="display:none; visibility:hidden; position:absolute; left:-9999px;">
+                        <input type="text" name="fake_username_trap" tabindex="-1" autocomplete="username">
+                        <input type="password" name="fake_password_trap" tabindex="-1" autocomplete="current-password">
+                    </div>
+
                     <div class="bg-white px-6 pt-5 pb-4 max-h-[70vh] overflow-y-auto">
 
                         <!-- Applicant Fields -->
@@ -408,6 +415,7 @@
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">First Name <span class="text-red-500">*</span></label>
                                 <input wire:model="first_name" type="text"
+                                       autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('first_name') border-red-500 @enderror">
                                 @error('first_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -415,12 +423,14 @@
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
                                 <input wire:model="middle_name" type="text"
+                                       autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E]">
                             </div>
 
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Last Name <span class="text-red-500">*</span></label>
                                 <input wire:model="last_name" type="text"
+                                       autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('last_name') border-red-500 @enderror">
                                 @error('last_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -428,6 +438,7 @@
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Suffix (Jr., Sr., III, etc.)</label>
                                 <input wire:model="suffix" type="text"
+                                       autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E]">
                             </div>
 
@@ -436,6 +447,7 @@
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Name <span class="text-red-500">*</span></label>
                                 <input wire:model="name" type="text"
+                                       autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('name') border-red-500 @enderror">
                                 @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -507,6 +519,7 @@
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Name <span class="text-red-500">*</span></label>
                                 <input wire:model="name" type="text"
+                                       autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('name') border-red-500 @enderror">
                                 @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -527,6 +540,7 @@
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Name <span class="text-red-500">*</span></label>
                                 <input wire:model="name" type="text"
+                                       autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('name') border-red-500 @enderror">
                                 @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -550,6 +564,7 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
                             <input wire:model="email" type="email"
+                                   autocomplete="off"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('email') border-red-500 @enderror">
                             @error('email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
@@ -564,6 +579,7 @@
                                 @endif
                             </label>
                             <input wire:model="password" type="password"
+                                   autocomplete="new-password"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('password') border-red-500 @enderror">
                             @error('password') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
@@ -571,6 +587,7 @@
                         <div class="mb-1">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                             <input wire:model="password_confirmation" type="password"
+                                   autocomplete="new-password"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E]">
                         </div>
                     </div>
