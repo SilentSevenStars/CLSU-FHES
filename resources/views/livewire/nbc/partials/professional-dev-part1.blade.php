@@ -2,7 +2,7 @@
 
 <div class="border-l-4 border-blue-500 pl-4 mb-6">
     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-        3.1 Invention, patented inventions, innovations, publications and other creative works (maximum of 20 points)
+        3.1 Invention, patented inventions, innovations, publications and other creative works (maximum of 30 points)
     </h3>
 
     {{-- Column Headers --}}
@@ -23,7 +23,7 @@
                 3.1.1 For every cost/time saving innovation, patented invention, creative work, or discovery of educational/scientific/cultural value
             </p>
             <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="col-span-8"><label class="block text-sm text-gray-600">RS Score (Q3_1_1)</label></div>
+                <div class="col-span-8"><label class="block text-sm text-gray-600">Score (Q3_1_1)</label></div>
                 <div class="col-span-2">
                     <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">{{ number_format($prev_q3_1_1, 3) }}</div>
                 </div>
@@ -84,7 +84,7 @@
         <div class="bg-gray-50 rounded-lg p-4">
             <p class="text-sm font-medium text-gray-700 mb-2">3.1.4 For every instructional manual / audio-visual material</p>
             <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="col-span-8"><label class="block text-sm text-gray-600">RS Score (Q3_1_4)</label></div>
+                <div class="col-span-8"><label class="block text-sm text-gray-600">Score (Q3_1_4)</label></div>
                 <div class="col-span-2">
                     <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">{{ number_format($prev_q3_1_4, 3) }}</div>
                 </div>
@@ -98,10 +98,18 @@
     {{-- Subtotal 3.1 --}}
     <div class="mt-4 pt-4 border-t border-gray-300">
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="col-span-8">
-                <label class="block text-base font-bold text-gray-900">Section 3.1 Subtotal (MAX 20)</label>
+            <div class="col-span-6">
+                <label class="block text-base font-bold text-gray-900">Section 3.1 Subtotal</label>
+                <p class="text-xs text-gray-500 mt-0.5">Total Points = Previous + New (capped at 30)</p>
             </div>
-            <div class="col-span-4">
+            <div class="col-span-3">
+                <div class="text-xs text-center text-gray-600 mb-1">Total Previous Points</div>
+                <div class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                    {{ number_format($this->prevSubtotal31, 3) }}
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="text-xs text-center text-purple-700 mb-1">Total Points (capped at 30)</div>
                 <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-bold text-blue-900">
                     {{ number_format($this->subtotal31, 3) }}
                 </div>

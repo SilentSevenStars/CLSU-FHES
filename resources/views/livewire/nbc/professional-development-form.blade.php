@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 py-8" 
+<div class="min-h-screen bg-gray-50 py-8"
     x-data="{
         showConfirmModal: false
     }"
@@ -12,7 +12,7 @@
                     Part {{ $currentPage }} of 3
                 </p>
             </div>
-            <button 
+            <button
                 wire:click="toggleApplicantModal"
                 class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150"
             >
@@ -59,48 +59,58 @@
                         @include('livewire.nbc.partials.professional-dev-part3')
                     @endif
 
-                    <!-- Cumulative Total Display (shown on all pages) -->
+                    <!-- Page Running Total (shown on all pages) -->
                     <div class="border-t-2 border-gray-300 pt-4 mt-6">
                         <div class="bg-purple-50 rounded-lg p-4">
                             <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
+                                <div class="col-span-6">
                                     <label class="block text-lg font-bold text-gray-900">
                                         @if($currentPage == 1)
                                             PAGE 1 TOTAL (Section 3.1)
                                         @elseif($currentPage == 2)
-                                            CUMULATIVE TOTAL (Page 1 + Page 2)
+                                            CUMULATIVE TOTAL (Pages 1 + 2)
                                         @else
-                                            OVERALL TOTAL (All Pages Combined)
+                                            OVERALL TOTAL (All Sections)
                                         @endif
                                     </label>
-                                    <p class="text-xs text-gray-600 mt-1">
+                                    <p class="text-xs text-gray-500 mt-0.5">
                                         @if($currentPage == 1)
-                                            Maximum: 20 points
+                                            Total Points = Previous + New (capped at 30)
                                         @elseif($currentPage == 2)
-                                            Maximum: 40 points (20 + 20)
+                                            Total Points = Previous + New (capped at 60)
                                         @else
-                                            Maximum: 90 points
+                                            Total Points = Previous + New (capped at 90)
                                         @endif
                                     </p>
                                 </div>
-                                <div class="col-span-4">
-                                    <div class="px-4 py-3 bg-purple-100 border-2 border-purple-300 rounded-lg text-center">
-                                        <div class="text-2xl font-bold text-purple-900">
-                                            @if($currentPage == 1)
-                                                {{ number_format($this->page1Total, 3) }}
-                                            @elseif($currentPage == 2)
-                                                {{ number_format($this->page2Total, 3) }}
-                                            @else
-                                                {{ number_format($this->page3Total, 3) }}
-                                            @endif
-                                        </div>
-                                        <div class="text-xs text-purple-700 mt-1">
-                                            @if($currentPage == 3)
-                                                EP (Final Score)
-                                            @else
-                                                RS (Running Score)
-                                            @endif
-                                        </div>
+                                <div class="col-span-3">
+                                    <div class="text-xs text-center text-gray-600 mb-1">Total Previous Points</div>
+                                    <div class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                                        @if($currentPage == 1)
+                                            {{ number_format($this->prevSubtotal31, 3) }}
+                                        @elseif($currentPage == 2)
+                                            {{ number_format($this->prevSubtotal31 + $this->prevSubtotal321 + $this->prevSubtotal322, 3) }}
+                                        @else
+                                            {{ number_format($this->prevGrandTotal, 3) }}
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-span-3">
+                                    <div class="text-xs text-center text-purple-700 mb-1">
+                                        Total Points
+                                        @if($currentPage == 1)(capped at 30)
+                                        @elseif($currentPage == 2)(capped at 60)
+                                        @else(capped at 90)
+                                        @endif
+                                    </div>
+                                    <div class="px-3 py-2 bg-purple-100 border border-purple-300 rounded-lg text-center font-bold text-purple-900">
+                                        @if($currentPage == 1)
+                                            {{ number_format($this->page1Total, 3) }}
+                                        @elseif($currentPage == 2)
+                                            {{ number_format(min($this->page2Total, 60), 3) }}
+                                        @else
+                                            {{ number_format($this->page3Total, 3) }}
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -110,16 +120,16 @@
 
                 <!-- Action Buttons -->
                 <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                    <button 
+                    <button
                         type="button"
                         wire:click="previous"
                         class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
                     >
                         ← Previous
                     </button>
-                    
+
                     @if($currentPage < 3)
-                        <button 
+                        <button
                             type="button"
                             wire:click="next"
                             class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-150"
@@ -127,7 +137,7 @@
                             Next →
                         </button>
                     @else
-                        <button 
+                        <button
                             type="button"
                             x-data
                             @click="$dispatch('confirm-submit')"
@@ -143,7 +153,7 @@
 
     <!-- Applicant Details Modal -->
     @if($showApplicantModal)
-        <div 
+        <div
             class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
             x-data="{ show: @entangle('showApplicantModal') }"
             x-show="show"
@@ -157,47 +167,26 @@
             <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-lg bg-white">
                 <div class="flex items-center justify-between border-b pb-3 mb-4">
                     <h3 class="text-2xl font-bold text-gray-900">Applicant Details</h3>
-                    <button 
-                        wire:click="toggleApplicantModal"
-                        class="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
+                    <button wire:click="toggleApplicantModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
                 </div>
-
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Full Name</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $applicant->full_name }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Email</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $applicant->user->email }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Position Applied</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $position->name }}</p>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-500">Department</p>
-                            <p class="mt-1 text-base text-gray-900">{{ $position->department->name ?? 'N/A' }}</p>
-                        </div>
+                        <div><p class="text-sm font-medium text-gray-500">Full Name</p><p class="mt-1 text-base text-gray-900">{{ $applicant->full_name }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Email</p><p class="mt-1 text-base text-gray-900">{{ $applicant->user->email }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Position Applied</p><p class="mt-1 text-base text-gray-900">{{ $position->name }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Department</p><p class="mt-1 text-base text-gray-900">{{ $position->department->name ?? 'N/A' }}</p></div>
                         <div class="col-span-2">
                             <p class="text-sm font-medium text-gray-500">Requirements File</p>
                             @if($existing_file_path)
-                                <button 
-                                    type="button"
-                                    wire:click="$dispatch('open-pdf-viewer')"
-                                    class="mt-1 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                                >
+                                <button type="button" wire:click="$dispatch('open-pdf-viewer')"
+                                    class="mt-1 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
                                     View File
                                 </button>
@@ -207,21 +196,15 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="flex justify-end mt-6 pt-4 border-t">
-                    <button 
-                        wire:click="toggleApplicantModal"
-                        class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
-                    >
-                        Close
-                    </button>
+                    <button wire:click="toggleApplicantModal" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150">Close</button>
                 </div>
             </div>
         </div>
     @endif
 
     <!-- Confirm Submit Modal -->
-    <div 
+    <div
         x-show="showConfirmModal"
         x-cloak
         class="fixed inset-0 z-50 overflow-y-auto"
@@ -233,9 +216,8 @@
         x-transition:leave-end="opacity-0"
     >
         <div class="fixed inset-0 bg-black bg-opacity-50" @click="showConfirmModal = false"></div>
-        
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div 
+            <div
                 class="relative bg-white rounded-lg shadow-xl max-w-md w-full"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform scale-95"
@@ -252,26 +234,19 @@
                         </svg>
                     </div>
                 </div>
-                
                 <div class="px-6 pb-4 text-center">
                     <h3 class="text-2xl font-bold text-gray-900 mb-2">Submit Evaluation?</h3>
                     <p class="text-gray-600">
                         Are you sure you want to submit this professional development evaluation? This action will mark the evaluation as complete.
                     </p>
                 </div>
-                
                 <div class="px-6 pb-6 flex gap-3">
-                    <button
-                        @click="showConfirmModal = false"
-                        class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                    >
+                    <button @click="showConfirmModal = false"
+                        class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium">
                         Cancel
                     </button>
-                    <button
-                        wire:click="submit"
-                        @click="showConfirmModal = false"
-                        class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
+                    <button wire:click="submit" @click="showConfirmModal = false"
+                        class="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
                         Yes, Submit
                     </button>
                 </div>
@@ -279,51 +254,31 @@
         </div>
     </div>
 
-    <!-- PDF VIEWER MODAL -->
-    <div x-data="{ 
-        open: false,
-        loading: false,
-        pdfUrl: null,
+    <!-- PDF Viewer Modal -->
+    <div x-data="{
+        open: false, loading: false, pdfUrl: null,
         async openPdfViewer() {
-            this.loading = true;
-            this.open = true;
+            this.loading = true; this.open = true;
             try {
                 const dataUrl = await @this.call('getFileDataUrl');
-                if (dataUrl) {
-                    this.pdfUrl = dataUrl;
-                }
-            } catch (error) {
-                console.error('Error loading PDF:', error);
-                alert('Error loading PDF file');
-                this.open = false;
-            } finally {
-                this.loading = false;
-            }
+                if (dataUrl) { this.pdfUrl = dataUrl; }
+            } catch (error) { alert('Error loading PDF file'); this.open = false; }
+            finally { this.loading = false; }
         }
     }"
     x-on:open-pdf-viewer.window="openPdfViewer()"
-    x-show="open"
-    x-cloak
-    class="fixed inset-0 z-50 overflow-hidden"
-    style="display: none;">
-        <!-- Backdrop -->
+    x-show="open" x-cloak class="fixed inset-0 z-50 overflow-hidden" style="display: none;">
         <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
-        
-        <!-- Modal Content -->
         <div class="relative w-full h-full flex items-center justify-center">
             <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
-                <!-- Header -->
                 <div class="flex items-center justify-between px-6 py-4 border-b">
                     <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
-                    <button @click="open = false; pdfUrl = null;" 
-                        class="text-gray-400 hover:text-gray-600 transition">
+                    <button @click="open = false; pdfUrl = null;" class="text-gray-400 hover:text-gray-600 transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
-                
-                <!-- PDF Viewer -->
                 <div class="flex-1 overflow-hidden">
                     <div x-show="loading" class="flex items-center justify-center h-full">
                         <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
@@ -331,17 +286,11 @@
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
                         </svg>
                     </div>
-                    <iframe x-show="!loading && pdfUrl" 
-                        :src="pdfUrl" 
-                        class="w-full h-full"
-                        frameborder="0">
-                    </iframe>
+                    <iframe x-show="!loading && pdfUrl" :src="pdfUrl" class="w-full h-full" frameborder="0"></iframe>
                 </div>
             </div>
         </div>
     </div>
 
-    <style>
-        [x-cloak] { display: none !important; }
-    </style>
+    <style>[x-cloak] { display: none !important; }</style>
 </div>

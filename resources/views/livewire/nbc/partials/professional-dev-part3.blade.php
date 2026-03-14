@@ -13,7 +13,7 @@
 
 {{-- 3.3 Academic Distinctions --}}
 <div class="border-l-4 border-indigo-500 pl-4 mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4">3.3 Academic Distinctions (maximum of 30 points)</h3>
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">3.3 Academic Distinctions (maximum of 10 points)</h3>
 
     <div class="space-y-4">
         <div class="bg-gray-50 rounded-lg p-4">
@@ -36,7 +36,7 @@
         <div class="bg-gray-50 rounded-lg p-4">
             <p class="text-sm font-medium text-gray-700 mb-2">3.3.2 Academic awards</p>
             <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="col-span-8"><label class="block text-sm text-gray-600">RS Score</label></div>
+                <div class="col-span-8"><label class="block text-sm text-gray-600">Score</label></div>
                 <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($prev_q3_3_2, 3) }}</div></div>
                 <div class="col-span-2"><input type="number" wire:model.live="new_q3_3_2" step="0.001" min="0" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
             </div>
@@ -83,7 +83,7 @@
                 <div class="border-l-2 border-indigo-300 pl-3">
                     <p class="text-sm font-semibold text-gray-700 mb-2">e. Local, competitive or non-competitive</p>
                     <div class="grid grid-cols-12 gap-4 items-center">
-                        <div class="col-span-8"><label class="block text-xs text-gray-600">RS Score</label></div>
+                        <div class="col-span-8"><label class="block text-xs text-gray-600">Score</label></div>
                         <div class="col-span-2"><div class="px-2 py-1 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-xs">{{ number_format($prev_q3_3_3_e, 3) }}</div></div>
                         <div class="col-span-2"><input type="number" wire:model.live="new_q3_3_3_e" step="0.001" min="0" class="w-full px-2 py-1 border rounded text-center text-sm" placeholder="+0"></div>
                     </div>
@@ -94,15 +94,29 @@
 
     <div class="mt-4 pt-4 border-t border-gray-300">
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="col-span-8"><label class="block text-base font-bold text-gray-900">Section 3.3 Subtotal (MAX 30)</label></div>
-            <div class="col-span-4"><div class="px-3 py-2 bg-indigo-100 border border-indigo-300 rounded-lg text-center font-bold text-indigo-900">{{ number_format($this->subtotal33, 3) }}</div></div>
+            <div class="col-span-6">
+                <label class="block text-base font-bold text-gray-900">Section 3.3 Subtotal</label>
+                <p class="text-xs text-gray-500 mt-0.5">Total Points = Previous + New (capped at 10)</p>
+            </div>
+            <div class="col-span-3">
+                <div class="text-xs text-center text-gray-600 mb-1">Total Previous Points</div>
+                <div class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                    {{ number_format($this->prevSubtotal33, 3) }}
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="text-xs text-center text-indigo-700 mb-1">Total Points (capped at 10)</div>
+                <div class="px-3 py-2 bg-indigo-100 border border-indigo-300 rounded-lg text-center font-bold text-indigo-900">
+                    {{ number_format($this->subtotal33, 3) }}
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 {{-- 3.4 Awards --}}
 <div class="border-l-4 border-pink-500 pl-4 mb-6">
-    <h3 class="text-lg font-semibold text-gray-900 mb-4">3.4 Awards of distinction received in recognition of</h3>
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">3.4 Awards of distinction received in recognition of (maximum of 5 points)</h3>
     <div class="space-y-3">
         @foreach([
             ['new_q3_4_a','prev_q3_4_a','a. International competitive'],
@@ -120,8 +134,22 @@
     </div>
     <div class="mt-4 pt-4 border-t border-gray-300">
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="col-span-8"><label class="block text-base font-bold text-gray-900">Section 3.4 Subtotal</label></div>
-            <div class="col-span-4"><div class="px-3 py-2 bg-pink-100 border border-pink-300 rounded-lg text-center font-bold text-pink-900">{{ number_format($this->subtotal34, 3) }}</div></div>
+            <div class="col-span-6">
+                <label class="block text-base font-bold text-gray-900">Section 3.4 Subtotal</label>
+                <p class="text-xs text-gray-500 mt-0.5">Total Points = Previous + New (capped at 5)</p>
+            </div>
+            <div class="col-span-3">
+                <div class="text-xs text-center text-gray-600 mb-1">Total Previous Points</div>
+                <div class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                    {{ number_format($this->prevSubtotal34, 3) }}
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="text-xs text-center text-pink-700 mb-1">Total Points (capped at 5)</div>
+                <div class="px-3 py-2 bg-pink-100 border border-pink-300 rounded-lg text-center font-bold text-pink-900">
+                    {{ number_format($this->subtotal34, 3) }}
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -132,7 +160,7 @@
     <div class="bg-gray-50 rounded-lg p-4">
         <p class="text-sm font-medium text-gray-700 mb-2">3.5.1 For every year of participation in service-oriented community projects</p>
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="col-span-8"><label class="block text-sm text-gray-600">RS Score (Q3_3_5_1, max 5)</label></div>
+            <div class="col-span-8"><label class="block text-sm text-gray-600">Score (Q3_3_5_1)</label></div>
             <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($prev_q3_3_5_1, 3) }}</div></div>
             <div class="col-span-2"><input type="number" wire:model.live="new_q3_3_5_1" step="0.001" min="0" max="5" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
         </div>
@@ -140,8 +168,22 @@
     </div>
     <div class="mt-4 pt-4 border-t border-gray-300">
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="col-span-8"><label class="block text-base font-bold text-gray-900">Section 3.5 Subtotal (MAX 5)</label></div>
-            <div class="col-span-4"><div class="px-3 py-2 bg-yellow-100 border border-yellow-300 rounded-lg text-center font-bold text-yellow-900">{{ number_format($this->subtotal35, 3) }}</div></div>
+            <div class="col-span-6">
+                <label class="block text-base font-bold text-gray-900">Section 3.5 Subtotal</label>
+                <p class="text-xs text-gray-500 mt-0.5">Total Points = Previous + New (capped at 5)</p>
+            </div>
+            <div class="col-span-3">
+                <div class="text-xs text-center text-gray-600 mb-1">Total Previous Points</div>
+                <div class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                    {{ number_format($this->prevSubtotal35, 3) }}
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="text-xs text-center text-yellow-700 mb-1">Total Points (capped at 5)</div>
+                <div class="px-3 py-2 bg-yellow-100 border border-yellow-300 rounded-lg text-center font-bold text-yellow-900">
+                    {{ number_format($this->subtotal35, 3) }}
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -168,8 +210,22 @@
     </div>
     <div class="mt-4 pt-4 border-t border-gray-300">
         <div class="grid grid-cols-12 gap-4 items-center">
-            <div class="col-span-8"><label class="block text-base font-bold text-gray-900">Section 3.6 Subtotal (MAX 10)</label></div>
-            <div class="col-span-4"><div class="px-3 py-2 bg-red-100 border border-red-300 rounded-lg text-center font-bold text-red-900">{{ number_format($this->subtotal36, 3) }}</div></div>
+            <div class="col-span-6">
+                <label class="block text-base font-bold text-gray-900">Section 3.6 Subtotal</label>
+                <p class="text-xs text-gray-500 mt-0.5">Total Points = Previous + New (capped at 10)</p>
+            </div>
+            <div class="col-span-3">
+                <div class="text-xs text-center text-gray-600 mb-1">Total Previous Points</div>
+                <div class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                    {{ number_format($this->prevSubtotal36, 3) }}
+                </div>
+            </div>
+            <div class="col-span-3">
+                <div class="text-xs text-center text-red-700 mb-1">Total Points (capped at 10)</div>
+                <div class="px-3 py-2 bg-red-100 border border-red-300 rounded-lg text-center font-bold text-red-900">
+                    {{ number_format($this->subtotal36, 3) }}
+                </div>
+            </div>
         </div>
     </div>
 </div>

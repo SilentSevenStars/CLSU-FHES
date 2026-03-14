@@ -77,7 +77,7 @@
                         <div class="bg-gray-50 rounded-lg p-4 mb-4 text-sm text-gray-700 space-y-2">
                             <div class="pl-4 font-medium">2.1.1 For every year of full-time academic service in a state institution of higher learning</div>
                             <div class="pl-4 font-medium">2.1.2 For every year of full-time academic service in other institutions (non-SUC/CHED/TESDA)</div>
-                        </div>
+                        </div counted>
 
                         <!-- 2.1.1 -->
                         <div class="grid grid-cols-12 gap-4 items-center mb-3">
@@ -188,16 +188,16 @@
                         <div class="grid grid-cols-12 gap-4 items-center">
                             <div class="col-span-6">
                                 <label class="block text-lg font-bold text-gray-900">SUBTOTAL</label>
-                                <p class="text-xs text-gray-600 mt-1">EP = MIN(Previous + New Total, 25)</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Total Points = Previous + New (capped at 25)</p>
                             </div>
                             <div class="col-span-3">
-                                <div class="text-xs text-center text-gray-600 mb-1">RS Running Total</div>
-                                <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-semibold">
-                                    {{ number_format($this->rsTotal, 3) }}
+                                <div class="text-xs text-center text-gray-600 mb-1">Total Previous Points</div>
+                                <div class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                                    {{ number_format((float)$prev_q2_1_1 + (float)$prev_q2_1_2 + (float)$prev_q2_2_1 + (float)$prev_q2_3_1 + (float)$prev_q2_3_2, 3) }}
                                 </div>
                             </div>
                             <div class="col-span-3">
-                                <div class="text-xs text-center text-green-700 mb-1">EP (capped at 25)</div>
+                                <div class="text-xs text-center text-green-700 mb-1">Total Points (capped at 25)</div>
                                 <div class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-center font-bold text-green-800">
                                     {{ number_format($this->epSubtotal, 3) }}
                                 </div>

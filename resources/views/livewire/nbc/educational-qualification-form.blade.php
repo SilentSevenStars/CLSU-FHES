@@ -164,16 +164,16 @@
                         <div class="grid grid-cols-12 gap-4 items-center">
                             <div class="col-span-6">
                                 <label class="block text-lg font-bold text-gray-900">SUBTOTAL</label>
-                                <p class="text-xs text-gray-500 mt-0.5">EP = MIN(Previous + New Total, 85)</p>
+                                <p class="text-xs text-gray-500 mt-0.5">Total Points = Previous + New (capped at 85)</p>
                             </div>
                             <div class="col-span-3">
-                                <div class="text-xs text-center text-gray-600 mb-1">RS Running Total</div>
-                                <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-semibold">
-                                    {{ number_format($this->rsTotal, 3) }}
+                                <div class="text-xs text-center text-gray-600 mb-1">Total Previous Points</div>
+                                <div class="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                                    {{ number_format((float)$prev_q1_1 + (float)$prev_q1_2 + (float)$prev_q1_3, 3) }}
                                 </div>
                             </div>
                             <div class="col-span-3">
-                                <div class="text-xs text-center text-green-700 mb-1">EP (capped at 85)</div>
+                                <div class="text-xs text-center text-green-700 mb-1">Total Points (capped at 85)</div>
                                 <div class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-center font-bold text-green-800">
                                     {{ number_format($this->epSubtotal, 3) }}
                                 </div>

@@ -30,8 +30,6 @@ class ProfessionalDevelopmentForm extends Component
     public $showApplicantModal  = false;
 
     // ── Scores from the applicant's most recent PAST completed evaluation ──
-    // Read-only. Comes from a different (older) nbc_assignment
-    // for the SAME APPLICANT (any previous job application / position).
     public $prev_q3_1_1 = 0; public $prev_q3_1_2_a = 0; public $prev_q3_1_2_c = 0;
     public $prev_q3_1_2_d = 0; public $prev_q3_1_2_e = 0; public $prev_q3_1_2_f = 0;
     public $prev_q3_1_3_a = 0; public $prev_q3_1_3_b = 0; public $prev_q3_1_3_c = 0;
@@ -56,8 +54,6 @@ class ProfessionalDevelopmentForm extends Component
     public $prev_q3_6_1_c = 0; public $prev_q3_6_1_d = 0;
 
     // ── What this NBC member enters for THIS evaluation ──
-    // Saved to DB on page navigation so switching pages retains inputs.
-    // Only combined with prev_ on final Submit.
     public $new_q3_1_1 = 0; public $new_q3_1_2_a = 0; public $new_q3_1_2_c = 0;
     public $new_q3_1_2_d = 0; public $new_q3_1_2_e = 0; public $new_q3_1_2_f = 0;
     public $new_q3_1_3_a = 0; public $new_q3_1_3_b = 0; public $new_q3_1_3_c = 0;
@@ -81,8 +77,71 @@ class ProfessionalDevelopmentForm extends Component
     public $new_q3_6_1_a = 0; public $new_q3_6_1_b = 0;
     public $new_q3_6_1_c = 0; public $new_q3_6_1_d = 0;
 
-    // ─── Live subtotals: prev (past eval) + new (current inputs) ─────────
+    // ─── Previous-only subtotals (for display in the "Total Previous Points" box) ──
 
+    public function getPrevSubtotal31Property(): float
+    {
+        return (float)(
+            $this->prev_q3_1_1   + $this->prev_q3_1_2_a + $this->prev_q3_1_2_c
+          + $this->prev_q3_1_2_d + $this->prev_q3_1_2_e + $this->prev_q3_1_2_f
+          + $this->prev_q3_1_3_a + $this->prev_q3_1_3_b + $this->prev_q3_1_3_c
+          + $this->prev_q3_1_4
+        );
+    }
+
+    public function getPrevSubtotal321Property(): float
+    {
+        return (float)(
+            $this->prev_q3_2_1_1_a + $this->prev_q3_2_1_1_b + $this->prev_q3_2_1_1_c
+          + $this->prev_q3_2_1_2   + $this->prev_q3_2_1_3_a + $this->prev_q3_2_1_3_b
+          + $this->prev_q3_2_1_3_c
+        );
+    }
+
+    public function getPrevSubtotal322Property(): float
+    {
+        return (float)(
+            $this->prev_q3_2_2_1_a + $this->prev_q3_2_2_1_b + $this->prev_q3_2_2_1_c
+          + $this->prev_q3_2_2_2   + $this->prev_q3_2_2_3   + $this->prev_q3_2_2_4
+          + $this->prev_q3_2_2_5   + $this->prev_q3_2_2_6   + $this->prev_q3_2_2_7
+        );
+    }
+
+    public function getPrevSubtotal33Property(): float
+    {
+        return (float)(
+            $this->prev_q3_3_1_a           + $this->prev_q3_3_1_b
+          + $this->prev_q3_3_1_c           + $this->prev_q3_3_2
+          + $this->prev_q3_3_3_a_doctorate + $this->prev_q3_3_3_a_masters
+          + $this->prev_q3_3_3_a_nondegree + $this->prev_q3_3_3_b_doctorate
+          + $this->prev_q3_3_3_b_masters   + $this->prev_q3_3_3_b_nondegree
+          + $this->prev_q3_3_3_c_doctorate + $this->prev_q3_3_3_c_masters
+          + $this->prev_q3_3_3_c_nondegree + $this->prev_q3_3_3_d_doctorate
+          + $this->prev_q3_3_3_d_masters   + $this->prev_q3_3_3_e
+        );
+    }
+
+    public function getPrevSubtotal34Property(): float
+    {
+        return (float)($this->prev_q3_4_a + $this->prev_q3_4_b + $this->prev_q3_4_c);
+    }
+
+    public function getPrevSubtotal35Property(): float
+    {
+        return (float)$this->prev_q3_3_5_1;
+    }
+
+    public function getPrevSubtotal36Property(): float
+    {
+        return (float)(
+            $this->prev_q3_6_1_a + $this->prev_q3_6_1_b
+          + $this->prev_q3_6_1_c + $this->prev_q3_6_1_d
+        );
+    }
+
+    // ─── Capped combined subtotals: prev + new ────────────────────────────
+
+    // 3.1 max = 30
     public function getSubtotal31Property(): float
     {
         return min((float)(
@@ -96,9 +155,10 @@ class ProfessionalDevelopmentForm extends Component
           + ($this->prev_q3_1_3_b + $this->new_q3_1_3_b)
           + ($this->prev_q3_1_3_c + $this->new_q3_1_3_c)
           + ($this->prev_q3_1_4   + $this->new_q3_1_4)
-        ), 20);
+        ), 30);
     }
 
+    // 3.2.1 max = 10
     public function getSubtotal321Property(): float
     {
         return min((float)(
@@ -112,6 +172,7 @@ class ProfessionalDevelopmentForm extends Component
         ), 10);
     }
 
+    // 3.2.2 max = 20
     public function getSubtotal322Property(): float
     {
         return min((float)(
@@ -127,6 +188,7 @@ class ProfessionalDevelopmentForm extends Component
         ), 20);
     }
 
+    // 3.3 max = 10
     public function getSubtotal33Property(): float
     {
         return min((float)(
@@ -146,23 +208,26 @@ class ProfessionalDevelopmentForm extends Component
           + ($this->prev_q3_3_3_d_doctorate + $this->new_q3_3_3_d_doctorate)
           + ($this->prev_q3_3_3_d_masters   + $this->new_q3_3_3_d_masters)
           + ($this->prev_q3_3_3_e           + $this->new_q3_3_3_e)
-        ), 30);
+        ), 10);
     }
 
+    // 3.4 max = 5
     public function getSubtotal34Property(): float
     {
-        return (float)(
+        return min((float)(
             ($this->prev_q3_4_a + $this->new_q3_4_a)
           + ($this->prev_q3_4_b + $this->new_q3_4_b)
           + ($this->prev_q3_4_c + $this->new_q3_4_c)
-        );
+        ), 5);
     }
 
+    // 3.5 max = 5
     public function getSubtotal35Property(): float
     {
         return min((float)($this->prev_q3_3_5_1 + $this->new_q3_3_5_1), 5);
     }
 
+    // 3.6 max = 10
     public function getSubtotal36Property(): float
     {
         return min((float)(
@@ -173,13 +238,36 @@ class ProfessionalDevelopmentForm extends Component
         ), 10);
     }
 
-    public function getPage1TotalProperty(): float { return $this->subtotal31; }
-    public function getPage2TotalProperty(): float { return $this->subtotal31 + $this->subtotal321 + $this->subtotal322; }
+    // Page running totals (for the bottom summary box on each page)
+    // Page 1: Section 3.1 only (max 30)
+    public function getPage1TotalProperty(): float
+    {
+        return $this->subtotal31;
+    }
+
+    // Page 2: 3.1 + 3.2.1 + 3.2.2 (max 30 + 10 + 20 = 60, but grand total will cap at 90)
+    public function getPage2TotalProperty(): float
+    {
+        return $this->subtotal31 + $this->subtotal321 + $this->subtotal322;
+    }
+
+    // Page 3: all sections combined (capped at 90)
     public function getPage3TotalProperty(): float
     {
         return min(
             $this->subtotal31 + $this->subtotal321 + $this->subtotal322
-          + $this->subtotal33 + $this->subtotal34 + $this->subtotal35 + $this->subtotal36,
+          + $this->subtotal33 + $this->subtotal34  + $this->subtotal35 + $this->subtotal36,
+            90
+        );
+    }
+
+    // Previous-only grand total (for the "Total Previous Points" display box on page 3)
+    public function getPrevGrandTotalProperty(): float
+    {
+        return min(
+            $this->prevSubtotal31 + $this->prevSubtotal321 + $this->prevSubtotal322
+          + $this->prevSubtotal33 + $this->prevSubtotal34  + $this->prevSubtotal35
+          + $this->prevSubtotal36,
             90
         );
     }
@@ -205,7 +293,6 @@ class ProfessionalDevelopmentForm extends Component
             ['status' => 'pending', 'evaluation_date' => now()]
         );
 
-        // Load or create ProfessionalDevelopment for THIS assignment
         if ($this->assignment->professional_development_id) {
             $this->professionalDevelopment = ProfessionalDevelopment::with([
                 'creativeWork','activity','recognition','award','outreach','licensure',
@@ -221,9 +308,6 @@ class ProfessionalDevelopmentForm extends Component
 
         $this->ensureSubModels();
 
-        // ── Load PREVIOUS evaluation scores (prev_) ──
-        // Most recent COMPLETED assignment for the SAME APPLICANT (any position),
-        // by this NBC member, with an evaluation_date strictly before this one.
         $previousAssignment = NbcAssignment::where('nbc_committee_id', $nbcCommittee->id)
             ->where('id', '!=', $this->assignment->id)
             ->where('status', 'complete')
@@ -243,8 +327,6 @@ class ProfessionalDevelopmentForm extends Component
             }
         }
 
-        // ── Load THIS evaluation's already-saved inputs into new_ fields ──
-        // Ensures inputs survive navigating between pages (prev/next buttons).
         $this->loadCurrentIntoNew();
     }
 
@@ -281,9 +363,6 @@ class ProfessionalDevelopmentForm extends Component
         $this->professionalDevelopment->load(['creativeWork','activity','recognition','award','outreach','licensure']);
     }
 
-    /**
-     * Load scores from a PREVIOUS evaluation's PD model into prev_ fields (read-only).
-     */
     protected function loadPrevFromModel(ProfessionalDevelopment $pd): void
     {
         $cw  = $pd->creativeWork;
@@ -357,11 +436,6 @@ class ProfessionalDevelopmentForm extends Component
         }
     }
 
-    /**
-     * Load THIS evaluation's already-saved scores into new_ fields.
-     * This ensures inputs are retained when the member navigates between pages.
-     * The sub-model columns store ONLY the current session's inputs (not prev+new).
-     */
     protected function loadCurrentIntoNew(): void
     {
         $pd  = $this->professionalDevelopment;
@@ -436,10 +510,6 @@ class ProfessionalDevelopmentForm extends Component
         }
     }
 
-    /**
-     * Persist current new_ inputs to DB sub-models (NOT the final prev+new total).
-     * Called on page navigation so inputs survive going back and forth between pages.
-     */
     protected function persistCurrentInputs(): void
     {
         $pd = $this->professionalDevelopment;
@@ -447,19 +517,19 @@ class ProfessionalDevelopmentForm extends Component
         $cw_fields = ['q3_1_1','q3_1_2_a','q3_1_2_c','q3_1_2_d','q3_1_2_e','q3_1_2_f','q3_1_3_a','q3_1_3_b','q3_1_3_c','q3_1_4'];
         $cwData = [];
         foreach ($cw_fields as $f) { $cwData[$f] = (float)$this->{'new_'.$f}; }
-        $cwData['subtotal'] = min(array_sum($cwData), 20);
+        $cwData['subtotal'] = min(array_sum($cwData), 30);
         $pd->creativeWork->update($cwData);
 
         $act_fields = ['q3_2_1_1_a','q3_2_1_1_b','q3_2_1_1_c','q3_2_1_2','q3_2_1_3_a','q3_2_1_3_b','q3_2_1_3_c','q3_2_2_1_a','q3_2_2_1_b','q3_2_2_1_c','q3_2_2_2','q3_2_2_3','q3_2_2_4','q3_2_2_5','q3_2_2_6','q3_2_2_7'];
         $actData = [];
         foreach ($act_fields as $f) { $actData[$f] = (float)$this->{'new_'.$f}; }
-        $actData['subtotal'] = min(array_sum($actData), 20);
+        $actData['subtotal'] = min(array_sum($actData), 30);
         $pd->activity->update($actData);
 
         $rec_fields = ['q3_3_1_a','q3_3_1_b','q3_3_1_c','q3_3_2','q3_3_3_a_doctorate','q3_3_3_a_masters','q3_3_3_a_nondegree','q3_3_3_b_doctorate','q3_3_3_b_masters','q3_3_3_b_nondegree','q3_3_3_c_doctorate','q3_3_3_c_masters','q3_3_3_c_nondegree','q3_3_3_d_doctorate','q3_3_3_d_masters','q3_3_3_e'];
         $recData = [];
         foreach ($rec_fields as $f) { $recData[$f] = (float)$this->{'new_'.$f}; }
-        $recData['subtotal'] = min(array_sum($recData), 30);
+        $recData['subtotal'] = min(array_sum($recData), 10);
         $pd->recognition->update($recData);
 
         $awData = [
@@ -467,7 +537,7 @@ class ProfessionalDevelopmentForm extends Component
             'q3_4_b' => (float)$this->new_q3_4_b,
             'q3_4_c' => (float)$this->new_q3_4_c,
         ];
-        $awData['subtotal'] = array_sum($awData);
+        $awData['subtotal'] = min(array_sum($awData), 5);
         $pd->award->update($awData);
 
         $outVal = (float)$this->new_q3_3_5_1;
@@ -483,15 +553,9 @@ class ProfessionalDevelopmentForm extends Component
         $pd->licensure->update($licData);
     }
 
-    /**
-     * Called ONLY on final Submit.
-     * Writes the combined (prev + new) total to professional_developments.subtotal.
-     */
     protected function finalizeAndSave(): void
     {
         $this->persistCurrentInputs();
-
-        // The page3Total computed property already includes prev + new with all caps applied.
         $this->professionalDevelopment->update(['subtotal' => $this->page3Total]);
     }
 
@@ -515,9 +579,6 @@ class ProfessionalDevelopmentForm extends Component
         $this->showApplicantModal = !$this->showApplicantModal;
     }
 
-    /**
-     * Navigate between pages, persisting inputs so they survive the page switch.
-     */
     public function previous()
     {
         if ($this->currentPage > 1) {
@@ -537,9 +598,6 @@ class ProfessionalDevelopmentForm extends Component
         }
     }
 
-    /**
-     * Final submit: combine prev + new, mark complete, redirect to dashboard.
-     */
     public function submit()
     {
         $this->finalizeAndSave();
