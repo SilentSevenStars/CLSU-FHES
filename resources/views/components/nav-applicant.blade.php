@@ -63,7 +63,7 @@
 
       <!-- User Profile Section (Desktop) -->
       <div class="mb-2 relative">
-        @php
+@php
             $nameParts = explode(' ', Auth::user()->name);
             $initials = strtoupper(substr($nameParts[0], 0, 1) . substr(end($nameParts), 0, 1));
         @endphp

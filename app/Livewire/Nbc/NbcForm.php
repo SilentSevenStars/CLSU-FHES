@@ -2,12 +2,10 @@
 
 namespace App\Livewire\Nbc;
 
-use App\Models\EducationalQualification;
-use App\Models\ExperienceService;
+use App\Models\Evaluation;
+use App\Models\Nbc;
 use App\Models\NbcAssignment;
 use App\Models\NbcCommittee;
-use App\Models\ProfessionalDevelopment;
-use App\Models\Evaluation;
 use App\Services\FileEncryptionService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -16,95 +14,61 @@ class NbcForm extends Component
 {
     public $assignment;
     public $evaluation;
+    public $nbc;
     public $applicant;
     public $position;
     public $jobApplication;
     public $evaluationId;
     public $existing_file_path = null;
-    public $showApplicantModal  = false;
+    public $showApplicantModal = false;
 
-    // ── Models for this assignment ──
-    public $educationalQualification;
-    public $experienceService;
-    public $professionalDevelopment;
-
-    // ── Previous evaluation scores (read-only, from most recent completed assignment) ──
-    // Educational Qualification
-    public float $prev_q1_1 = 0;
-    public float $prev_q1_2 = 0;
-    public float $prev_q1_3 = 0;
-
-    // Experience Service
-    public float $prev_q2_1_1 = 0;
-    public float $prev_q2_1_2 = 0;
-    public float $prev_q2_2_1 = 0;
-    public float $prev_q2_3_1 = 0;
-    public float $prev_q2_3_2 = 0;
-
-    // Professional Development (subtotal only — it is itself composed of sub-forms)
-    public float $prev_pd_subtotal = 0;
+    // ── Previous evaluation scores (read-only) ──
+    public float $prev_educational_qualification = 0;
+    public float $prev_experience = 0;
+    public float $prev_professional_development = 0;
 
     // ── New points entered for THIS evaluation ──
-    // Educational Qualification
-    public $new_q1_1 = 0;
-    public $new_q1_2 = 0;
-    public $new_q1_3 = 0;
-
-    // Experience Service
-    public $new_q2_1_1 = 0;
-    public $new_q2_1_2 = 0;
-    public $new_q2_2_1 = 0;
-    public $new_q2_3_1 = 0;
-    public $new_q2_3_2 = 0;
-
-    // Professional Development (direct subtotal input on this form)
-    public $new_pd_subtotal = 0;
+    public $new_educational_qualification = 0;
+    public $new_experience = 0;
+    public $new_professional_development = 0;
 
     // ── Computed totals ──
 
-    // Educational Qualification
-    public function getEqRsTotalProperty(): float
+    public function getTotalPreviousPointsProperty(): float
     {
-        return (float)$this->prev_q1_1 + (float)$this->new_q1_1
-             + (float)$this->prev_q1_2 + (float)$this->new_q1_2
-             + (float)$this->prev_q1_3 + (float)$this->new_q1_3;
+        return $this->prev_educational_qualification
+             + $this->prev_experience
+             + $this->prev_professional_development;
     }
 
-    public function getEqSubtotalProperty(): float
+    public function getEqTotalProperty(): float
     {
-        return min($this->eqRsTotal, 85);
+        return min(
+            $this->prev_educational_qualification + (float)$this->new_educational_qualification,
+            85
+        );
     }
 
-    // Experience Service
-    public function getEsRsTotalProperty(): float
+    public function getEsTotalProperty(): float
     {
-        return (float)$this->prev_q2_1_1 + (float)$this->new_q2_1_1
-             + (float)$this->prev_q2_1_2 + (float)$this->new_q2_1_2
-             + (float)$this->prev_q2_2_1 + (float)$this->new_q2_2_1
-             + (float)$this->prev_q2_3_1 + (float)$this->new_q2_3_1
-             + (float)$this->prev_q2_3_2 + (float)$this->new_q2_3_2;
+        return min(
+            $this->prev_experience + (float)$this->new_experience,
+            25
+        );
     }
 
-    public function getEsSubtotalProperty(): float
+    public function getPdTotalProperty(): float
     {
-        return min($this->esRsTotal, 25);
+        return min(
+            $this->prev_professional_development + (float)$this->new_professional_development,
+            90
+        );
     }
 
-    // Professional Development
-    public function getPdRsTotalProperty(): float
+    // Total Points = prev + new per section (each capped), summed
+    public function getTotalPointsProperty(): float
     {
-        return (float)$this->prev_pd_subtotal + (float)$this->new_pd_subtotal;
-    }
-
-    public function getPdSubtotalProperty(): float
-    {
-        return min($this->pdRsTotal, 90);
-    }
-
-    // Grand Total
-    public function getTotalScoreProperty(): float
-    {
-        return $this->eqSubtotal + $this->esSubtotal + $this->pdSubtotal;
+        return $this->eqTotal + $this->esTotal + $this->pdTotal;
     }
 
     public function mount($evaluationId = null)
@@ -113,7 +77,7 @@ class NbcForm extends Component
 
         $this->evaluation = Evaluation::with([
             'jobApplication.applicant.user',
-            'jobApplication.position.department',
+            'jobApplication.position',
         ])->findOrFail($this->evaluationId);
 
         $this->jobApplication     = $this->evaluation->jobApplication;
@@ -122,11 +86,12 @@ class NbcForm extends Component
         $this->existing_file_path = $this->jobApplication->requirements_file;
 
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
+
         if (!$nbcCommittee) {
             abort(403, 'You are not assigned as an NBC committee member.');
         }
 
-        // Get or create THIS assignment
+        // Get or create assignment
         $this->assignment = NbcAssignment::firstOrCreate([
             'nbc_committee_id' => $nbcCommittee->id,
             'evaluation_id'    => $this->evaluation->id,
@@ -135,152 +100,84 @@ class NbcForm extends Component
             'evaluation_date' => now(),
         ]);
 
-        // ── Get or create sub-records ──
-        $this->educationalQualification = $this->resolveOrCreate(
-            'educational_qualification_id',
-            EducationalQualification::class,
-            ['q1_1' => 0, 'q1_2' => 0, 'q1_3' => 0, 'subtotal' => 0]
-        );
+        // Get or create NBC record
+        if ($this->assignment->nbc) {
+            $this->nbc = $this->assignment->nbc;
+        } else {
+            $this->nbc = $this->createNbc();
+        }
 
-        $this->experienceService = $this->resolveOrCreate(
-            'experience_service_id',
-            ExperienceService::class,
-            ['q2_1_1' => 0, 'q2_1_2' => 0, 'q2_2_1' => 0, 'q2_3_1' => 0, 'q2_3_2' => 0, 'subtotal' => 0]
-        );
-
-        $this->professionalDevelopment = $this->resolveOrCreate(
-            'professional_development_id',
-            ProfessionalDevelopment::class,
-            ['subtotal' => 0]
-        );
-
-        // ── Load previous completed assignment scores ──
+        // ── Load previous completed assignment scores (prev_) ──
         $previousAssignment = NbcAssignment::where('nbc_committee_id', $nbcCommittee->id)
             ->where('id', '!=', $this->assignment->id)
             ->where('status', 'complete')
             ->whereHas('evaluation.jobApplication', function ($q) {
                 $q->where('applicant_id', $this->applicant->id);
             })
-            ->where('evaluation_date', '<', $this->assignment->evaluation_date)
-            ->orderByDesc('evaluation_date')
+            ->orderByDesc('created_at')
+            ->with('nbc')
             ->first();
 
-        if ($previousAssignment) {
-            if ($previousAssignment->educational_qualification_id) {
-                $prevEq = EducationalQualification::find($previousAssignment->educational_qualification_id);
-                if ($prevEq) {
-                    $this->prev_q1_1 = (float)($prevEq->q1_1 ?? 0);
-                    $this->prev_q1_2 = (float)($prevEq->q1_2 ?? 0);
-                    $this->prev_q1_3 = (float)($prevEq->q1_3 ?? 0);
-                }
-            }
-
-            if ($previousAssignment->experience_service_id) {
-                $prevEs = ExperienceService::find($previousAssignment->experience_service_id);
-                if ($prevEs) {
-                    $this->prev_q2_1_1 = (float)($prevEs->q2_1_1 ?? 0);
-                    $this->prev_q2_1_2 = (float)($prevEs->q2_1_2 ?? 0);
-                    $this->prev_q2_2_1 = (float)($prevEs->q2_2_1 ?? 0);
-                    $this->prev_q2_3_1 = (float)($prevEs->q2_3_1 ?? 0);
-                    $this->prev_q2_3_2 = (float)($prevEs->q2_3_2 ?? 0);
-                }
-            }
-
-            if ($previousAssignment->professional_development_id) {
-                $prevPd = ProfessionalDevelopment::find($previousAssignment->professional_development_id);
-                if ($prevPd) {
-                    $this->prev_pd_subtotal = (float)($prevPd->subtotal ?? 0);
-                }
-            }
+        if ($previousAssignment && $previousAssignment->nbc) {
+            $this->prev_educational_qualification = (float)($previousAssignment->nbc->educational_qualification ?? 0);
+            $this->prev_experience                = (float)($previousAssignment->nbc->experience ?? 0);
+            $this->prev_professional_development  = (float)($previousAssignment->nbc->professional_development ?? 0);
         }
 
-        // ── Load THIS evaluation's already-saved inputs ──
-        $this->new_q1_1 = (float)($this->educationalQualification->q1_1 ?? 0);
-        $this->new_q1_2 = (float)($this->educationalQualification->q1_2 ?? 0);
-        $this->new_q1_3 = (float)($this->educationalQualification->q1_3 ?? 0);
-
-        $this->new_q2_1_1 = (float)($this->experienceService->q2_1_1 ?? 0);
-        $this->new_q2_1_2 = (float)($this->experienceService->q2_1_2 ?? 0);
-        $this->new_q2_2_1 = (float)($this->experienceService->q2_2_1 ?? 0);
-        $this->new_q2_3_1 = (float)($this->experienceService->q2_3_1 ?? 0);
-        $this->new_q2_3_2 = (float)($this->experienceService->q2_3_2 ?? 0);
-
-        $this->new_pd_subtotal = (float)($this->professionalDevelopment->subtotal ?? 0);
+        // ── Load THIS evaluation's already-saved inputs into new_ fields ──
+        $this->new_educational_qualification = (float)($this->nbc->educational_qualification ?? 0);
+        $this->new_experience                = (float)($this->nbc->experience ?? 0);
+        $this->new_professional_development  = (float)($this->nbc->professional_development ?? 0);
     }
 
-    /**
-     * Resolve existing linked record or create a new one and link it to the assignment.
-     */
-    protected function resolveOrCreate(string $foreignKey, string $modelClass, array $defaults)
+    protected function createNbc()
     {
-        if ($this->assignment->{$foreignKey}) {
-            $record = $modelClass::find($this->assignment->{$foreignKey});
-            if ($record) return $record;
-        }
-
-        $record = $modelClass::create($defaults);
-        $this->assignment->update([$foreignKey => $record->id]);
-        return $record;
-    }
-
-    /**
-     * Persist all inputs to their respective DB records.
-     */
-    protected function persistCurrentInputs(): void
-    {
-        $this->validate([
-            'new_q1_1'       => 'required|numeric|min:0',
-            'new_q1_2'       => 'required|numeric|min:0',
-            'new_q1_3'       => 'required|numeric|min:0|max:10',
-            'new_q2_1_1'     => 'required|numeric|min:0',
-            'new_q2_1_2'     => 'required|numeric|min:0',
-            'new_q2_2_1'     => 'required|numeric|min:0',
-            'new_q2_3_1'     => 'required|numeric|min:0',
-            'new_q2_3_2'     => 'required|numeric|min:0',
-            'new_pd_subtotal' => 'required|numeric|min:0|max:90',
+        $nbc = Nbc::create([
+            'educational_qualification' => 0,
+            'experience'                => 0,
+            'professional_development'  => 0,
+            'total_score'               => 0,
         ]);
 
-        $this->educationalQualification->update([
-            'q1_1'     => (float)$this->new_q1_1,
-            'q1_2'     => (float)$this->new_q1_2,
-            'q1_3'     => (float)$this->new_q1_3,
-            'subtotal' => $this->eqSubtotal,
-        ]);
+        $this->assignment->update(['nbc_id' => $nbc->id]);
 
-        $this->experienceService->update([
-            'q2_1_1'   => (float)$this->new_q2_1_1,
-            'q2_1_2'   => (float)$this->new_q2_1_2,
-            'q2_2_1'   => (float)$this->new_q2_2_1,
-            'q2_3_1'   => (float)$this->new_q2_3_1,
-            'q2_3_2'   => (float)$this->new_q2_3_2,
-            'subtotal' => $this->esSubtotal,
-        ]);
-
-        $this->professionalDevelopment->update([
-            'subtotal' => $this->pdSubtotal,
-        ]);
+        return $nbc;
     }
 
     public function save()
     {
-        $this->persistCurrentInputs();
+        $this->validate([
+            'new_educational_qualification' => 'required|numeric|min:0|max:85',
+            'new_experience'                => 'required|numeric|min:0|max:25',
+            'new_professional_development'  => 'required|numeric|min:0|max:90',
+        ]);
+
+        $this->nbc->update([
+            'educational_qualification' => (float)$this->new_educational_qualification,
+            'experience'                => (float)$this->new_experience,
+            'professional_development'  => (float)$this->new_professional_development,
+            'total_score'               => $this->totalPoints,
+        ]);
+
         session()->flash('message', 'NBC scores saved successfully.');
     }
 
     public function submit()
     {
-        $this->persistCurrentInputs();
+        $this->save();
         $this->assignment->update(['status' => 'complete']);
-        session()->flash('message', 'NBC evaluation submitted successfully.');
+        session()->flash('message', 'NBC evaluation completed successfully.');
         return redirect()->route('nbc.dashboard');
     }
 
     public function getFileDataUrl()
     {
         $encryptionService = new FileEncryptionService();
+
         if (!$this->existing_file_path || !$encryptionService->fileExists($this->existing_file_path)) {
             return null;
         }
+
         try {
             return 'data:application/pdf;base64,' . base64_encode(
                 $encryptionService->decryptFile($this->existing_file_path)

@@ -53,8 +53,9 @@
 
 <!-- ✅ ADDED: Mobile profile button TOP RIGHT -->
 <div class="absolute top-2 right-2 sm:hidden">
-    @php
-        $nameParts = explode(' ', Auth::user()->name);
+@php
+        $userName = Auth::user()->name;
+        $nameParts = explode(' ', $userName);
         $initials = strtoupper(substr($nameParts[0], 0, 1) . substr(end($nameParts), 0, 1));
     @endphp
 
@@ -67,7 +68,10 @@
         class="hidden z-50 bg-white divide-y divide-gray-200 rounded-lg shadow w-56 mt-2">
 
         <div class="px-4 py-3">
-            <p class="text-sm font-medium text-gray-900">{{ Auth::user()->name }}</p>
+@php
+                $displayName = Auth::user()->name;
+            @endphp
+            <p class="text-sm font-medium text-gray-900">{{ $displayName }}</p>
             <p class="text-xs text-gray-500">{{ Auth::user()->email }}</p>
         </div>
 

@@ -18,6 +18,11 @@ return new class extends Migration
             $table->decimal('total_score', 8, 2)->nullable();
             $table->integer('rank')->nullable();
             $table->foreignId('job_application_id')->constrained()->cascadeOnDelete();
+            $table->decimal('educational_score', 8, 2)->nullable();
+            $table->decimal('experience_score', 8, 2)->nullable();
+            $table->decimal('professional_dev_score', 8, 2)->nullable();
+            $table->text('evaluator_remarks')->nullable();
+            $table->text('verifier_remarks')->nullable();
             $table->timestamps();
         });
     }

@@ -40,7 +40,21 @@ class FortifyServiceProvider extends ServiceProvider
 
         // Custom login logic based on role
         Fortify::authenticateUsing(function (Request $request) {
-            $user = User::where('email', $request->email)->first();
+            // Find user by email, handling encrypted emails
+            $users = User::all();
+            $user = null;
+            foreach ($users as $u) {
+                $storedEmail = $u->getAttributes()['email'];
+                try {
+                    $decrypted = decrypt($storedEmail);
+                } catch (\Throwable $e) {
+                    $decrypted = $storedEmail; // assume plain
+                }
+                if ($decrypted === $request->email) {
+                    $user = $u;
+                    break;
+                }
+            }
 
             if ($user && Hash::check($request->password, $user->password)) {
 
@@ -51,7 +65,7 @@ class FortifyServiceProvider extends ServiceProvider
                 }
 
                 // Only block applicants if email not verified
-                if ($user->role === 'applicant' && ! $user->hasVerifiedEmail()) {
+                if ($user->hasRole('applicant') && ! $user->hasVerifiedEmail()) {
                     session()->flash('error', 'Applicants must verify their email before logging in.');
                     return null;
                 }

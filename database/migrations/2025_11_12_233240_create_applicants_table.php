@@ -13,17 +13,17 @@ return new class extends Migration
     {
         Schema::create('applicants', function (Blueprint $table) {
             $table->id();
-            $table->string('first_name');
-            $table->string('middle_name')->nullable();
-            $table->string('last_name');
-            $table->string('suffix', 5)->nullable();
-            $table->string('phone_number', 13)->nullable();
-            $table->string('region')->nullable();
-            $table->string('province')->nullable();
-            $table->string('city')->nullable();
-            $table->string('barangay')->nullable();
-            $table->string('street')->nullable();
-            $table->string('postal_code', 10)->nullable();
+            $table->text('first_name');
+            $table->text('middle_name')->nullable();
+            $table->text('last_name');
+            $table->text('suffix')->nullable();
+            $table->text('phone_number')->nullable();
+            $table->text('region')->nullable();
+            $table->text('province')->nullable();
+            $table->text('city')->nullable();
+            $table->text('barangay')->nullable();
+            $table->text('street')->nullable();
+            $table->text('postal_code')->nullable();
             $table->string('position')->nullable();
             $table->boolean('hired')->default(false);
             $table->foreignId('user_id')->constrained()->onDelete('cascade');

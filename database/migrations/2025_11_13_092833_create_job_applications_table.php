@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('job_applications', function (Blueprint $table) {
             $table->id();
-            $table->string('present_position');
-            $table->string('education');
+            $table->longText('present_position');
+            $table->longText('education');
             $table->integer('experience');
             $table->integer('training');
-            $table->string('eligibility');
+            $table->longText('eligibility');
             $table->text('other_involvement');
             $table->timestamp('reviewed_at')->nullable();
-            $table->string('requirements_file');
+            $table->longText('requirements_file');
             $table->enum('status', ['decline', 'approve', 'hired', 'pending'])->default('pending');
             $table->foreignId('position_id')->constrained()->cascadeOnDelete();
             $table->foreignId('applicant_id')->constrained('applicants')->onDelete('cascade');

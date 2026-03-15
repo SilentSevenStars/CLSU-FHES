@@ -368,7 +368,7 @@ class JobApplication extends Component
             ]
         );
 
-        ModelsJobApplication::create([
+        $jobApplication = new ModelsJobApplication([
             'present_position'  => $this->present_position,
             'education'         => $this->education,
             'experience'        => $this->experience,
@@ -379,6 +379,7 @@ class JobApplication extends Component
             'applicant_id'      => $applicant->id,
             'position_id'       => $this->position_id,
         ]);
+        $jobApplication->save();
 
         $this->dispatch('job-application-submitted');
 

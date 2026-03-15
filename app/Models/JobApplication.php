@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Casts\Encrypted;
 
 class JobApplication extends Model
 {
@@ -23,6 +24,11 @@ class JobApplication extends Model
 
     protected $casts = [
         'reviewed_at' => 'datetime',
+        'present_position' => Encrypted::class,
+        'education' => Encrypted::class,
+        'eligibility' => Encrypted::class,
+        'other_involvement' => Encrypted::class,
+        'other_requirements' => Encrypted::class,
     ];
 
     public function applicant()

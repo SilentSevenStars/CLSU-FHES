@@ -42,8 +42,9 @@
     38 => 'Pest\\Laravel\\PestServiceProvider',
     39 => 'Spatie\\Permission\\PermissionServiceProvider',
     40 => 'App\\Providers\\AppServiceProvider',
-    41 => 'App\\Providers\\FortifyServiceProvider',
-    42 => 'App\\Providers\\JetstreamServiceProvider',
+    41 => 'App\\Providers\\EncryptedUserProvider',
+    42 => 'App\\Providers\\FortifyServiceProvider',
+    43 => 'App\\Providers\\JetstreamServiceProvider',
   ),
   'eager' => 
   array (
@@ -73,8 +74,9 @@
     23 => 'Pest\\Laravel\\PestServiceProvider',
     24 => 'Spatie\\Permission\\PermissionServiceProvider',
     25 => 'App\\Providers\\AppServiceProvider',
-    26 => 'App\\Providers\\FortifyServiceProvider',
-    27 => 'App\\Providers\\JetstreamServiceProvider',
+    26 => 'App\\Providers\\EncryptedUserProvider',
+    27 => 'App\\Providers\\FortifyServiceProvider',
+    28 => 'App\\Providers\\JetstreamServiceProvider',
   ),
   'deferred' => 
   array (

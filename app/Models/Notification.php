@@ -24,6 +24,8 @@ class Notification extends Model
         'email_sent' => 'boolean',
         'read_at' => 'datetime',
         'email_sent_at' => 'datetime',
+        'subject' => 'encrypted',
+        'message' => 'encrypted',
     ];
 
     /**

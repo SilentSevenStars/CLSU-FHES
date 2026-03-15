@@ -10,4 +10,8 @@ class Representative extends Model
         'name',
         'position',
     ];
+
+    protected $casts = [
+        'name' => 'encrypted',
+    ];
 }

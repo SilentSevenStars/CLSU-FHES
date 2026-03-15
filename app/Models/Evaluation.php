@@ -28,7 +28,9 @@ class Evaluation extends Model
         'educational_score' => 'decimal:2',
         'experience_score' => 'decimal:2',
         'professional_dev_score' => 'decimal:2',
-        'rank' => 'integer'
+        'rank' => 'integer',
+        'evaluator_remarks' => 'encrypted',
+        'verifier_remarks' => 'encrypted',
     ];
 
     /**

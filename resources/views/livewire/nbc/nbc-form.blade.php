@@ -4,44 +4,31 @@
         showSaveModal: false
     }"
 >
-    <div class="min-h-screen bg-gray-50 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex-1 bg-gradient-to-br from-slate-50 to-green-50 py-8 min-h-screen">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
 
             <!-- Header -->
             <div class="mb-6 flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">NBC Evaluation Form</h1>
+                    <h1 class="text-3xl font-extrabold text-[#0A6025]">NBC Evaluation Form</h1>
                     <p class="mt-1 text-sm text-gray-600">Add new points below — they will be added to your existing score.</p>
                 </div>
-                <button wire:click="toggleApplicantModal"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150">
-                    View Applicant Details
+                <button
+                    wire:click="toggleApplicantModal"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-[#0A6025] text-white rounded-lg shadow-sm hover:bg-[#0B712C] transition-colors duration-150"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 12h10M5 16h6" />
+                    </svg>
+                    <span class="text-sm font-medium">View Applicant Details</span>
                 </button>
             </div>
 
             @if (session()->has('message'))
-                <div class="mb-6 bg-green-50 border-l-4 border-green-400 p-4 rounded-lg">
-                    <p class="text-green-700 font-medium">{{ session('message') }}</p>
+                <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-lg shadow-sm">
+                    <p class="text-emerald-800 text-sm font-medium">{{ session('message') }}</p>
                 </div>
             @endif
-
-            <!-- Applicant Info Card -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">Applicant Name</p>
-                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $applicant->full_name }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">Position Applied</p>
-                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->name }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">Department</p>
-                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->department->name ?? 'N/A' }}</p>
-                    </div>
-                </div>
-            </div>
 
             <!-- Info Banner -->
             <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg flex items-start gap-3">
@@ -52,434 +39,232 @@
                     <p class="font-semibold text-blue-800 text-sm">Cumulative Scoring</p>
                     <p class="text-blue-700 text-sm mt-0.5">
                         The <span class="font-semibold">Previous Points</span> column shows your saved score from a prior completed evaluation.
-                        Enter only the <span class="font-semibold">new points to add</span> — they are summed with previous on save.
+                        Enter only the <span class="font-semibold">additional points to add</span> — they are summed with previous on save.
                     </p>
                 </div>
             </div>
 
+            <!-- Applicant Info Card -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Applicant Name</p>
+                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $applicant->full_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Position Applied</p>
+                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Department</p>
+                        <p class="mt-1 text-lg font-semibold text-gray-900">{{ $position->department->name ?? 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+
             <form wire:submit.prevent="save">
-
-                {{-- SECTION 1: EDUCATIONAL QUALIFICATION --}}
-                <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-                    <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                        <h2 class="text-xl font-bold text-white">1.0 EDUCATIONAL QUALIFICATION ... 85 pts.</h2>
+                <!-- Main NBC Form -->
+                <div class="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100">
+                    <div class="bg-gradient-to-r from-[#0A6025] to-emerald-700 px-6 py-4">
+                        <h2 class="text-xl font-bold text-white">NBC Evaluation Scores</h2>
                     </div>
 
-                    <div class="px-6 pt-5 pb-1">
+                    <!-- Column Headers -->
+                    <div class="px-8 pt-6 pb-0">
                         <div class="grid grid-cols-12 gap-4">
-                            <div class="col-span-8"></div>
-                            <div class="col-span-2 text-center">
+                            <div class="col-span-6"></div>
+                            <div class="col-span-3 text-center">
                                 <span class="inline-block text-xs font-semibold uppercase tracking-wide text-gray-600 bg-gray-100 border border-gray-300 rounded px-2 py-1 w-full">
                                     Previous Points
                                 </span>
                             </div>
-                            <div class="col-span-2 text-center">
+                            <div class="col-span-3 text-center">
                                 <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 w-full">
-                                    Add New Points
+                                    Additional Points
                                 </span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="p-6 space-y-6">
-                        <!-- 1.1 -->
-                        <div class="border-l-4 border-blue-500 pl-4">
-                            <h3 class="text-base font-semibold text-gray-900 mb-3">
-                                1.1 Highest relevant academic degree or educational attainment
-                            </h3>
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm text-gray-700 space-y-1">
-                                <div class="pl-4">1.1.1 Doctorate Degree &nbsp; 1.1.2 Master's Degree &nbsp; 1.1.3 LLD, MD</div>
-                                <div class="pl-4">1.1.4 Diploma Course &nbsp; 1.1.5 Bachelor's Degree &nbsp; 1.1.6 Special Courses</div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
-                                    <label class="block text-sm font-medium text-gray-700">Section 1.1 Score</label>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
-                                        {{ number_format($prev_q1_1, 3) }}
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="new_q1_1" step="0.001" min="0"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
-                                        placeholder="+0">
-                                </div>
-                            </div>
-                            @error('new_q1_1') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
-                        </div>
+                    <div class="px-8 pt-6 pb-8 space-y-8">
 
-                        <!-- 1.2 -->
-                        <div class="border-l-4 border-green-500 pl-4">
-                            <h3 class="text-base font-semibold text-gray-900 mb-3">
-                                1.2 Additional equivalent degree earned related to the present position
-                            </h3>
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm text-gray-700">
-                                <div class="pl-4">1.2.1 Master's Degree &nbsp; 1.2.2 Bachelor's Degree</div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
-                                    <label class="block text-sm font-medium text-gray-700">Section 1.2 Score</label>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
-                                        {{ number_format($prev_q1_2, 3) }}
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="new_q1_2" step="0.001" min="0"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
-                                        placeholder="+0">
-                                </div>
-                            </div>
-                            @error('new_q1_2') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <!-- 1.3 -->
-                        <div class="border-l-4 border-purple-500 pl-4">
-                            <h3 class="text-base font-semibold text-gray-900 mb-3">
-                                1.3 Additional credits earned (Maximum of 10 points)
-                            </h3>
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm text-gray-700">
-                                <div class="pl-4">1.3.1 For every 3 unit credit earned towards an approved higher degree course</div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
-                                    <label class="block text-sm font-medium text-gray-700">Section 1.3 Score</label>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
-                                        {{ number_format($prev_q1_3, 3) }}
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="new_q1_3" step="0.001" min="0" max="10"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
-                                        placeholder="+0">
-                                </div>
-                            </div>
-                            @error('new_q1_3') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <!-- EQ Subtotal -->
-                        <div class="border-t-2 border-gray-300 pt-4">
+                        <!-- Educational Qualification -->
+                        <div class="border-l-4 border-blue-500 pl-6">
                             <div class="grid grid-cols-12 gap-4 items-center">
                                 <div class="col-span-6">
-                                    <p class="text-lg font-bold text-gray-900">SUBTOTAL — Educational Qualification</p>
-                                    <p class="text-xs text-gray-500 mt-0.5">EP = MIN(Previous + New Total, 85)</p>
+                                    <h3 class="text-lg font-semibold text-gray-900">Educational Qualification</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Maximum: 85 points</p>
                                 </div>
                                 <div class="col-span-3">
-                                    <div class="text-xs text-center text-gray-600 mb-1">RS Running Total</div>
-                                    <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-semibold">
-                                        {{ number_format($this->eqRsTotal, 3) }}
+                                    <div class="w-full px-4 py-3 text-lg bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                                        {{ number_format($prev_educational_qualification, 3) }}
                                     </div>
                                 </div>
                                 <div class="col-span-3">
-                                    <div class="text-xs text-center text-green-700 mb-1">EP (capped at 85)</div>
-                                    <div class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-center font-bold text-green-800">
-                                        {{ number_format($this->eqSubtotal, 3) }}
-                                    </div>
+                                    <input
+                                        type="number"
+                                        wire:model.live="new_educational_qualification"
+                                        step="0.001"
+                                        min="0"
+                                        max="85"
+                                        class="w-full px-4 py-3 text-lg border-2 border-gray-300 focus:ring-2 focus:ring-[#0A6025] rounded-lg focus:border-transparent text-center font-semibold"
+                                        placeholder="+0"
+                                    >
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- SECTION 2: EXPERIENCE & LENGTH OF SERVICE --}}
-                <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-                    <div class="bg-gradient-to-r from-emerald-600 to-emerald-700 px-6 py-4">
-                        <h2 class="text-xl font-bold text-white">2.0 EXPERIENCE AND LENGTH OF SERVICE ... 25 pts.</h2>
-                    </div>
-
-                    <div class="px-6 pt-5 pb-1">
-                        <div class="grid grid-cols-12 gap-4">
-                            <div class="col-span-8"></div>
-                            <div class="col-span-2 text-center">
-                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-gray-600 bg-gray-100 border border-gray-300 rounded px-2 py-1 w-full">
-                                    Previous Points
-                                </span>
-                            </div>
-                            <div class="col-span-2 text-center">
-                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 w-full">
-                                    Add New Points
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="p-6 space-y-6">
-                        <!-- 2.1.1 -->
-                        <div class="border-l-4 border-emerald-500 pl-4">
-                            <h3 class="text-base font-semibold text-gray-900 mb-3">2.1 Duration of Service in the Present Position</h3>
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm text-gray-700">
-                                <div class="pl-4">2.1.1 Teaching / Research / Extension experience in the present position</div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
-                                    <label class="block text-sm font-medium text-gray-700">Section 2.1.1 Score</label>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
-                                        {{ number_format($prev_q2_1_1, 3) }}
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="new_q2_1_1" step="0.001" min="0"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
-                                        placeholder="+0">
-                                </div>
-                            </div>
-                            @error('new_q2_1_1') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                            @error('new_educational_qualification')
+                                <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
                         </div>
 
-                        <!-- 2.1.2 -->
-                        <div class="border-l-4 border-teal-500 pl-4">
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm text-gray-700">
-                                <div class="pl-4">2.1.2 Experience in the field of specialization outside of CLSU</div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
-                                    <label class="block text-sm font-medium text-gray-700">Section 2.1.2 Score</label>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
-                                        {{ number_format($prev_q2_1_2, 3) }}
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="new_q2_1_2" step="0.001" min="0"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
-                                        placeholder="+0">
-                                </div>
-                            </div>
-                            @error('new_q2_1_2') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <!-- 2.2.1 -->
-                        <div class="border-l-4 border-cyan-500 pl-4">
-                            <h3 class="text-base font-semibold text-gray-900 mb-3">2.2 Administrative Experience</h3>
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm text-gray-700">
-                                <div class="pl-4">2.2.1 Administrative position held (Dept. Chair and above)</div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
-                                    <label class="block text-sm font-medium text-gray-700">Section 2.2.1 Score</label>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
-                                        {{ number_format($prev_q2_2_1, 3) }}
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="new_q2_2_1" step="0.001" min="0"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
-                                        placeholder="+0">
-                                </div>
-                            </div>
-                            @error('new_q2_2_1') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <!-- 2.3.1 -->
-                        <div class="border-l-4 border-indigo-400 pl-4">
-                            <h3 class="text-base font-semibold text-gray-900 mb-3">2.3 Specialized Training</h3>
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm text-gray-700">
-                                <div class="pl-4">2.3.1 Formal training / fellowship related to field of specialization</div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
-                                    <label class="block text-sm font-medium text-gray-700">Section 2.3.1 Score</label>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
-                                        {{ number_format($prev_q2_3_1, 3) }}
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="new_q2_3_1" step="0.001" min="0"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
-                                        placeholder="+0">
-                                </div>
-                            </div>
-                            @error('new_q2_3_1') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <!-- 2.3.2 -->
-                        <div class="border-l-4 border-violet-500 pl-4">
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm text-gray-700">
-                                <div class="pl-4">2.3.2 Special training / fellowship not related to field of specialization</div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
-                                    <label class="block text-sm font-medium text-gray-700">Section 2.3.2 Score</label>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
-                                        {{ number_format($prev_q2_3_2, 3) }}
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="new_q2_3_2" step="0.001" min="0"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
-                                        placeholder="+0">
-                                </div>
-                            </div>
-                            @error('new_q2_3_2') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        <!-- ES Subtotal -->
-                        <div class="border-t-2 border-gray-300 pt-4">
+                        <!-- Experience -->
+                        <div class="border-l-4 border-emerald-500 pl-6">
                             <div class="grid grid-cols-12 gap-4 items-center">
                                 <div class="col-span-6">
-                                    <p class="text-lg font-bold text-gray-900">SUBTOTAL — Experience & Service</p>
-                                    <p class="text-xs text-gray-500 mt-0.5">EP = MIN(Previous + New Total, 25)</p>
+                                    <h3 class="text-lg font-semibold text-gray-900">Experience and Length of Service</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Maximum: 25 points</p>
                                 </div>
                                 <div class="col-span-3">
-                                    <div class="text-xs text-center text-gray-600 mb-1">RS Running Total</div>
-                                    <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-semibold">
-                                        {{ number_format($this->esRsTotal, 3) }}
+                                    <div class="w-full px-4 py-3 text-lg bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                                        {{ number_format($prev_experience, 3) }}
                                     </div>
                                 </div>
                                 <div class="col-span-3">
-                                    <div class="text-xs text-center text-green-700 mb-1">EP (capped at 25)</div>
-                                    <div class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-center font-bold text-green-800">
-                                        {{ number_format($this->esSubtotal, 3) }}
-                                    </div>
+                                    <input
+                                        type="number"
+                                        wire:model.live="new_experience"
+                                        step="0.001"
+                                        min="0"
+                                        max="25"
+                                        class="w-full px-4 py-3 text-lg border-2 border-gray-300 focus:ring-2 focus:ring-emerald-500 rounded-lg focus:border-transparent text-center font-semibold"
+                                        placeholder="+0"
+                                    >
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- SECTION 3: PROFESSIONAL DEVELOPMENT --}}
-                <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-                    <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
-                        <h2 class="text-xl font-bold text-white">3.0 PROFESSIONAL DEVELOPMENT, ACHIEVEMENT & HONORS ... 90 pts.</h2>
-                    </div>
-
-                    <div class="px-6 pt-5 pb-1">
-                        <div class="grid grid-cols-12 gap-4">
-                            <div class="col-span-8"></div>
-                            <div class="col-span-2 text-center">
-                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-gray-600 bg-gray-100 border border-gray-300 rounded px-2 py-1 w-full">
-                                    Previous Points
-                                </span>
-                            </div>
-                            <div class="col-span-2 text-center">
-                                <span class="inline-block text-xs font-semibold uppercase tracking-wide text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 w-full">
-                                    Add New Points
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="p-6 space-y-6">
-                        <div class="border-l-4 border-indigo-500 pl-4">
-                            <h3 class="text-base font-semibold text-gray-900 mb-3">3.0 Combined Subtotal</h3>
-                            <div class="bg-gray-50 rounded-lg p-3 mb-3 text-sm text-gray-700 space-y-1">
-                                <div class="pl-4">3.1 Creative Works / Scholarly Works</div>
-                                <div class="pl-4">3.2 Professional Activities / Participation</div>
-                                <div class="pl-4">3.3 Recognition / Awards</div>
-                                <div class="pl-4">3.4 Outreach Activities</div>
-                                <div class="pl-4">3.5 Licensure / Certification</div>
-                            </div>
-                            <div class="grid grid-cols-12 gap-4 items-center">
-                                <div class="col-span-8">
-                                    <label class="block text-sm font-medium text-gray-700">Section 3.0 Subtotal Score</label>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700 text-sm">
-                                        {{ number_format($prev_pd_subtotal, 3) }}
-                                    </div>
-                                </div>
-                                <div class="col-span-2">
-                                    <input type="number" wire:model.live="new_pd_subtotal" step="0.001" min="0" max="90"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-center"
-                                        placeholder="+0">
-                                </div>
-                            </div>
-                            @error('new_pd_subtotal') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                            @error('new_experience')
+                                <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
                         </div>
 
-                        <!-- PD Subtotal -->
-                        <div class="border-t-2 border-gray-300 pt-4">
+                        <!-- Professional Development -->
+                        <div class="border-l-4 border-indigo-500 pl-6">
                             <div class="grid grid-cols-12 gap-4 items-center">
                                 <div class="col-span-6">
-                                    <p class="text-lg font-bold text-gray-900">SUBTOTAL — Professional Development</p>
-                                    <p class="text-xs text-gray-500 mt-0.5">EP = MIN(Previous + New Total, 90)</p>
+                                    <h3 class="text-lg font-semibold text-gray-900">Professional Development, Achievement & Honors</h3>
+                                    <p class="text-sm text-gray-600 mt-1">Maximum: 90 points</p>
                                 </div>
                                 <div class="col-span-3">
-                                    <div class="text-xs text-center text-gray-600 mb-1">RS Running Total</div>
-                                    <div class="px-3 py-2 bg-blue-100 border border-blue-300 rounded-lg text-center font-semibold">
-                                        {{ number_format($this->pdRsTotal, 3) }}
+                                    <div class="w-full px-4 py-3 text-lg bg-gray-50 border border-gray-300 rounded-lg text-center font-semibold text-gray-700">
+                                        {{ number_format($prev_professional_development, 3) }}
                                     </div>
                                 </div>
                                 <div class="col-span-3">
-                                    <div class="text-xs text-center text-green-700 mb-1">EP (capped at 90)</div>
-                                    <div class="px-3 py-2 bg-green-100 border border-green-300 rounded-lg text-center font-bold text-green-800">
-                                        {{ number_format($this->pdSubtotal, 3) }}
+                                    <input
+                                        type="number"
+                                        wire:model.live="new_professional_development"
+                                        step="0.001"
+                                        min="0"
+                                        max="90"
+                                        class="w-full px-4 py-3 text-lg border-2 border-gray-300 focus:ring-2 focus:ring-indigo-500 rounded-lg focus:border-transparent text-center font-semibold"
+                                        placeholder="+0"
+                                    >
+                                </div>
+                            </div>
+                            @error('new_professional_development')
+                                <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <!-- Total Score Display -->
+                        <div class="border-t-2 border-gray-200 pt-6">
+                            <div class="bg-emerald-50 rounded-lg p-6">
+                                <div class="flex items-center justify-between flex-wrap gap-4">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-900">TOTAL SCORE</h3>
+                                        <p class="text-sm text-gray-600 mt-1">Maximum: 200 points (85 + 25 + 90)</p>
+                                        <div class="mt-3 space-y-1 text-sm text-gray-700">
+                                            <p>Educational Qualification: <span class="font-semibold">{{ number_format($this->eqTotal, 3) }}</span> / 85</p>
+                                            <p>Experience &amp; Service: <span class="font-semibold">{{ number_format($this->esTotal, 3) }}</span> / 25</p>
+                                            <p>Professional Development: <span class="font-semibold">{{ number_format($this->pdTotal, 3) }}</span> / 90</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-end gap-4">
+                                        <!-- Total Previous Points -->
+                                        <div class="text-center">
+                                            <p class="text-xs text-gray-600 font-medium mb-1">Total Previous Points</p>
+                                            <div class="px-6 py-3 bg-gray-100 border-2 border-gray-300 rounded-lg text-center">
+                                                <div class="text-3xl font-bold text-gray-800">
+                                                    {{ number_format($this->totalPreviousPoints, 3) }}
+                                                </div>
+                                                <div class="text-xs text-gray-500 mt-1">points</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Total Points (Prev + Additional) -->
+                                        <div class="text-center">
+                                            <p class="text-xs text-emerald-700 font-medium mb-1">Total Points (Prev + Additional)</p>
+                                            <div class="px-6 py-3 bg-emerald-100 border-2 border-emerald-400 rounded-lg text-center">
+                                                <div class="text-3xl font-bold text-emerald-900">
+                                                    {{ number_format($this->totalPoints, 3) }}
+                                                </div>
+                                                <div class="text-xs text-emerald-700 mt-1">/ 200 points</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {{-- GRAND TOTAL --}}
-                <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-                    <div class="p-6">
-                        <div class="bg-emerald-50 rounded-lg p-6 border-2 border-emerald-300">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="text-2xl font-bold text-gray-900">GRAND TOTAL SCORE</h3>
-                                    <p class="text-sm text-gray-600 mt-1">Maximum: 200 points (85 + 25 + 90)</p>
-                                    <div class="mt-3 space-y-1 text-sm text-gray-700">
-                                        <p>Educational Qualification: <span class="font-semibold">{{ number_format($this->eqSubtotal, 3) }}</span> / 85</p>
-                                        <p>Experience &amp; Service: <span class="font-semibold">{{ number_format($this->esSubtotal, 3) }}</span> / 25</p>
-                                        <p>Professional Development: <span class="font-semibold">{{ number_format($this->pdSubtotal, 3) }}</span> / 90</p>
-                                    </div>
-                                </div>
-                                <div class="px-10 py-6 bg-emerald-100 border-2 border-emerald-400 rounded-xl text-center">
-                                    <div class="text-5xl font-extrabold text-emerald-900">
-                                        {{ number_format($this->totalScore, 3) }}
-                                    </div>
-                                    <div class="text-sm text-emerald-700 mt-1 font-medium">/ 200 points</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                </div>
 
-                <!-- Action Buttons -->
-                <div class="bg-white rounded-lg shadow-md px-6 py-4 flex items-center justify-between">
-                    <button type="button" wire:click="return"
-                        class="inline-flex items-center gap-2 px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                        </svg>
-                        Return to Dashboard
-                    </button>
-                    <div class="flex gap-3">
-                        <button type="button" @click="showSaveModal = true"
-                            class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors duration-150">
-                            Save Progress
+                    <!-- Action Buttons -->
+                    <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
+                        <button
+                            type="button"
+                            wire:click="return"
+                            class="inline-flex items-center gap-2 px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            <span>Return to Dashboard</span>
                         </button>
-                        <button type="button" @click="showSubmitModal = true"
-                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-150">
-                            Submit Evaluation
-                        </button>
+                        <div class="flex gap-3">
+                            <button
+                                type="button"
+                                @click="showSaveModal = true"
+                                class="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors duration-150"
+                            >
+                                Save Progress
+                            </button>
+                            <button
+                                type="button"
+                                @click="showSubmitModal = true"
+                                class="px-6 py-2 bg-[#0A6025] text-white rounded-lg hover:bg-[#0B712C] transition-colors duration-150"
+                            >
+                                Submit Evaluation
+                            </button>
+                        </div>
                     </div>
                 </div>
-
             </form>
         </div>
     </div>
 
     <!-- Applicant Details Modal -->
     @if($showApplicantModal)
-        <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
-            x-data="{ show: @entangle('showApplicantModal') }" x-show="show"
-            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <div
+            class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+            x-data="{ show: @entangle('showApplicantModal') }"
+            x-show="show"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+        >
             <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-lg bg-white">
                 <div class="flex items-center justify-between border-b pb-3 mb-4">
                     <h3 class="text-2xl font-bold text-gray-900">Applicant Details</h3>
@@ -489,30 +274,32 @@
                         </svg>
                     </button>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><p class="text-sm font-medium text-gray-500">Full Name</p><p class="mt-1 text-base text-gray-900">{{ $applicant->full_name }}</p></div>
-                    <div><p class="text-sm font-medium text-gray-500">Email</p><p class="mt-1 text-base text-gray-900">{{ $applicant->user->email }}</p></div>
-                    <div><p class="text-sm font-medium text-gray-500">Phone Number</p><p class="mt-1 text-base text-gray-900">{{ $applicant->phone_number ?? 'N/A' }}</p></div>
-                    <div><p class="text-sm font-medium text-gray-500">Position Applied</p><p class="mt-1 text-base text-gray-900">{{ $position->name }}</p></div>
-                    <div class="col-span-2"><p class="text-sm font-medium text-gray-500">Address</p><p class="mt-1 text-base text-gray-900">{{ $applicant->street }}, {{ $applicant->barangay }}, {{ $applicant->city }}, {{ $applicant->province }}</p></div>
-                    <div><p class="text-sm font-medium text-gray-500">Present Position</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->present_position }}</p></div>
-                    <div><p class="text-sm font-medium text-gray-500">Education</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->education }}</p></div>
-                    <div><p class="text-sm font-medium text-gray-500">Experience (Years)</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->experience }}</p></div>
-                    <div><p class="text-sm font-medium text-gray-500">Eligibility</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->eligibility }}</p></div>
-                    <div class="col-span-2">
-                        <p class="text-sm font-medium text-gray-500">Requirements File</p>
-                        @if($existing_file_path)
-                            <button type="button" wire:click="$dispatch('open-pdf-viewer')"
-                                class="mt-1 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                </svg>
-                                View File
-                            </button>
-                        @else
-                            <p class="mt-1 text-base text-gray-500">No file uploaded</p>
-                        @endif
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-sm font-medium text-gray-500">Full Name</p><p class="mt-1 text-base text-gray-900">{{ $applicant->full_name }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Email</p><p class="mt-1 text-base text-gray-900">{{ $applicant->user->email }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Phone Number</p><p class="mt-1 text-base text-gray-900">{{ $applicant->phone_number ?? 'N/A' }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Position Applied</p><p class="mt-1 text-base text-gray-900">{{ $position->name }}</p></div>
+                        <div class="col-span-2"><p class="text-sm font-medium text-gray-500">Address</p><p class="mt-1 text-base text-gray-900">{{ $applicant->street }}, {{ $applicant->barangay }}, {{ $applicant->city }}, {{ $applicant->province }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Present Position</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->present_position }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Education</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->education }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Experience (Years)</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->experience }}</p></div>
+                        <div><p class="text-sm font-medium text-gray-500">Eligibility</p><p class="mt-1 text-base text-gray-900">{{ $jobApplication->eligibility }}</p></div>
+                        <div class="col-span-2">
+                            <p class="text-sm font-medium text-gray-500">Requirements File</p>
+                            @if($existing_file_path)
+                                <button type="button" wire:click="$dispatch('open-pdf-viewer')"
+                                    class="mt-1 inline-flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    View File
+                                </button>
+                            @else
+                                <p class="mt-1 text-base text-gray-500">No file uploaded</p>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 <div class="flex justify-end mt-6 pt-4 border-t">
@@ -543,11 +330,14 @@
                 <div class="px-6 pb-4 text-center">
                     <h3 class="text-2xl font-bold text-gray-900 mb-2">Save Progress?</h3>
                     <p class="text-gray-600 mb-4">This will save your current scores. You can continue editing later.</p>
-                    <div class="bg-gray-50 rounded-lg p-4 text-left space-y-1 text-sm text-gray-600">
-                        <p>Educational Qualification: <span class="font-semibold">{{ number_format($this->eqSubtotal, 3) }}</span> / 85</p>
-                        <p>Experience &amp; Service: <span class="font-semibold">{{ number_format($this->esSubtotal, 3) }}</span> / 25</p>
-                        <p>Professional Development: <span class="font-semibold">{{ number_format($this->pdSubtotal, 3) }}</span> / 90</p>
-                        <p class="pt-2 border-t border-gray-300 font-semibold text-gray-900">Total: {{ number_format($this->totalScore, 3) }} / 200</p>
+                    <div class="bg-gray-50 rounded-lg p-4 text-left">
+                        <p class="text-sm font-medium text-gray-700 mb-2">Current Scores:</p>
+                        <div class="space-y-1 text-sm text-gray-600">
+                            <p>Educational Qualification: <span class="font-semibold">{{ number_format($this->eqTotal, 3) }}</span> / 85</p>
+                            <p>Experience: <span class="font-semibold">{{ number_format($this->esTotal, 3) }}</span> / 25</p>
+                            <p>Professional Development: <span class="font-semibold">{{ number_format($this->pdTotal, 3) }}</span> / 90</p>
+                            <p class="pt-2 border-t border-gray-300 font-semibold text-gray-900">Total: {{ number_format($this->totalPoints, 3) }} / 200</p>
+                        </div>
                     </div>
                 </div>
                 <div class="px-6 pb-6 flex gap-3">
@@ -579,13 +369,16 @@
                 <div class="px-6 pb-4 text-center">
                     <h3 class="text-2xl font-bold text-gray-900 mb-2">Submit Evaluation?</h3>
                     <p class="text-gray-600 mb-4">This will mark the evaluation as <strong>complete</strong>. Please review your scores before submitting.</p>
-                    <div class="bg-blue-50 rounded-lg p-4 text-left border-2 border-blue-200 space-y-1 text-sm text-gray-600">
-                        <p>Educational Qualification: <span class="font-semibold">{{ number_format($this->eqSubtotal, 3) }}</span> / 85</p>
-                        <p>Experience &amp; Service: <span class="font-semibold">{{ number_format($this->esSubtotal, 3) }}</span> / 25</p>
-                        <p>Professional Development: <span class="font-semibold">{{ number_format($this->pdSubtotal, 3) }}</span> / 90</p>
-                        <p class="pt-2 border-t border-blue-300 font-bold text-blue-900 text-base">Total: {{ number_format($this->totalScore, 3) }} / 200</p>
+                    <div class="bg-blue-50 rounded-lg p-4 text-left border-2 border-blue-200">
+                        <p class="text-sm font-medium text-gray-700 mb-2">Final Scores:</p>
+                        <div class="space-y-1 text-sm text-gray-600">
+                            <p>Educational Qualification: <span class="font-semibold">{{ number_format($this->eqTotal, 3) }}</span> / 85</p>
+                            <p>Experience: <span class="font-semibold">{{ number_format($this->esTotal, 3) }}</span> / 25</p>
+                            <p>Professional Development: <span class="font-semibold">{{ number_format($this->pdTotal, 3) }}</span> / 90</p>
+                            <p class="pt-2 border-t border-blue-300 font-bold text-blue-900 text-base">Total: {{ number_format($this->totalPoints, 3) }} / 200</p>
+                        </div>
                     </div>
-                    <p class="text-sm text-red-600 mt-4 font-medium">Warning: Once submitted, you cannot edit this evaluation.</p>
+                    <p class="text-sm text-red-600 mt-4 font-medium">⚠️ Once submitted, you cannot edit this evaluation.</p>
                 </div>
                 <div class="px-6 pb-6 flex gap-3">
                     <button @click="showSubmitModal = false" class="flex-1 px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium">Cancel</button>
@@ -595,26 +388,37 @@
         </div>
     </div>
 
-    <!-- PDF Viewer Modal -->
+    <!-- PDF VIEWER MODAL -->
     <div x-data="{
-        open: false, loading: false, pdfUrl: null,
+        open: false,
+        loading: false,
+        pdfUrl: null,
         async openPdfViewer() {
-            this.loading = true; this.open = true;
+            this.loading = true;
+            this.open = true;
             try {
                 const dataUrl = await @this.call('getFileDataUrl');
                 if (dataUrl) { this.pdfUrl = dataUrl; }
-            } catch (e) { alert('Error loading PDF'); this.open = false; }
-            finally { this.loading = false; }
+            } catch (error) {
+                console.error('Error loading PDF:', error);
+                alert('Error loading PDF file');
+                this.open = false;
+            } finally {
+                this.loading = false;
+            }
         }
     }"
     x-on:open-pdf-viewer.window="openPdfViewer()"
-    x-show="open" x-cloak class="fixed inset-0 z-50 overflow-hidden" style="display:none;">
-        <div class="absolute inset-0 bg-black bg-opacity-75" @click="open=false; pdfUrl=null;"></div>
+    x-show="open"
+    x-cloak
+    class="fixed inset-0 z-50 overflow-hidden"
+    style="display: none;">
+        <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
         <div class="relative w-full h-full flex items-center justify-center">
             <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
                 <div class="flex items-center justify-between px-6 py-4 border-b">
                     <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
-                    <button @click="open=false; pdfUrl=null;" class="text-gray-400 hover:text-gray-600 transition">
+                    <button @click="open = false; pdfUrl = null;" class="text-gray-400 hover:text-gray-600 transition">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -624,7 +428,7 @@
                     <div x-show="loading" class="flex items-center justify-center h-full">
                         <svg class="animate-spin h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
                         </svg>
                     </div>
                     <iframe x-show="!loading && pdfUrl" :src="pdfUrl" class="w-full h-full" frameborder="0"></iframe>
@@ -633,5 +437,7 @@
         </div>
     </div>
 
-    <style>[x-cloak] { display: none !important; }</style>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
 </div>

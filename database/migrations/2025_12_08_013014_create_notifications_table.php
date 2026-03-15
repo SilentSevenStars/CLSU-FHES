@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('applicant_id')->constrained('applicants')->onDelete('cascade');
-            $table->string('subject');
+            $table->text('subject');
             $table->longText('message');
             $table->json('attachments')->nullable();
             $table->boolean('is_read')->default(false);

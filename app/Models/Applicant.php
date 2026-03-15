@@ -28,6 +28,18 @@ class Applicant extends Model
 
     protected $casts = [
         'hired' => 'boolean',
+        'first_name' => 'encrypted',
+        'middle_name' => 'encrypted',
+        'last_name' => 'encrypted',
+        'suffix' => 'encrypted',
+        'phone_number' => 'encrypted',
+        'address' => 'encrypted',
+        'region' => 'encrypted',
+        'province' => 'encrypted',
+        'city' => 'encrypted',
+        'barangay' => 'encrypted',
+        'street' => 'encrypted',
+        'postal_code' => 'encrypted',
     ];
 
     /**

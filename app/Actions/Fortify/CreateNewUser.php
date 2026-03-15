@@ -26,7 +26,7 @@ class CreateNewUser implements CreatesNewUsers
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'suffix' => ['nullable', 'string', 'max:5'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email', 'max:255'],
             'password' => [
                 'required',
                 'string',
@@ -48,7 +48,15 @@ class CreateNewUser implements CreatesNewUsers
             'password.numbers' => 'Password must contain at least one number.',
             'password.symbols' => 'Password must contain at least one special character.',
             'password.uncompromised' => 'This password has appeared in a data breach and should not be used.',
-        ])->validate();
+        ])->after(function ($validator) use ($input) {
+            // Check if email is unique by decrypting existing emails
+            $existingUser = User::all()->first(function ($user) use ($input) {
+                return $user->email === $input['email'];
+            });
+            if ($existingUser) {
+                $validator->errors()->add('email', 'The email has already been taken.');
+            }
+        })->validate();
 
         $middleInitial = '';
         if (!empty($input['middle_name'])) {
@@ -63,11 +71,12 @@ class CreateNewUser implements CreatesNewUsers
 
         $name = trim(implode(' ', array_filter($nameParts)));
 
-        $user = User::create([
+        $user = new User([
             'name' => $name,
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
+        $user->save();
 
         $user->assignRole('applicant');
 

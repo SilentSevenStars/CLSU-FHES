@@ -385,7 +385,8 @@ class EditJobApplication extends Component
             ]
         );
 
-        ModelsJobApplication::where('id', $this->application_id)->update([
+        $jobApplication = ModelsJobApplication::find($this->application_id);
+        $jobApplication->fill([
             'present_position'  => $this->present_position,
             'education'         => $this->education,
             'experience'        => $this->experience,
@@ -394,6 +395,7 @@ class EditJobApplication extends Component
             'other_involvement' => $this->other_involvement,
             'requirements_file' => $encryptedPath,
         ]);
+        $jobApplication->save();
 
         $this->dispatch('job-application-submitted');
 
