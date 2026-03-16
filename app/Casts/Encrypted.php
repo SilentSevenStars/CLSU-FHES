@@ -18,7 +18,7 @@ class Encrypted implements CastsAttributes
         try {
             return Crypt::decrypt($value);
         } catch (\Throwable $e) {
-            Log::warning('Encryption decrypt failed for key {$key}: ' . $e->getMessage());
+            Log::warning("Encryption decrypt failed for key {$key}: " . $e->getMessage());
             if (app()->environment('local', 'development')) {
                 throw new \RuntimeException('Encryption decrypt failed: ' . $e->getMessage(), 0, $e);
             }
@@ -33,7 +33,7 @@ class Encrypted implements CastsAttributes
         }
 
         if (empty(config('app.key'))) {
-            Log::error('APP_KEY missing - encryption disabled for key: {$key}');
+            Log::error("APP_KEY missing - encryption disabled for key: {$key}");
             if (app()->environment('local', 'development')) {
                 throw new \RuntimeException('APP_KEY not configured. Run `php artisan key:generate`');
             }
@@ -43,7 +43,7 @@ class Encrypted implements CastsAttributes
         try {
             return Crypt::encrypt($value);
         } catch (\Throwable $e) {
-            Log::error('Encryption encrypt failed for key {$key}: ' . $e->getMessage());
+            Log::error("Encryption encrypt failed for key {$key}: " . $e->getMessage());
             if (app()->environment('local', 'development')) {
                 throw new \RuntimeException('Encryption encrypt failed: ' . $e->getMessage(), 0, $e);
             }

@@ -69,7 +69,15 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 9. `php artisan optimize`
 10. Check logs/storage/logs for encryption warnings
 
-**Test encryption:** Create JobApplication, check DB - fields should be encrypted gibberish.
+**Test encryption:** Create JobApplication via app, check DB `job_applications` table (phpmyadmin) - fields like `present_position`, `education` should be encrypted (long base64-like string).
+
+**Troubleshooting VPS not encrypting:**
+1. `php artisan encryption:health` - fix what it reports
+2. `tail -f storage/logs/laravel.log` while saving data, look for "Encryption encrypt failed" or "APP_KEY missing"
+3. Verify .env APP_KEY starts with `base64:`
+4. `php -v` PHP 8.1+, `php -m | grep openssl`
+5. Permissions: chmod -R 775 storage/ bootstrap/cache
+6. If fallback used before, run `php artisan app:encrypt-existing-data` to re-encrypt.
 
 ## License
 

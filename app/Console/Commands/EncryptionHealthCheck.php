@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 
 class EncryptionHealthCheck extends Command
 {
@@ -13,7 +14,7 @@ class EncryptionHealthCheck extends Command
      *
      * @var string
      */
-    protected $signature = 'encryption:health {--verbose}';
+    protected $signature = 'encryption:health';
     protected $description = 'Check encryption setup (APP_KEY, Crypt, OpenSSL)';
 
     /**
