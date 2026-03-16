@@ -14,7 +14,7 @@ class EncryptionHealthCheck extends Command
      *
      * @var string
      */
-    protected $signature = 'encryption:health';
+    protected $signature = 'encryption:health {--silent : Run silently (no output, return status only)}';
     protected $description = 'Check encryption setup (APP_KEY, Crypt, OpenSSL)';
 
     /**

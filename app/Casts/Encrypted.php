@@ -19,10 +19,8 @@ class Encrypted implements CastsAttributes
             return Crypt::decrypt($value);
         } catch (\Throwable $e) {
             Log::warning("Encryption decrypt failed for key {$key}: " . $e->getMessage());
-            if (app()->environment('local', 'development')) {
-                throw new \RuntimeException('Encryption decrypt failed: ' . $e->getMessage(), 0, $e);
-            }
-            return $value;
+            // MANDATORY: Always throw on decrypt fail
+            throw new \RuntimeException('Encryption decrypt failed: ' . $e->getMessage() . '. Data may be corrupted or wrong APP_KEY.', 0, $e);
         }
     }
 
@@ -34,20 +32,16 @@ class Encrypted implements CastsAttributes
 
         if (empty(config('app.key'))) {
             Log::error("APP_KEY missing - encryption disabled for key: {$key}");
-            if (app()->environment('local', 'development')) {
-                throw new \RuntimeException('APP_KEY not configured. Run `php artisan key:generate`');
-            }
-            return $value;
+            // MANDATORY: Throws if no APP_KEY
+            throw new \RuntimeException('APP_KEY not configured or invalid. Run `php artisan key:generate --force`');
         }
 
         try {
             return Crypt::encrypt($value);
         } catch (\Throwable $e) {
             Log::error("Encryption encrypt failed for key {$key}: " . $e->getMessage());
-            if (app()->environment('local', 'development')) {
-                throw new \RuntimeException('Encryption encrypt failed: ' . $e->getMessage(), 0, $e);
-            }
-            return $value;
+            // MANDATORY: Always throw on encrypt fail
+            throw new \RuntimeException('Encryption encrypt failed: ' . $e->getMessage() . '. Check APP_KEY, OpenSSL. VPS: php artisan encryption:health', 0, $e);
         }
     }
 
