@@ -14,6 +14,7 @@ class JobApplication extends Model
         'training',
         'eligibility',
         'other_involvement',
+        'other_requirements',
         'requirements_file',
         'applicant_id',
         'position_id',

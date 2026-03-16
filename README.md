@@ -54,6 +54,23 @@ In order to ensure that the Laravel community is welcoming to all, please review
 
 If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
+## Hostinger VPS Deployment (Encryption Fix)
+
+**To ensure data encrypts like localhost:**
+
+1. Upload code, composer install --optimize-autoloader --no-dev
+2. `cp .env.example .env`
+3. Edit .env: DB_*, APP_URL, mail config for VPS Hostinger MySQL
+4. `php artisan key:generate` **CRITICAL** - generates APP_KEY for Crypt!
+5. Enable php-openssl: Check `php -m | grep openssl`, if missing: VPS panel -> PHP extensions -> openssl
+6. `php artisan migrate --force`
+7. `php artisan encryption:health` - verify ✅
+8. For existing plain data: `php artisan app:encrypt-existing-data` (encrypts Users, JobApplications, etc.)
+9. `php artisan optimize`
+10. Check logs/storage/logs for encryption warnings
+
+**Test encryption:** Create JobApplication, check DB - fields should be encrypted gibberish.
+
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
