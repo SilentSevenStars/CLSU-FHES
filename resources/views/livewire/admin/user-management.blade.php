@@ -403,9 +403,9 @@
                 <form wire:submit.prevent="save" autocomplete="off">
 
                     {{-- Honeypot: tricks the browser into autofilling these hidden fields instead of the real ones --}}
-                    <div style="display:none; visibility:hidden; position:absolute; left:-9999px;">
-                        <input type="text" name="fake_username_trap" tabindex="-1" autocomplete="username">
-                        <input type="password" name="fake_password_trap" tabindex="-1" autocomplete="current-password">
+<div style="display:none !important; visibility:hidden; opacity:0; height:0; overflow:hidden; position:absolute; left:-9999px; width:0;">
+                        <input type="text" name="fake_username_trap" tabindex="-1" autocomplete="username username hidden">
+                        <input type="password" name="fake_password_trap" tabindex="-1" autocomplete="current-password off hidden">
                     </div>
 
                     <div class="bg-white px-6 pt-5 pb-4 max-h-[70vh] overflow-y-auto">
@@ -563,9 +563,22 @@
                         <!-- Common Fields -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
-                            <input wire:model="email" type="email"
-                                   autocomplete="off"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('email') border-red-500 @enderror">
+                            <input id="user-email" wire:model="email" type="email"
+                                   autocomplete="email off"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('email') border-red-500 @enderror"
+                                   readonly onfocus="this.removeAttribute('readonly')"
+                                   x-init="
+                                       $watch('$wire.email', (value) => {
+                                           const passField = document.getElementById('user-password');
+                                           const confirmField = document.getElementById('user-password-confirm');
+                                           if (passField && value && passField.value.includes(value)) {
+                                               passField.value = '';
+                                           }
+                                           if (confirmField && value && confirmField.value.includes(value)) {
+                                               confirmField.value = '';
+                                           }
+                                       })
+                                   ">
                             @error('email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
@@ -578,17 +591,44 @@
                                     <span class="text-red-500">*</span>
                                 @endif
                             </label>
-                            <input wire:model="password" type="password"
-                                   autocomplete="new-password"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('password') border-red-500 @enderror">
+                            <input id="user-password" wire:model="password" type="password"
+                                   autocomplete="off new-password"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('password') border-red-500 @enderror"
+                                   readonly onfocus="this.removeAttribute('readonly')"
+                                   x-init="
+                                       $watch('$wire.password', (value) => {
+                                           const emailField = document.getElementById('user-email');
+                                           const confirmField = document.getElementById('user-password-confirm');
+                                           if (emailField && value && emailField.value === value) {
+                                               emailField.value = '';
+                                           }
+                                           if (confirmField && confirmField !== this && confirmField.value !== value) {
+                                               confirmField.value = '';
+                                           }
+                                       })
+                                   ">
                             @error('password') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="mb-1">
+                        <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                            <input wire:model="password_confirmation" type="password"
-                                   autocomplete="new-password"
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E]">
+                            <input id="user-password-confirm" wire:model="password_confirmation" type="password"
+                                   autocomplete="off new-password confirm"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('password_confirmation') border-red-500 @enderror"
+                                   readonly onfocus="this.removeAttribute('readonly')"
+                                   x-init="
+                                       $watch('$wire.password_confirmation', (value) => {
+                                           const emailField = document.getElementById('user-email');
+                                           const passField = document.getElementById('user-password');
+                                           if (emailField && value && emailField.value === value) {
+                                               emailField.value = '';
+                                           }
+                                           if (passField && value && passField.value === value && passField !== document.activeElement) {
+                                               passField.value = '';
+                                           }
+                                       })
+                                   ">
+                            @error('password_confirmation') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
