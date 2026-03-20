@@ -52,11 +52,10 @@ class Dashboard extends Component
             'jobApplication.applicant.user',
             'jobApplication.position',
         ])
-        // Show all evaluations where today is on or before the interview_date (deadline)
-        // interview_date is the DEADLINE — as long as today <= interview_date, it is accessible
+        // interview_date is the DEADLINE — show evaluations where deadline has not passed
         ->whereDate('interview_date', '>=', today());
 
-        // Search filter - name or position (no position restriction — all positions are included)
+        // Search filter
         if ($this->search) {
             $query->where(function ($q) {
                 $q->whereHas('jobApplication.applicant', function ($applicantQuery) {
@@ -105,7 +104,7 @@ class Dashboard extends Component
             return 0;
         }
 
-        // Count evaluations where deadline has not yet passed AND not yet completed by this member
+        // Count evaluations where deadline has not yet passed AND not yet completed by THIS member
         return Evaluation::whereDate('interview_date', '>=', today())
             ->whereDoesntHave('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
                 $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
@@ -122,7 +121,7 @@ class Dashboard extends Component
             return 0;
         }
 
-        // Count evaluations that this member has already completed (regardless of deadline)
+        // Count evaluations that THIS member has already completed (regardless of deadline)
         return Evaluation::whereHas('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
                 $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
                     ->where('status', 'complete');
@@ -133,6 +132,7 @@ class Dashboard extends Component
     /**
      * Print the NBC evaluation report for all active evaluations (deadline not yet passed).
      * Shows all applicants (pending and complete) sorted by last name.
+     * Each row shows the scores from THIS member's nbc_assignment (if complete), otherwise zeros.
      */
     public function printReport()
     {
@@ -141,6 +141,9 @@ class Dashboard extends Component
         $evaluations = Evaluation::with([
             'jobApplication.applicant.user',
             'jobApplication.position',
+            'nbcAssignments.educationalQualification',
+            'nbcAssignments.experienceService',
+            'nbcAssignments.professionalDevelopment',
         ])
         ->whereDate('interview_date', '>=', today())
         ->get()
@@ -162,19 +165,45 @@ class Dashboard extends Component
                 : '';
             $fullName = strtoupper($a->last_name) . ', ' . $a->first_name . $middleInitial;
 
-            // Check assignment status for this NBC member
-            $assignment = NbcAssignment::where('evaluation_id', $evaluation->id)
-                ->where('nbc_committee_id', $nbcCommittee->id)
-                ->first();
+            // Get THIS member's assignment for this evaluation
+            $assignment = NbcAssignment::with([
+                'educationalQualification',
+                'experienceService',
+                'professionalDevelopment',
+            ])
+            ->where('evaluation_id', $evaluation->id)
+            ->where('nbc_committee_id', $nbcCommittee->id)
+            ->first();
 
-            $status = ($assignment && $assignment->status === 'complete') ? 'Complete' : 'Pending';
+            $isComplete = $assignment && $assignment->status === 'complete';
+
+            // Scores — zero if pending, actual subtotals if complete
+            $eduScore  = $isComplete && $assignment->educationalQualification
+                ? (float) $assignment->educationalQualification->subtotal
+                : 0;
+            $expScore  = $isComplete && $assignment->experienceService
+                ? (float) $assignment->experienceService->subtotal
+                : 0;
+            $proScore  = $isComplete && $assignment->professionalDevelopment
+                ? (float) $assignment->professionalDevelopment->subtotal
+                : 0;
+            $totalScore = $eduScore + $expScore + $proScore;
+
+            $evaluationDate = $isComplete && $assignment->evaluation_date
+                ? \Carbon\Carbon::parse($assignment->evaluation_date)->format('m/d/Y')
+                : null;
 
             return [
-                'number'   => $index + 1,
-                'name'     => $fullName,
-                'position' => $p->name ?? 'N/A',
-                'email'    => $a->user->email ?? 'N/A',
-                'status'   => $status,
+                'number'          => $index + 1,
+                'name'            => $fullName,
+                'position'        => $p->name ?? 'N/A',
+                'email'           => $a->user->email ?? 'N/A',
+                'status'          => $isComplete ? 'Complete' : 'Pending',
+                'edu_score'       => $isComplete ? number_format($eduScore, 3) : '0.000',
+                'exp_score'       => $isComplete ? number_format($expScore, 3) : '0.000',
+                'pro_score'       => $isComplete ? number_format($proScore, 3) : '0.000',
+                'total_score'     => $isComplete ? number_format($totalScore, 3) : '0.000',
+                'evaluation_date' => $evaluationDate,
             ];
         })->toArray();
 

@@ -42,19 +42,16 @@
 
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
-                        <!-- Icon -->
                         <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full sm:mx-0 sm:h-10 sm:w-10"
                             :class="{
                                 'bg-green-100': '{{ $alertType }}' === 'success',
                                 'bg-red-100': '{{ $alertType }}' === 'error'
                             }">
-                            <!-- Success Icon -->
                             <svg x-show="'{{ $alertType }}' === 'success'" class="h-6 w-6 text-green-600" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <!-- Error Icon -->
                             <svg x-show="'{{ $alertType }}' === 'error'" class="h-6 w-6 text-red-600" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -67,9 +64,7 @@
                                 <span x-show="'{{ $alertType }}' === 'error'" class="text-red-600">Error!</span>
                             </h3>
                             <div class="mt-2">
-                                <p class="text-sm text-gray-500">
-                                    {{ $alertMessage }}
-                                </p>
+                                <p class="text-sm text-gray-500">{{ $alertMessage }}</p>
                             </div>
                         </div>
                     </div>
@@ -125,12 +120,12 @@
                                         <!-- Search Button -->
                                         <button wire:click="openSearchModal"
                                             class="inline-flex items-center px-4 py-2 bg-[#156B2D] hover:bg-[#125A26] text-white font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    Search Applicant
-                </button>
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            </svg>
+                                            Search Applicant
+                                        </button>
 
                                         <!-- Active Filters Display -->
                                         @if($search || $positionFilter)
@@ -167,120 +162,118 @@
                                 <!-- Table -->
                                 <table class="min-w-full divide-y divide-gray-300">
                                     <thead class="bg-gray-200">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-start">
-                            <span class="text-xs font-semibold uppercase text-black">Applicant Name</span>
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-start">
-                            <span class="text-xs font-semibold uppercase text-black">Current Position</span>
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-start">
-                            <span class="text-xs font-semibold uppercase text-black">Applied Position</span>
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-start">
-                            <span class="text-xs font-semibold uppercase text-black">Evaluation Status</span>
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-start">
-                            <span class="text-xs font-semibold uppercase text-black">Actions</span>
-                        </th>
-                    </tr>
+                                        <tr>
+                                            <th scope="col" class="px-6 py-3 text-start">
+                                                <span class="text-xs font-semibold uppercase text-black">Applicant Name</span>
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-start">
+                                                <span class="text-xs font-semibold uppercase text-black">Current Position</span>
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-start">
+                                                <span class="text-xs font-semibold uppercase text-black">Applied Position</span>
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-start">
+                                                <span class="text-xs font-semibold uppercase text-black">Evaluation Status</span>
+                                            </th>
+                                            <th scope="col" class="px-6 py-3 text-start">
+                                                <span class="text-xs font-semibold uppercase text-black">Actions</span>
+                                            </th>
+                                        </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-300 bg-gray-50">
-                    @forelse($applicants as $applicant)
-                    @foreach($applicant->jobApplications as $application)
-                    @if($application->evaluation && ($application->archive == $showArchived) && $application->status !== 'hired')
-                    <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">
-                                {{ $applicant->user->name }}
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                {{ $applicant->user->email }}
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                {{ $applicant->position ?? 'None' }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
-                                {{ $application->position->name }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @php
-                                $hasPanelComplete = $application->evaluation->panelAssignments()
-                                    ->where('status', 'complete')->exists();
-                                $hasNbcComplete = $application->evaluation->nbcAssignments()
-                                    ->where('status', 'complete')->exists();
-                                
-                                // Overall evaluation is complete if either panel or NBC is complete
-                                $isComplete = $hasPanelComplete || $hasNbcComplete;
-                            @endphp
-                            
-                            @if($isComplete)
-                                <span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                    ✓ Complete
-                                </span>
-                            @else
-                                <span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-600">
-                                    Pending
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div class="flex items-center gap-2">
-                                @if(!$showArchived)
-                                <button
-                                    wire:click="openConfirmModal({{ $applicant->id }}, {{ $application->evaluation->id }})"
-                                    class="bg-[#1E7F3E] hover:bg-[#156B2D] text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
-                                    {{ $applicant->hired ? 'Promote' : 'Assign Position' }}
-                                </button>
-                                <button
-                                    wire:click="openArchiveModal({{ $application->id }})"
-                                    class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
-                                    title="Archive this application">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
-                                    </svg>
-                                </button>
-                                @else
-                                <button
-                                    wire:click="unarchive({{ $application->id }})"
-                                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
-                                    title="Unarchive this application">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
-                                    </svg>
-                                    Unarchive
-                                </button>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                    @endif
-                    @endforeach
-                    @empty
-                    <tr>
-                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
-                            <div class="flex flex-col items-center">
-                                <svg class="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
-                                    </path>
-                                </svg>
-                                <p class="text-lg font-medium">No applicants found</p>
-                                <p class="text-sm">Try adjusting your search or filter criteria</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
+                                        @forelse($applicants as $applicant)
+                                        @foreach($applicant->jobApplications as $application)
+                                        @if($application->evaluation && ($application->archive == $showArchived) && $application->status !== 'hired')
+                                        <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {{ $applicant->user->name }}
+                                                </div>
+                                                <div class="text-sm text-gray-500">
+                                                    {{ $applicant->user->email }}
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                    {{ $applicant->position ?? 'None' }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
+                                                    {{ $application->position->name }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                @php
+                                                    $hasPanelComplete = $application->evaluation->panelAssignments()
+                                                        ->where('status', 'complete')->exists();
+                                                    $hasNbcComplete = $application->evaluation->nbcAssignments()
+                                                        ->where('status', 'complete')->exists();
+                                                    $isComplete = $hasPanelComplete || $hasNbcComplete;
+                                                @endphp
+
+                                                @if($isComplete)
+                                                    <span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                        ✓ Complete
+                                                    </span>
+                                                @else
+                                                    <span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-600">
+                                                        Pending
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                                <div class="flex items-center gap-2">
+                                                    @if(!$showArchived)
+                                                    <button
+                                                        wire:click="openConfirmModal({{ $applicant->id }}, {{ $application->evaluation->id }})"
+                                                        class="bg-[#1E7F3E] hover:bg-[#156B2D] text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2">
+                                                        {{ $applicant->hired ? 'Promote' : 'Assign Position' }}
+                                                    </button>
+                                                    <button
+                                                        wire:click="openArchiveModal({{ $application->id }})"
+                                                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2"
+                                                        title="Archive this application">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                                                        </svg>
+                                                    </button>
+                                                    @else
+                                                    <button
+                                                        wire:click="unarchive({{ $application->id }})"
+                                                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+                                                        title="Unarchive this application">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
+                                                        </svg>
+                                                        Unarchive
+                                                    </button>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @endif
+                                        @endforeach
+                                        @empty
+                                        <tr>
+                                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                                <div class="flex flex-col items-center">
+                                                    <svg class="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                                        </path>
+                                                    </svg>
+                                                    <p class="text-lg font-medium">No applicants found</p>
+                                                    <p class="text-sm">Try adjusting your search or filter criteria</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @endforelse
                                     </tbody>
                                 </table>
 
@@ -400,39 +393,86 @@
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
-    <div x-data="{ show: @entangle('showConfirmModal') }" x-show="show" x-cloak
-        @click.away="console.log('clicked away')"
-        class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- =========================================================
+         Confirmation Modal — Assign / Promote Position
+         Uses Quill for the admin message (same pattern as applicant-show).
+         wire:ignore prevents Livewire re-renders from destroying the editor.
+         The Quill HTML is pushed to Livewire only at submit time.
+    ========================================================= -->
+    <div
+        x-data="{
+            show: @entangle('showConfirmModal'),
+            quill: null,
 
-        <!-- Background overlay -->
+            initQuill() {
+                if (this.quill) return;
+                this.$nextTick(() => {
+                    const el = document.getElementById('quill-assign-message');
+                    if (!el) return;
+                    this.quill = new Quill(el, {
+                        theme: 'snow',
+                        placeholder: 'Write a message to the applicant. This will be sent via email and the notification system.',
+                        modules: {
+                            toolbar: [
+                                [{ header: [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline'],
+                                [{ list: 'ordered' }, { list: 'bullet' }],
+                                [{ align: [] }],
+                                ['clean']
+                            ]
+                        }
+                    });
+                });
+            },
+
+            handleConfirm() {
+                if (this.quill) {
+                    const isEmpty = this.quill.getText().trim().length === 0;
+                    $wire.set('admin_message', isEmpty ? '' : this.quill.root.innerHTML, false);
+                }
+                $wire.call('confirmAssignment');
+            },
+
+            handleClose() {
+                this.quill = null;
+                $wire.call('closeConfirmModal');
+            }
+        }"
+        x-show="show"
+        x-cloak
+        x-init="$watch('show', val => { if (val) { initQuill(); } else { quill = null; } })"
+        class="fixed inset-0 z-50 overflow-y-auto"
+        aria-labelledby="modal-title"
+        role="dialog"
+        aria-modal="true">
+
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+            <div x-show="show"
+                x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
                 class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
 
-            <!-- Center modal -->
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div x-show="show" x-transition:enter="ease-out duration-300"
+            <div x-show="show"
+                x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
 
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
-                        <div
-                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
                             <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7"></path>
                             </svg>
                         </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                             <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
                                 Confirm Position Assignment
                             </h3>
@@ -441,7 +481,7 @@
                                 <p class="text-sm text-gray-500 mb-3">
                                     Are you sure you want to assign the following position?
                                 </p>
-                                <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                                <div class="bg-gray-50 rounded-lg p-4 space-y-2 mb-4">
                                     <div class="flex justify-between">
                                         <span class="text-sm font-medium text-gray-700">Applicant:</span>
                                         <span class="text-sm text-gray-900">{{ $selectedApplicant->user->name }}</span>
@@ -454,17 +494,49 @@
                                         <span class="text-sm font-medium text-gray-700">New Position:</span>
                                         <span class="text-sm font-bold text-green-700">{{ $selectedEvaluation->jobApplication->position->name }}</span>
                                     </div>
+                                    @if($selectedEvaluation->jobApplication->position->college)
+                                    <div class="flex justify-between">
+                                        <span class="text-sm font-medium text-gray-700">College:</span>
+                                        <span class="text-sm text-gray-900">{{ $selectedEvaluation->jobApplication->position->college->name }}</span>
+                                    </div>
+                                    @endif
+                                    @if($selectedEvaluation->jobApplication->position->department)
+                                    <div class="flex justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Department:</span>
+                                        <span class="text-sm text-gray-900">{{ $selectedEvaluation->jobApplication->position->department->name }}</span>
+                                    </div>
+                                    @endif
                                 </div>
+
+                                <!-- Quill message editor -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Message to Applicant
+                                        <span class="font-normal text-gray-500">(Required — sent via email &amp; notification)</span>
+                                    </label>
+                                    {{-- wire:ignore keeps Livewire from destroying the Quill editor on re-render --}}
+                                    <div wire:ignore>
+                                        <div id="quill-assign-message" style="min-height: 160px; background: white;"></div>
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        This message will be sent to the applicant's email and appear in their notification inbox.
+                                    </p>
+                                </div>
+
                                 <p class="text-xs text-gray-500 mt-3">
-                                    * This will mark the applicant as hired and send an email notification
+                                    * This will mark the applicant as hired and send the notification above
                                 </p>
                             </div>
                             @endif
                         </div>
                     </div>
                 </div>
+
                 <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" wire:click="confirmAssignment" wire:loading.attr="disabled"
+                    <button type="button"
+                        @click="handleConfirm()"
+                        wire:loading.attr="disabled"
+                        wire:target="confirmAssignment"
                         class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
                         <span wire:loading.remove wire:target="confirmAssignment">Confirm</span>
                         <span wire:loading wire:target="confirmAssignment" class="flex items-center">
@@ -475,7 +547,8 @@
                             Processing...
                         </span>
                     </button>
-                    <button type="button" wire:click="closeConfirmModal"
+                    <button type="button"
+                        @click="handleClose()"
                         class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-300 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200">
                         Cancel
                     </button>
@@ -484,36 +557,85 @@
         </div>
     </div>
 
-    <!-- Archive Confirmation Modal -->
-    <div x-data="{ show: @entangle('showArchiveModal') }" x-show="show" x-cloak
-        class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="archive-modal-title" role="dialog" aria-modal="true">
+    <!-- =========================================================
+         Archive Confirmation Modal
+         Same Quill pattern — admin must write a message that is
+         sent to the applicant via email & notification system.
+    ========================================================= -->
+    <div
+        x-data="{
+            show: @entangle('showArchiveModal'),
+            quill: null,
+
+            initQuill() {
+                if (this.quill) return;
+                this.$nextTick(() => {
+                    const el = document.getElementById('quill-archive-message');
+                    if (!el) return;
+                    this.quill = new Quill(el, {
+                        theme: 'snow',
+                        placeholder: 'Write a message to the applicant explaining why their application is being archived.',
+                        modules: {
+                            toolbar: [
+                                [{ header: [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline'],
+                                [{ list: 'ordered' }, { list: 'bullet' }],
+                                [{ align: [] }],
+                                ['clean']
+                            ]
+                        }
+                    });
+                });
+            },
+
+            handleArchive() {
+                if (this.quill) {
+                    const isEmpty = this.quill.getText().trim().length === 0;
+                    $wire.set('archive_message', isEmpty ? '' : this.quill.root.innerHTML, false);
+                }
+                $wire.call('confirmArchive');
+            },
+
+            handleClose() {
+                this.quill = null;
+                $wire.call('closeArchiveModal');
+            }
+        }"
+        x-show="show"
+        x-cloak
+        x-init="$watch('show', val => { if (val) { initQuill(); } else { quill = null; } })"
+        class="fixed inset-0 z-50 overflow-y-auto"
+        aria-labelledby="archive-modal-title"
+        role="dialog"
+        aria-modal="true">
 
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+            <div x-show="show"
+                x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
                 class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div x-show="show" x-transition:enter="ease-out duration-300"
+            <div x-show="show"
+                x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
 
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
-                        <div
-                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 sm:mx-0 sm:h-10 sm:w-10">
                             <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                             </svg>
                         </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                             <h3 class="text-lg leading-6 font-medium text-gray-900" id="archive-modal-title">
                                 Archive Job Application
                             </h3>
@@ -522,7 +644,7 @@
                                 <p class="text-sm text-gray-500 mb-3">
                                     Are you sure you want to archive this job application?
                                 </p>
-                                <div class="bg-gray-50 rounded-lg p-4 space-y-2">
+                                <div class="bg-gray-50 rounded-lg p-4 space-y-2 mb-4">
                                     <div class="flex justify-between">
                                         <span class="text-sm font-medium text-gray-700">Applicant:</span>
                                         <span class="text-sm text-gray-900">{{ $selectedJobApplication->applicant->user->name }}</span>
@@ -531,17 +653,49 @@
                                         <span class="text-sm font-medium text-gray-700">Position:</span>
                                         <span class="text-sm text-gray-900">{{ $selectedJobApplication->position->name }}</span>
                                     </div>
+                                    @if($selectedJobApplication->position->college)
+                                    <div class="flex justify-between">
+                                        <span class="text-sm font-medium text-gray-700">College:</span>
+                                        <span class="text-sm text-gray-900">{{ $selectedJobApplication->position->college->name }}</span>
+                                    </div>
+                                    @endif
+                                    @if($selectedJobApplication->position->department)
+                                    <div class="flex justify-between">
+                                        <span class="text-sm font-medium text-gray-700">Department:</span>
+                                        <span class="text-sm text-gray-900">{{ $selectedJobApplication->position->department->name }}</span>
+                                    </div>
+                                    @endif
                                 </div>
+
+                                <!-- Quill message editor -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Message to Applicant
+                                        <span class="font-normal text-gray-500">(Required — sent via email &amp; notification)</span>
+                                    </label>
+                                    {{-- wire:ignore keeps Livewire from destroying the Quill editor on re-render --}}
+                                    <div wire:ignore>
+                                        <div id="quill-archive-message" style="min-height: 160px; background: white;"></div>
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        This message will be sent to the applicant's email and appear in their notification inbox.
+                                    </p>
+                                </div>
+
                                 <p class="text-xs text-gray-500 mt-3">
-                                    * Archived applications will not be visible in this list and cannot be assigned a position
+                                    * Archived applications will not be visible in the active list
                                 </p>
                             </div>
                             @endif
                         </div>
                     </div>
                 </div>
+
                 <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" wire:click="confirmArchive" wire:loading.attr="disabled"
+                    <button type="button"
+                        @click="handleArchive()"
+                        wire:loading.attr="disabled"
+                        wire:target="confirmArchive"
                         class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-yellow-600 text-base font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
                         <span wire:loading.remove wire:target="confirmArchive">Archive</span>
                         <span wire:loading wire:target="confirmArchive" class="flex items-center">
@@ -552,7 +706,8 @@
                             Archiving...
                         </span>
                     </button>
-                    <button type="button" wire:click="closeArchiveModal"
+                    <button type="button"
+                        @click="handleClose()"
                         class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200">
                         Cancel
                     </button>
@@ -562,8 +717,20 @@
     </div>
 
     <style>
-        [x-cloak] {
-            display: none !important;
+        [x-cloak] { display: none !important; }
+
+        /* Quill editor borders — matches applicant-show style */
+        .ql-container.ql-snow {
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+            border-color: #d1d5db;
+            min-height: 160px;
+        }
+        .ql-toolbar.ql-snow {
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            border-color: #d1d5db;
+            background-color: #f9fafb;
         }
     </style>
     </div>

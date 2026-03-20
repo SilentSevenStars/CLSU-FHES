@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Casts\Encrypted;
 
 class NbcCommittee extends Model
 {
@@ -18,79 +19,86 @@ class NbcCommittee extends Model
         'position',
     ];
 
-    protected $casts = [
-        'position' => 'string',
-    ];
-
     /**
-     * Get the user that belongs to this NBC committee.
+     * Encrypt the position column just like User::name and User::email.
      */
+    protected function casts(): array
+    {
+        return [
+            'position' => Encrypted::class,
+        ];
+    }
+
+    // ── Valid position constants ──────────────────────────────────────────────
+
+    const POSITION_CHAIRPERSON = 'CLSU NBC 461 Chairperson';
+    const POSITION_EVALUATOR   = 'Evaluator';
+
+    public static function validPositions(): array
+    {
+        return [
+            self::POSITION_CHAIRPERSON,
+            self::POSITION_EVALUATOR,
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get all assignments for this NBC committee member
-     */
-    // public function assignments(): HasMany
-    // {
-    //     return $this->hasMany(NbcAssignment::class, 'nbc_committee_id');
-    // }
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(NbcAssignment::class, 'nbc_committee_id');
+    }
 
-    /**
-     * Get the position name formatted.
-     */
+
     public function getPositionNameAttribute(): string
     {
-        return ucfirst($this->position);
+        return $this->position ?? '';
     }
 
-    /**
-     * Check if member is an evaluator
-     */
+
+    public function isChairperson(): bool
+    {
+        return $this->position === self::POSITION_CHAIRPERSON;
+    }
+
     public function isEvaluator(): bool
     {
-        return $this->position === 'evaluator';
+        return $this->position === self::POSITION_EVALUATOR;
     }
 
-    /**
-     * Check if member is a verifier
-     */
-    public function isVerifier(): bool
-    {
-        return $this->position === 'verifier';
-    }
 
-    /**
-     * Get pending assignments count
-     */
     public function getPendingAssignmentsCountAttribute(): int
     {
         return $this->assignments()->where('status', 'pending')->count();
     }
 
-    /**
-     * Get complete assignments count
-     */
     public function getCompleteAssignmentsCountAttribute(): int
     {
         return $this->assignments()->where('status', 'complete')->count();
     }
 
-    /**
-     * Scope for evaluators only
-     */
-    public function scopeEvaluators($query)
+    public function scopeChairpersons($query)
     {
-        return $query->where('position', 'evaluator');
+        return $query; 
     }
 
-    /**
-     * Scope for verifiers only
-     */
-    public function scopeVerifiers($query)
+    public function scopeEvaluators($query)
     {
-        return $query->where('position', 'verifier');
+        return $query; 
+    }
+
+
+    public static function chairpersonExists(?int $excludeUserId = null): bool
+    {
+        $query = self::all();
+
+        if ($excludeUserId !== null) {
+            $query = $query->reject(fn ($m) => $m->user_id === $excludeUserId);
+        }
+
+        return $query->contains(fn ($m) => $m->isChairperson());
     }
 }

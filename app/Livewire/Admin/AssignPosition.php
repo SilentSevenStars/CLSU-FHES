@@ -32,11 +32,17 @@ class AssignPosition extends Component
     public $tempPositionFilter = '';
     public $showDropdown = false;
     public $filteredNames = [];
-    
+
+    // Message for hire/promote notification
+    public $admin_message = '';
+
     // Archive functionality
     public $showArchiveModal = false;
     public $selectedJobApplication = null;
     public $showArchived = false;
+
+    // Message for archive notification
+    public $archive_message = '';
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -132,33 +138,34 @@ class AssignPosition extends Component
     {
         $this->selectedApplicant = Applicant::with(['user', 'jobApplications.position'])->findOrFail($applicantId);
         $this->selectedEvaluation = Evaluation::with([
-            'jobApplication.position',
+            'jobApplication.position.college',
+            'jobApplication.position.department',
             'panelAssignments',
             'nbcAssignments'
         ])->findOrFail($evaluationId);
 
-        // Check if either panel assignment or NBC assignment is complete
         $hasPanelComplete = $this->selectedEvaluation->panelAssignments()
             ->where('status', 'complete')
             ->exists();
-        
+
         $hasNbcComplete = $this->selectedEvaluation->nbcAssignments()
             ->where('status', 'complete')
             ->exists();
-        
+
         if (!$hasPanelComplete && !$hasNbcComplete) {
             $this->showAlert('error', 'Cannot assign position. Either Panel Assignment or NBC Assignment must be marked as complete.');
             $this->reset(['selectedApplicant', 'selectedEvaluation']);
             return;
         }
 
+        $this->admin_message = '';
         $this->showConfirmModal = true;
     }
 
     public function closeConfirmModal()
     {
         $this->showConfirmModal = false;
-        $this->reset(['selectedApplicant', 'selectedEvaluation']);
+        $this->reset(['selectedApplicant', 'selectedEvaluation', 'admin_message']);
     }
 
     public function confirmAssignment()
@@ -174,20 +181,19 @@ class AssignPosition extends Component
             return;
         }
 
-        // Verify status again
         $hasPanelComplete = $this->selectedEvaluation->panelAssignments()
             ->where('status', 'complete')
             ->exists();
-        
+
         $hasNbcComplete = $this->selectedEvaluation->nbcAssignments()
             ->where('status', 'complete')
             ->exists();
-        
+
         Log::info('Status check', [
             'has_panel_complete' => $hasPanelComplete,
             'has_nbc_complete' => $hasNbcComplete
         ]);
-        
+
         if (!$hasPanelComplete && !$hasNbcComplete) {
             Log::warning('Status validation failed');
             $this->showAlert('error', 'Cannot assign position. Either Panel Assignment or NBC Assignment must be marked as complete.');
@@ -200,6 +206,7 @@ class AssignPosition extends Component
         try {
             $newPosition = $this->selectedEvaluation->jobApplication->position->name;
             $oldPosition = $this->selectedApplicant->position ?? 'None';
+            $positionModel = $this->selectedEvaluation->jobApplication->position;
 
             Log::info('Starting position assignment', [
                 'applicant_id' => $this->selectedApplicant->id,
@@ -208,7 +215,6 @@ class AssignPosition extends Component
                 'job_application_id' => $this->selectedEvaluation->jobApplication->id
             ]);
 
-            // Update applicant: set position and hired to true
             $this->selectedApplicant->update([
                 'position' => $newPosition,
                 'hired' => true,
@@ -216,8 +222,6 @@ class AssignPosition extends Component
 
             Log::info('Applicant updated successfully');
 
-            // Update job application: set status to hired and archive to true
-            // The 'status' field is the source of truth for whether this application was used for hiring
             $this->selectedEvaluation->jobApplication->update([
                 'status' => 'hired',
                 'archive' => true,
@@ -225,8 +229,7 @@ class AssignPosition extends Component
 
             Log::info('Job application updated successfully (status: hired, archive: true)');
 
-            // Send email notification
-            $this->sendPromotionEmail($this->selectedApplicant, $oldPosition, $newPosition);
+            $this->sendPromotionEmail($this->selectedApplicant, $oldPosition, $positionModel, $this->admin_message);
 
             DB::commit();
 
@@ -247,26 +250,29 @@ class AssignPosition extends Component
         }
     }
 
-    // Archive functionality methods
+    // -------------------------------------------------------------------------
+    // Archive functionality
+    // -------------------------------------------------------------------------
+
     public function openArchiveModal($jobApplicationId)
     {
-        $jobApplication = \App\Models\JobApplication::with(['applicant.user', 'position'])
+        $jobApplication = \App\Models\JobApplication::with(['applicant.user', 'position.college', 'position.department'])
             ->findOrFail($jobApplicationId);
-        
-        // Check if this job application has status 'hired'
+
         if ($jobApplication->status === 'hired') {
             $this->showAlert('error', 'Cannot archive this application. It was used to hire/promote this applicant and must be kept for records.');
             return;
         }
-        
+
         $this->selectedJobApplication = $jobApplication;
+        $this->archive_message = '';
         $this->showArchiveModal = true;
     }
 
     public function closeArchiveModal()
     {
         $this->showArchiveModal = false;
-        $this->reset(['selectedJobApplication']);
+        $this->reset(['selectedJobApplication', 'archive_message']);
     }
 
     public function confirmArchive()
@@ -276,7 +282,6 @@ class AssignPosition extends Component
             return;
         }
 
-        // Double-check: cannot archive if status is 'hired'
         if ($this->selectedJobApplication->status === 'hired') {
             $this->showAlert('error', 'Cannot archive this application. It was used to hire/promote this applicant.');
             $this->closeArchiveModal();
@@ -290,12 +295,13 @@ class AssignPosition extends Component
                 'position' => $this->selectedJobApplication->position->name
             ]);
 
-            // Update archive to true
             $this->selectedJobApplication->update([
                 'archive' => true,
             ]);
 
             Log::info('Job application archived successfully');
+
+            $this->sendArchiveEmail($this->selectedJobApplication, $this->archive_message);
 
             $this->showAlert('success', "Successfully archived job application for {$this->selectedJobApplication->applicant->user->name}");
 
@@ -314,7 +320,6 @@ class AssignPosition extends Component
     {
         $jobApplication = \App\Models\JobApplication::findOrFail($jobApplicationId);
 
-        // Check if this job application has status 'hired'
         if ($jobApplication->status === 'hired') {
             $this->showAlert('error', 'Cannot restore this application. It was used to hire/promote this applicant and must be kept for records.');
             return;
@@ -327,7 +332,6 @@ class AssignPosition extends Component
                 'position' => $jobApplication->position->name
             ]);
 
-            // Update archive to false
             $jobApplication->update([
                 'archive' => false,
             ]);
@@ -345,7 +349,19 @@ class AssignPosition extends Component
         }
     }
 
-    protected function sendPromotionEmail($applicant, $oldPosition, $newPosition)
+    // -------------------------------------------------------------------------
+    // Email helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Send hire / promote notification email.
+     *
+     * @param  \App\Models\Applicant  $applicant
+     * @param  string                 $oldPosition   Previous position name (or 'None')
+     * @param  \App\Models\Position   $position      The newly assigned position (with college/department loaded)
+     * @param  string                 $adminMessage  Rich-text HTML composed by the admin in Quill
+     */
+    protected function sendPromotionEmail($applicant, $oldPosition, $position, $adminMessage)
     {
         try {
             if (!$applicant || !$applicant->user) {
@@ -353,54 +369,64 @@ class AssignPosition extends Component
                 return;
             }
 
+            $newPositionName = $position->name;
+
             Log::info('Preparing promotion email', [
                 'applicant_email' => $applicant->user->email,
-                'old_position' => $oldPosition,
-                'new_position' => $newPosition
+                'old_position'    => $oldPosition,
+                'new_position'    => $newPositionName,
+                'college'         => $position->college?->name,
+                'department'      => $position->department?->name,
             ]);
+
+            // ── Admin-written message block ──────────────────────────────────
+            $adminMessageBlock = '';
+            if (!empty(strip_tags($adminMessage ?? ''))) {
+                $adminMessageBlock = "<div style='margin: 16px 0;'>{$adminMessage}</div>";
+            }
+
+            // ── College / Department block (only when set on the position) ───
+            $placementRows = '';
+
+            if ($position->college) {
+                $placementRows .= "
+                    <tr>
+                        <td style='padding: 6px 0; color: #4b5563;'><strong>College:</strong></td>
+                        <td style='padding: 6px 0;'>{$position->college->name}</td>
+                    </tr>";
+            }
+
+            if ($position->department) {
+                $placementRows .= "
+                    <tr>
+                        <td style='padding: 6px 0; color: #4b5563;'><strong>Department:</strong></td>
+                        <td style='padding: 6px 0;'>{$position->department->name}</td>
+                    </tr>";
+            }
+
+            $placementBlock = '';
+            if ($placementRows) {
+                $placementBlock = "
+                    <div style='background-color: #f0fdf4; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #16a34a;'>
+                        <p style='margin: 0 0 8px; font-weight: 600; color: #15803d;'>Placement Details:</p>
+                        <table style='width: 100%; border-collapse: collapse;'>
+                            <tr>
+                                <td style='padding: 6px 0; color: #4b5563;'><strong>Position:</strong></td>
+                                <td style='padding: 6px 0;'>{$newPositionName}</td>
+                            </tr>
+                            {$placementRows}
+                        </table>
+                    </div>";
+            }
 
             $messageContent = "
                 <div style='font-family: Arial, sans-serif;'>
-                    <h2 style='color: #0D7A2F;'>Congratulations on Your New Position!</h2>
                     <p>Dear {$applicant->first_name} {$applicant->last_name},</p>
-                    <p>We are pleased to inform you that you have been officially <strong style='color: #0D7A2F;'>HIRED/PROMOTED</strong> to the position of <strong>{$newPosition}</strong>.</p>
-                    
-                    <div style='background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;'>
-                        <h3 style='color: #0D7A2F; margin-top: 0;'>Position Details:</h3>
-                        <table style='width: 100%;'>
-                            <tr>
-                                <td style='padding: 8px 0;'><strong>Previous Position:</strong></td>
-                                <td style='padding: 8px 0;'>{$oldPosition}</td>
-                            </tr>
-                            <tr>
-                                <td style='padding: 8px 0;'><strong>New Position:</strong></td>
-                                <td style='padding: 8px 0;'><strong style='color: #0D7A2F;'>{$newPosition}</strong></td>
-                            </tr>
-                            <tr>
-                                <td style='padding: 8px 0;'><strong>Effective Date:</strong></td>
-                                <td style='padding: 8px 0;'>" . now()->format('F j, Y') . "</td>
-                            </tr>
-                        </table>
-                    </div>
-                    
-                    <p><strong>Next Steps:</strong></p>
-                    <ul style='line-height: 1.8;'>
-                        <li>Please visit the HR Department to complete your onboarding documents</li>
-                        <li>Bring valid government-issued IDs and other required documents</li>
-                        <li>Attend the orientation session (details will follow)</li>
-                    </ul>
-                    
-                    <p><strong>Required Documents:</strong></p>
-                    <ul style='line-height: 1.8;'>
-                        <li>NBI Clearance</li>
-                        <li>Medical Certificate</li>
-                        <li>Birth Certificate (PSA)</li>
-                        <li>TOR and Diploma</li>
-                        <li>2x2 ID Pictures (4 copies)</li>
-                    </ul>
-                    
-                    <p>We look forward to your contributions to Central Luzon State University. Congratulations once again!</p>
-                    
+
+                    {$adminMessageBlock}
+
+                    {$placementBlock}
+
                     <p style='margin-top: 30px;'>Best regards,<br>
                     <strong>CLSU HR Department</strong></p>
                 </div>
@@ -408,11 +434,11 @@ class AssignPosition extends Component
 
             $notification = Notification::create([
                 'applicant_id' => $applicant->id,
-                'subject' => "Hired/Promoted to {$newPosition}",
-                'message' => $messageContent,
-                'attachments' => null,
-                'is_read' => false,
-                'email_sent' => false,
+                'subject'      => "Hired/Promoted to {$newPositionName}",
+                'message'      => $messageContent,
+                'attachments'  => null,
+                'is_read'      => false,
+                'email_sent'   => false,
             ]);
 
             Log::info("Notification created", ['notification_id' => $notification->id]);
@@ -421,7 +447,7 @@ class AssignPosition extends Component
                 ->send(new NotificationMail($notification));
 
             $notification->update([
-                'email_sent' => true,
+                'email_sent'    => true,
                 'email_sent_at' => now(),
             ]);
 
@@ -431,6 +457,113 @@ class AssignPosition extends Component
             Log::error("Stack trace: " . $e->getTraceAsString());
         }
     }
+
+    /**
+     * Send archive notification email.
+     *
+     * The position on $jobApplication must already have college/department loaded
+     * (done in openArchiveModal via eager-loading).
+     */
+    protected function sendArchiveEmail($jobApplication, $adminMessage)
+    {
+        try {
+            $applicant = $jobApplication->applicant;
+            $position  = $jobApplication->position;
+
+            if (!$applicant || !$applicant->user) {
+                Log::error("Applicant or user not found for archive notification");
+                return;
+            }
+
+            Log::info('Preparing archive email', [
+                'applicant_email' => $applicant->user->email,
+                'position'        => $position->name,
+                'college'         => $position->college?->name,
+                'department'      => $position->department?->name,
+            ]);
+
+            // ── Admin-written message block ──────────────────────────────────
+            $adminMessageBlock = '';
+            if (!empty(strip_tags($adminMessage ?? ''))) {
+                $adminMessageBlock = "<div style='margin: 16px 0;'>{$adminMessage}</div>";
+            }
+
+            // ── College / Department block (only when set on the position) ───
+            $placementRows = '';
+
+            if ($position->college) {
+                $placementRows .= "
+                    <tr>
+                        <td style='padding: 6px 0; color: #4b5563;'><strong>College:</strong></td>
+                        <td style='padding: 6px 0;'>{$position->college->name}</td>
+                    </tr>";
+            }
+
+            if ($position->department) {
+                $placementRows .= "
+                    <tr>
+                        <td style='padding: 6px 0; color: #4b5563;'><strong>Department:</strong></td>
+                        <td style='padding: 6px 0;'>{$position->department->name}</td>
+                    </tr>";
+            }
+
+            $placementBlock = '';
+            if ($placementRows) {
+                $placementBlock = "
+                    <div style='background-color: #fefce8; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #ca8a04;'>
+                        <p style='margin: 0 0 8px; font-weight: 600; color: #92400e;'>Application Details:</p>
+                        <table style='width: 100%; border-collapse: collapse;'>
+                            <tr>
+                                <td style='padding: 6px 0; color: #4b5563;'><strong>Position:</strong></td>
+                                <td style='padding: 6px 0;'>{$position->name}</td>
+                            </tr>
+                            {$placementRows}
+                        </table>
+                    </div>";
+            }
+
+            $messageContent = "
+                <div style='font-family: Arial, sans-serif;'>
+                    <p>Dear {$applicant->first_name} {$applicant->last_name},</p>
+
+                    {$adminMessageBlock}
+
+                    {$placementBlock}
+
+                    <p style='margin-top: 30px;'>Best regards,<br>
+                    <strong>CLSU HR Department</strong></p>
+                </div>
+            ";
+
+            $notification = Notification::create([
+                'applicant_id' => $applicant->id,
+                'subject'      => "Job Application Update - {$position->name}",
+                'message'      => $messageContent,
+                'attachments'  => null,
+                'is_read'      => false,
+                'email_sent'   => false,
+            ]);
+
+            Log::info("Archive notification created", ['notification_id' => $notification->id]);
+
+            Mail::to($applicant->user->email)
+                ->send(new NotificationMail($notification));
+
+            $notification->update([
+                'email_sent'    => true,
+                'email_sent_at' => now(),
+            ]);
+
+            Log::info("Archive email sent successfully to {$applicant->user->email}");
+        } catch (Exception $e) {
+            Log::error("Failed to send archive email: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Alert helpers
+    // -------------------------------------------------------------------------
 
     protected function showAlert($type, $message)
     {
@@ -445,6 +578,10 @@ class AssignPosition extends Component
         $this->reset(['alertType', 'alertMessage']);
     }
 
+    // -------------------------------------------------------------------------
+    // Render
+    // -------------------------------------------------------------------------
+
     public function render()
     {
         $applicantsQuery = Applicant::query()
@@ -452,24 +589,20 @@ class AssignPosition extends Component
                 'user',
                 'jobApplications' => function ($q) {
                     $q->with([
-                        'position',
+                        'position.college',
+                        'position.department',
                         'evaluation.panelAssignments',
                         'evaluation.nbcAssignments'
                     ])
-                    // Filter based on archive status
                     ->where('archive', $this->showArchived ? true : false)
-                    // Exclude job applications with status 'hired'
                     ->where('status', '!=', 'hired');
                 }
             ])
-            // Must have a job application WITH evaluation and matching criteria
             ->whereHas('jobApplications', function ($q) {
                 $q->where('archive', $this->showArchived ? true : false)
-                    // Exclude job applications with status 'hired'
                     ->where('status', '!=', 'hired')
                     ->whereHas('evaluation', function ($e) {
-                        // Either panel assignment OR NBC assignment must be complete
-                        $e->where(function($query) {
+                        $e->where(function ($query) {
                             $query->whereHas('panelAssignments', function ($panel) {
                                 $panel->where('status', 'complete');
                             })
@@ -480,14 +613,12 @@ class AssignPosition extends Component
                     });
             });
 
-        // Search by user name
         if (!empty($this->search)) {
             $applicantsQuery->whereHas('user', function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%');
             });
         }
 
-        // Filter by applied position
         if (!empty($this->positionFilter)) {
             $applicantsQuery->whereHas('jobApplications', function ($q) {
                 $q->where('archive', $this->showArchived ? true : false)

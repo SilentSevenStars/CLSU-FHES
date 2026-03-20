@@ -141,25 +141,18 @@
                             </div>
                             <div>
                                 <h2 class="text-2xl font-bold text-white">
-                                    @if($filterRole === 'all')
-                                        All Users
-                                    @elseif($filterRole === 'admin')
-                                        Admin Users
-                                    @elseif($filterRole === 'super-admin')
-                                        Super Admin Users
-                                    @elseif($filterRole === 'panel')
-                                        Panel Members
-                                    @elseif($filterRole === 'nbc')
-                                        NBC Committee
-                                    @elseif($filterRole === 'applicant')
-                                        Applicants
+                                    @if($filterRole === 'all') All Users
+                                    @elseif($filterRole === 'admin') Admin Users
+                                    @elseif($filterRole === 'super-admin') Super Admin Users
+                                    @elseif($filterRole === 'panel') Panel Members
+                                    @elseif($filterRole === 'nbc') NBC Committee
+                                    @elseif($filterRole === 'applicant') Applicants
                                     @endif
                                 </h2>
                                 @if($filterRole !== 'all')
                                     <button wire:click="$set('filterRole', 'all')"
                                             class="text-white/80 hover:text-white text-sm flex items-center gap-1 mt-1">
-                                        <i class="fa-solid fa-xmark"></i>
-                                        Clear Filter
+                                        <i class="fa-solid fa-xmark"></i> Clear Filter
                                     </button>
                                 @endif
                             </div>
@@ -265,7 +258,7 @@
                                         <tbody class="divide-y divide-gray-300 bg-gray-50">
                                             @forelse($users as $index => $user)
                                                 @php
-                                                    $roleName = $user->roles->first()?->name ?? 'none';
+                                                    $roleName   = $user->roles->first()?->name ?? 'none';
                                                     $badgeClass = match($roleName) {
                                                         'admin'       => 'bg-purple-100 text-purple-800',
                                                         'super-admin' => 'bg-indigo-100 text-indigo-800',
@@ -275,14 +268,17 @@
                                                         default       => 'bg-amber-100 text-amber-800',
                                                     };
 
-                                                    // Get display name
                                                     if ($roleName === 'applicant' && $user->applicant) {
-                                                        $displayName = trim($user->applicant->first_name . ' ' . ($user->applicant->middle_name ?? '') . ' ' . $user->applicant->last_name . ' ' . ($user->applicant->suffix ?? ''));
+                                                        $displayName = trim(
+                                                            $user->applicant->first_name . ' ' .
+                                                            ($user->applicant->middle_name ?? '') . ' ' .
+                                                            $user->applicant->last_name . ' ' .
+                                                            ($user->applicant->suffix ?? '')
+                                                        );
                                                     } else {
                                                         $displayName = $user->name;
                                                     }
 
-                                                    // Human-readable panel position labels
                                                     $panelPositionLabels = [
                                                         'head'               => 'Head',
                                                         'señior'             => 'Senior',
@@ -293,11 +289,10 @@
                                                         'director_hr'        => 'Director HR',
                                                     ];
 
-                                                    // Get details based on role
                                                     $details = '';
                                                     if ($roleName === 'panel' && $user->panel) {
                                                         $posLabel = $panelPositionLabels[$user->panel->panel_position] ?? ucfirst($user->panel->panel_position);
-                                                        $details = $posLabel;
+                                                        $details  = $posLabel;
                                                         if ($user->panel->college) {
                                                             $details .= ' - ' . $user->panel->college->name;
                                                         }
@@ -305,7 +300,8 @@
                                                             $details .= ' (' . $user->panel->department->name . ')';
                                                         }
                                                     } elseif ($roleName === 'nbc' && $user->nbcCommittee) {
-                                                        $details = ucfirst($user->nbcCommittee->position);
+                                                        // position is automatically decrypted by the Encrypted cast
+                                                        $details = $user->nbcCommittee->position;
                                                     }
                                                 @endphp
                                                 <tr class="bg-gray-50 hover:bg-gray-100">
@@ -403,7 +399,7 @@
                 <form wire:submit.prevent="save" autocomplete="off">
 
                     {{-- Honeypot: tricks the browser into autofilling these hidden fields instead of the real ones --}}
-<div style="display:none !important; visibility:hidden; opacity:0; height:0; overflow:hidden; position:absolute; left:-9999px; width:0;">
+                    <div style="display:none !important; visibility:hidden; opacity:0; height:0; overflow:hidden; position:absolute; left:-9999px; width:0;">
                         <input type="text" name="fake_username_trap" tabindex="-1" autocomplete="username username hidden">
                         <input type="password" name="fake_password_trap" tabindex="-1" autocomplete="current-password off hidden">
                     </div>
@@ -414,31 +410,27 @@
                         @if($filterRole === 'applicant')
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">First Name <span class="text-red-500">*</span></label>
-                                <input wire:model="first_name" type="text"
-                                       autocomplete="off"
+                                <input wire:model="first_name" type="text" autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('first_name') border-red-500 @enderror">
                                 @error('first_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
-                                <input wire:model="middle_name" type="text"
-                                       autocomplete="off"
+                                <input wire:model="middle_name" type="text" autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E]">
                             </div>
 
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Last Name <span class="text-red-500">*</span></label>
-                                <input wire:model="last_name" type="text"
-                                       autocomplete="off"
+                                <input wire:model="last_name" type="text" autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('last_name') border-red-500 @enderror">
                                 @error('last_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Suffix (Jr., Sr., III, etc.)</label>
-                                <input wire:model="suffix" type="text"
-                                       autocomplete="off"
+                                <input wire:model="suffix" type="text" autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E]">
                             </div>
 
@@ -446,8 +438,7 @@
                             <!-- Panel Fields -->
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Name <span class="text-red-500">*</span></label>
-                                <input wire:model="name" type="text"
-                                       autocomplete="off"
+                                <input wire:model="name" type="text" autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('name') border-red-500 @enderror">
                                 @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -469,16 +460,12 @@
                             </div>
 
                             @php
-                                // Positions that hide BOTH college and department
                                 $noCollegeDeptPositions = ['chair_fsb', 'fai_president', 'clutches_president', 'director_hr'];
                                 $isNoCollegeDept = in_array($panel_position, $noCollegeDeptPositions);
-
-                                // Positions that show college but NOT department
                                 $noDeptPositions = ['dean'];
                                 $isNoDept = in_array($panel_position, $noDeptPositions);
                             @endphp
 
-                            {{-- College: shown for all except no-college-dept positions --}}
                             @if(!$isNoCollegeDept)
                                 <div class="mb-4">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">College <span class="text-red-500">*</span></label>
@@ -492,12 +479,9 @@
                                     @error('college_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                                 </div>
 
-                                {{-- Department: hidden for dean (and no-college-dept positions) --}}
                                 @if(!$isNoDept)
                                     <div class="mb-4">
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                                            Department <span class="text-red-500">*</span>
-                                        </label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Department <span class="text-red-500">*</span></label>
                                         <select wire:model="department_id"
                                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('department_id') border-red-500 @enderror disabled:opacity-50 disabled:cursor-not-allowed"
                                                 {{ !$college_id ? 'disabled' : '' }}>
@@ -515,23 +499,47 @@
                             @endif
 
                         @elseif($filterRole === 'nbc')
-                            <!-- NBC Committee Fields -->
+                            <!-- ── NBC Committee Fields ── -->
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Name <span class="text-red-500">*</span></label>
-                                <input wire:model="name" type="text"
-                                       autocomplete="off"
+                                <input wire:model="name" type="text" autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('name') border-red-500 @enderror">
                                 @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Position <span class="text-red-500">*</span></label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Position <span class="text-red-500">*</span>
+                                </label>
                                 <select wire:model="nbc_position"
                                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('nbc_position') border-red-500 @enderror">
                                     <option value="">Select Position</option>
-                                    <option value="evaluator">Evaluator</option>
-                                    <option value="verifier">Verifier</option>
+
+                                    {{--
+                                        CLSU NBC 461 Chairperson: only one allowed system-wide.
+                                        Disable the option when a chairperson already exists
+                                        (unless this is the edit modal for the existing chairperson,
+                                        in which case $chairpersonTaken is false because we exclude
+                                        the current user_id in the query).
+                                    --}}
+                                    <option
+                                        value="CLSU NBC 461 Chairperson"
+                                        @if($chairpersonTaken) disabled @endif
+                                    >
+                                        CLSU NBC 461 Chairperson
+                                        @if($chairpersonTaken) (already assigned) @endif
+                                    </option>
+
+                                    <option value="Evaluator">Evaluator</option>
                                 </select>
+
+                                @if($chairpersonTaken)
+                                    <p class="mt-1 text-xs text-amber-600 flex items-center gap-1">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                        A Chairperson is already assigned. Only one Chairperson is allowed.
+                                    </p>
+                                @endif
+
                                 @error('nbc_position') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
@@ -539,8 +547,7 @@
                             <!-- Regular User Fields -->
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Name <span class="text-red-500">*</span></label>
-                                <input wire:model="name" type="text"
-                                       autocomplete="off"
+                                <input wire:model="name" type="text" autocomplete="off"
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('name') border-red-500 @enderror">
                                 @error('name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
@@ -560,7 +567,7 @@
                             </div>
                         @endif
 
-                        <!-- Common Fields -->
+                        <!-- Common Fields (email + password) -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email <span class="text-red-500">*</span></label>
                             <input id="user-email" wire:model="email" type="email"
@@ -571,12 +578,8 @@
                                        $watch('$wire.email', (value) => {
                                            const passField = document.getElementById('user-password');
                                            const confirmField = document.getElementById('user-password-confirm');
-                                           if (passField && value && passField.value.includes(value)) {
-                                               passField.value = '';
-                                           }
-                                           if (confirmField && value && confirmField.value.includes(value)) {
-                                               confirmField.value = '';
-                                           }
+                                           if (passField && value && passField.value.includes(value)) passField.value = '';
+                                           if (confirmField && value && confirmField.value.includes(value)) confirmField.value = '';
                                        })
                                    ">
                             @error('email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
@@ -594,19 +597,7 @@
                             <input id="user-password" wire:model="password" type="password"
                                    autocomplete="off new-password"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('password') border-red-500 @enderror"
-                                   readonly onfocus="this.removeAttribute('readonly')"
-                                   x-init="
-                                       $watch('$wire.password', (value) => {
-                                           const emailField = document.getElementById('user-email');
-                                           const confirmField = document.getElementById('user-password-confirm');
-                                           if (emailField && value && emailField.value === value) {
-                                               emailField.value = '';
-                                           }
-                                           if (confirmField && confirmField !== this && confirmField.value !== value) {
-                                               confirmField.value = '';
-                                           }
-                                       })
-                                   ">
+                                   readonly onfocus="this.removeAttribute('readonly')">
                             @error('password') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
 
@@ -615,19 +606,7 @@
                             <input id="user-password-confirm" wire:model="password_confirmation" type="password"
                                    autocomplete="off new-password confirm"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('password_confirmation') border-red-500 @enderror"
-                                   readonly onfocus="this.removeAttribute('readonly')"
-                                   x-init="
-                                       $watch('$wire.password_confirmation', (value) => {
-                                           const emailField = document.getElementById('user-email');
-                                           const passField = document.getElementById('user-password');
-                                           if (emailField && value && emailField.value === value) {
-                                               emailField.value = '';
-                                           }
-                                           if (passField && value && passField.value === value && passField !== document.activeElement) {
-                                               passField.value = '';
-                                           }
-                                       })
-                                   ">
+                                   readonly onfocus="this.removeAttribute('readonly')">
                             @error('password_confirmation') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
                     </div>

@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('nbc_committees', function (Blueprint $table) {
             $table->id();
-            $table->enum('position', ['evaluator', 'verifier']);
+            // $table->enum('position', ['evaluator', 'verifier']);
+            // $table->enum('position', ['CLSU NBC 461 Chairperson', 'Evaluator']);
+            $table->text('position');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });

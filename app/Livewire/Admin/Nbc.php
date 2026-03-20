@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Evaluation;
 use App\Models\Applicant;
 use App\Models\NbcAssignment;
+use App\Models\NbcCommittee;
 
 class Nbc extends Component
 {
@@ -361,8 +362,34 @@ class Nbc extends Component
     }
 
     /**
+     * Fetch active NBC committee members for the print report.
+     * Returns ['chairperson' => string|null, 'evaluators' => string[]]
+     * Only members whose linked user has archive = false are included.
+     */
+    protected function getNbcCommitteeForPrint(): array
+    {
+        $members = NbcCommittee::with('user')
+            ->whereHas('user', fn($q) => $q->where('archive', false))
+            ->get();
+
+        // position is decrypted by the Encrypted cast automatically
+        $chairperson = $members
+            ->first(fn($m) => $m->position === NbcCommittee::POSITION_CHAIRPERSON);
+
+        $evaluators = $members
+            ->filter(fn($m) => $m->position === NbcCommittee::POSITION_EVALUATOR)
+            ->map(fn($m) => $m->user->name)  // name is decrypted by Encrypted cast
+            ->values()
+            ->toArray();
+
+        return [
+            'chairperson' => $chairperson ? $chairperson->user->name : null,
+            'evaluators'  => $evaluators,
+        ];
+    }
+
+    /**
      * Print — renders the NBC report blade to HTML and opens it in a new tab.
-     * Same approach as the Screening component (dispatch openPrintTab).
      */
     public function print()
     {
@@ -371,12 +398,13 @@ class Nbc extends Component
             return;
         }
 
-        // reuse the existing PDF blade which is tailored for a single applicant's
-        // NBC report. this mirrors the export() method but renders HTML so it
-        // can be opened in a new browser tab for printing.
+        $committee = $this->getNbcCommitteeForPrint();
+
         $html = view('pdf.nbc-report', [
             'data'          => $this->nbcData[0],
             'generatedDate' => now()->format('F d, Y'),
+            'chairperson'   => $committee['chairperson'],
+            'evaluators'    => $committee['evaluators'],
         ])->render();
 
         $this->dispatch('openPrintTab', html: $html);

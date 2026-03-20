@@ -170,16 +170,17 @@
                             @forelse($evaluations as $evaluation)
                                 @php
                                     // interview_date is the DEADLINE for submission
-                                    // If today > interview_date, the deadline has passed and evaluation is locked
                                     $interviewDate = \Carbon\Carbon::parse($evaluation->interview_date)->startOfDay();
                                     $isPastDeadline = today()->gt($interviewDate);
 
-                                    // Check assignment completion for the current NBC member
+                                    // Check THIS member's own assignment completion
                                     $userAssignment = \App\Models\NbcAssignment::where('evaluation_id', $evaluation->id)
                                         ->whereHas('nbcCommittee', function($q) {
                                             $q->where('user_id', auth()->id());
                                         })
                                         ->first();
+
+                                    // Complete = THIS member has personally completed their evaluation
                                     $isComplete = $userAssignment && $userAssignment->status === 'complete';
                                 @endphp
 
@@ -214,10 +215,13 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         @if($isComplete)
-                                            <!-- Already completed -->
+                                            {{--
+                                                THIS member has already submitted their evaluation.
+                                                Lock the button — they cannot re-evaluate.
+                                            --}}
                                             <button disabled
                                                 class="inline-flex items-center px-3 py-1 bg-gray-400 text-white rounded-md cursor-not-allowed opacity-60"
-                                                title="Evaluation already completed">
+                                                title="You have already completed this evaluation">
                                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                 </svg>
@@ -225,7 +229,7 @@
                                             </button>
 
                                         @elseif($isPastDeadline)
-                                            <!-- Past deadline — evaluation locked -->
+                                            {{-- Deadline has passed — evaluation locked --}}
                                             <button disabled
                                                 class="inline-flex items-center px-3 py-1 bg-red-200 text-red-700 rounded-md cursor-not-allowed opacity-70"
                                                 title="The submission deadline has passed. Evaluation is no longer allowed.">
@@ -236,7 +240,7 @@
                                             </button>
 
                                         @else
-                                            <!-- Active — can evaluate -->
+                                            {{-- Active — can evaluate --}}
                                             <button
                                                 @click="selectedEvaluationId = {{ $evaluation->id }}; showChoiceModal = true"
                                                 class="inline-flex items-center px-3 py-1 bg-[#0A6025] text-white rounded-md hover:bg-[#0B712C] transition-colors duration-150">
@@ -382,7 +386,6 @@
         </div>
     </div>
 
-    {{-- JS: open the rendered HTML in a new tab for printing --}}
     <script>
         document.addEventListener('livewire:initialized', () => {
             Livewire.on('openPrintTab', (event) => {

@@ -62,7 +62,6 @@ class UserManagement extends Component
             'fai_president',
             'clutches_president',
             'director_hr',
-            // 'dean' removed — dean needs college but not department
         ]);
     }
 
@@ -94,7 +93,6 @@ class UserManagement extends Component
         if ($this->isEditMode) {
             $rules['password'] = 'nullable|min:8|confirmed';
         } else {
-            // Only require password for non-applicants during creation
             if ($this->filterRole !== 'applicant') {
                 $rules['password'] = 'required|min:8|confirmed';
             }
@@ -104,23 +102,21 @@ class UserManagement extends Component
         switch ($this->filterRole) {
             case 'applicant':
                 $rules['first_name'] = 'required|string|max:255';
-                $rules['last_name'] = 'required|string|max:255';
+                $rules['last_name']  = 'required|string|max:255';
                 $rules['middle_name'] = 'nullable|string|max:255';
-                $rules['suffix'] = 'nullable|string|max:50';
+                $rules['suffix']     = 'nullable|string|max:50';
                 break;
 
             case 'panel':
-                $rules['name'] = 'required|string|max:255';
+                $rules['name']           = 'required|string|max:255';
                 $rules['panel_position'] = 'required|in:head,señior,dean,chair_fsb,fai_president,clutches_president,director_hr';
 
-                // College: required for all except no-college-dept positions
                 $rules['college_id'] = [
                     Rule::requiredIf(fn() => !$this->isNoCollegeDeptPosition()),
                     'nullable',
                     'exists:colleges,id',
                 ];
 
-                // Department: required only for head and señior (not dean, not no-college positions)
                 $rules['department_id'] = [
                     Rule::requiredIf(fn() => !$this->isNoDeptPosition()),
                     'nullable',
@@ -129,12 +125,14 @@ class UserManagement extends Component
                 break;
 
             case 'nbc':
-                $rules['name'] = 'required|string|max:255';
-                $rules['nbc_position'] = 'required|in:evaluator,verifier';
+                $rules['name']         = 'required|string|max:255';
+                $rules['nbc_position'] = [
+                    'required',
+                    Rule::in(NbcCommittee::validPositions()),
+                ];
                 break;
 
             default:
-                // Regular users (admin, super-admin, etc.)
                 $rules['name'] = 'required|string|max:255';
                 $rules['role'] = [
                     'required',
@@ -148,36 +146,21 @@ class UserManagement extends Component
         return $rules;
     }
 
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingPerPage()
-    {
-        $this->resetPage();
-    }
-
-    public function updatingFilterRole()
-    {
-        $this->resetPage();
-    }
+    public function updatingSearch()   { $this->resetPage(); }
+    public function updatingPerPage()  { $this->resetPage(); }
+    public function updatingFilterRole() { $this->resetPage(); }
 
     public function updatedCollegeId()
     {
-        // Reset department when college changes
         $this->department_id = null;
     }
 
     public function updatedPanelPosition()
     {
-        // Auto-clear college and department when switching to a no-college-dept position
         if ($this->isNoCollegeDeptPosition()) {
-            $this->college_id = null;
+            $this->college_id    = null;
             $this->department_id = null;
         }
-
-        // Auto-clear department when switching to a no-dept position (like dean)
         if ($this->isNoDeptPosition()) {
             $this->department_id = null;
         }
@@ -188,7 +171,7 @@ class UserManagement extends Component
         $this->resetForm();
         $this->filterRole = $userType;
         $this->isEditMode = false;
-        $this->showModal = true;
+        $this->showModal  = true;
     }
 
     public function openEditModal($id, $userType)
@@ -198,16 +181,16 @@ class UserManagement extends Component
         $user = User::with('roles')->findOrFail($id);
 
         $this->user_id = $user->id;
-        $this->email = $user->email;
+        $this->email   = $user->email;
 
         switch ($userType) {
             case 'applicant':
                 $applicant = Applicant::where('user_id', $user->id)->first();
                 if ($applicant) {
-                    $this->first_name = $applicant->first_name;
+                    $this->first_name  = $applicant->first_name;
                     $this->middle_name = $applicant->middle_name;
-                    $this->last_name = $applicant->last_name;
-                    $this->suffix = $applicant->suffix;
+                    $this->last_name   = $applicant->last_name;
+                    $this->suffix      = $applicant->suffix;
                 }
                 break;
 
@@ -216,8 +199,8 @@ class UserManagement extends Component
                 $panel = Panel::where('user_id', $user->id)->first();
                 if ($panel) {
                     $this->panel_position = $panel->panel_position;
-                    $this->college_id = $panel->college_id;
-                    $this->department_id = $panel->department_id;
+                    $this->college_id     = $panel->college_id;
+                    $this->department_id  = $panel->department_id;
                 }
                 break;
 
@@ -225,6 +208,7 @@ class UserManagement extends Component
                 $this->name = $user->name;
                 $nbcCommittee = NbcCommittee::where('user_id', $user->id)->first();
                 if ($nbcCommittee) {
+                    // position is decrypted automatically by the Encrypted cast
                     $this->nbc_position = $nbcCommittee->position;
                 }
                 break;
@@ -236,12 +220,12 @@ class UserManagement extends Component
         }
 
         $this->isEditMode = true;
-        $this->showModal = true;
+        $this->showModal  = true;
     }
 
     public function openArchiveModal($id)
     {
-        $this->archiveUserId = $id;
+        $this->archiveUserId  = $id;
         $this->showArchiveModal = true;
     }
 
@@ -254,31 +238,46 @@ class UserManagement extends Component
     public function closeArchiveModal()
     {
         $this->showArchiveModal = false;
-        $this->archiveUserId = null;
+        $this->archiveUserId   = null;
     }
 
     public function resetForm()
     {
-        $this->user_id = null;
-        $this->name = '';
-        $this->first_name = '';
-        $this->middle_name = '';
-        $this->last_name = '';
-        $this->suffix = '';
-        $this->email = '';
-        $this->password = '';
+        $this->user_id              = null;
+        $this->name                 = '';
+        $this->first_name           = '';
+        $this->middle_name          = '';
+        $this->last_name            = '';
+        $this->suffix               = '';
+        $this->email                = '';
+        $this->password             = '';
         $this->password_confirmation = '';
-        $this->role = '';
-        $this->panel_position = '';
-        $this->college_id = '';
-        $this->department_id = '';
-        $this->nbc_position = '';
+        $this->role                 = '';
+        $this->panel_position       = '';
+        $this->college_id           = '';
+        $this->department_id        = '';
+        $this->nbc_position         = '';
         $this->resetValidation();
     }
 
     public function save()
     {
         $this->validate();
+
+        // ── Chairperson uniqueness guard ──────────────────────────────────────
+        if ($this->filterRole === 'nbc' &&
+            $this->nbc_position === NbcCommittee::POSITION_CHAIRPERSON)
+        {
+            $excludeUserId = $this->isEditMode ? $this->user_id : null;
+
+            if (NbcCommittee::chairpersonExists($excludeUserId)) {
+                $this->addError(
+                    'nbc_position',
+                    'A CLSU NBC 461 Chairperson already exists. Only one Chairperson is allowed.'
+                );
+                return;
+            }
+        }
 
         try {
             if ($this->isEditMode) {
@@ -296,51 +295,48 @@ class UserManagement extends Component
     private function createUser()
     {
         $userData = [
-            'email' => $this->email,
-            'email_verified_at' => now(),
+            'email'              => $this->email,
+            'email_verified_at'  => now(),
         ];
 
-        // Add password if provided
         if ($this->password) {
             $userData['password'] = bcrypt($this->password);
         }
 
-        // Regular users and panel/nbc need name field
-        if (in_array($this->filterRole, ['panel', 'nbc']) || !in_array($this->filterRole, ['applicant', 'panel', 'nbc'])) {
+        if (in_array($this->filterRole, ['panel', 'nbc']) ||
+            !in_array($this->filterRole, ['applicant', 'panel', 'nbc'])) {
             $userData['name'] = $this->name;
         }
 
         $user = User::create($userData);
 
-        // Assign role and create related records
         switch ($this->filterRole) {
             case 'applicant':
                 $user->assignRole('applicant');
-
                 Applicant::create([
-                    'user_id' => $user->id,
-                    'first_name' => $this->first_name,
+                    'user_id'     => $user->id,
+                    'first_name'  => $this->first_name,
                     'middle_name' => $this->middle_name,
-                    'last_name' => $this->last_name,
-                    'suffix' => $this->suffix,
+                    'last_name'   => $this->last_name,
+                    'suffix'      => $this->suffix,
                 ]);
                 break;
 
             case 'panel':
                 $user->assignRole('panel');
-
                 Panel::create([
                     'user_id'        => $user->id,
                     'panel_position' => $this->panel_position,
                     'college_id'     => $this->isNoCollegeDeptPosition() ? null : $this->college_id,
-                    'department_id'  => $this->isNoDeptPosition() ? null : $this->department_id,
+                    'department_id'  => $this->isNoDeptPosition()        ? null : $this->department_id,
                 ]);
                 break;
 
             case 'nbc':
                 $user->assignRole('nbc');
+                // position is encrypted automatically by the Encrypted cast
                 NbcCommittee::create([
-                    'user_id' => $user->id,
+                    'user_id'  => $user->id,
                     'position' => $this->nbc_position,
                 ]);
                 break;
@@ -358,32 +354,30 @@ class UserManagement extends Component
         $user = User::findOrFail($this->user_id);
 
         $userData = [
-            'email' => $this->email,
-            'email_verified_at' => Carbon::now()
+            'email'             => $this->email,
+            'email_verified_at' => Carbon::now(),
         ];
 
-        // Update password if provided
         if ($this->password) {
             $userData['password'] = bcrypt($this->password);
         }
 
-        // Regular users and panel/nbc need name field
-        if (in_array($this->filterRole, ['panel', 'nbc']) || !in_array($this->filterRole, ['applicant', 'panel', 'nbc'])) {
+        if (in_array($this->filterRole, ['panel', 'nbc']) ||
+            !in_array($this->filterRole, ['applicant', 'panel', 'nbc'])) {
             $userData['name'] = $this->name;
         }
 
         $user->update($userData);
 
-        // Update role-specific data
         switch ($this->filterRole) {
             case 'applicant':
                 $applicant = Applicant::where('user_id', $user->id)->first();
                 if ($applicant) {
                     $applicant->update([
-                        'first_name' => $this->first_name,
+                        'first_name'  => $this->first_name,
                         'middle_name' => $this->middle_name,
-                        'last_name' => $this->last_name,
-                        'suffix' => $this->suffix,
+                        'last_name'   => $this->last_name,
+                        'suffix'      => $this->suffix,
                     ]);
                 }
                 break;
@@ -392,9 +386,8 @@ class UserManagement extends Component
                 $panelData = [
                     'panel_position' => $this->panel_position,
                     'college_id'     => $this->isNoCollegeDeptPosition() ? null : $this->college_id,
-                    'department_id'  => $this->isNoDeptPosition() ? null : $this->department_id,
+                    'department_id'  => $this->isNoDeptPosition()        ? null : $this->department_id,
                 ];
-
                 $panel = Panel::where('user_id', $user->id)->first();
                 if ($panel) {
                     $panel->update($panelData);
@@ -406,6 +399,7 @@ class UserManagement extends Component
             case 'nbc':
                 $nbcCommittee = NbcCommittee::where('user_id', $user->id)->first();
                 if ($nbcCommittee) {
+                    // position encrypted automatically by the Encrypted cast
                     $nbcCommittee->update(['position' => $this->nbc_position]);
                 }
                 break;
@@ -430,7 +424,6 @@ class UserManagement extends Component
             }
 
             $user->update(['archive' => true]);
-
             session()->flash('success', 'User archived successfully!');
             $this->closeArchiveModal();
         } catch (\Exception $e) {
@@ -444,14 +437,12 @@ class UserManagement extends Component
             ->where('id', '!=', Auth::id())
             ->where('archive', false);
 
-        // Filter by role
         if ($this->filterRole !== 'all') {
             $query->whereHas('roles', function ($q) {
                 $q->where('name', $this->filterRole);
             });
         }
 
-        // Search functionality
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%')
@@ -465,42 +456,41 @@ class UserManagement extends Component
 
         $users = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
 
-        // Get statistics counts
-        $baseQuery = User::where('id', '!=', Auth::id())->where('archive', false);
-
-        $totalUsers = $baseQuery->count();
-        $adminCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'admin'))->count();
+        $baseQuery    = User::where('id', '!=', Auth::id())->where('archive', false);
+        $totalUsers   = $baseQuery->count();
+        $adminCount   = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'admin'))->count();
         $superAdminCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'super-admin'))->count();
-        $panelCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'panel'))->count();
-        $nbcCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'nbc'))->count();
+        $panelCount   = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'panel'))->count();
+        $nbcCount     = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'nbc'))->count();
         $applicantCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'applicant'))->count();
 
-        // Get data for dropdowns
         $availableRoles = Role::whereNotIn('name', ['applicant', 'nbc', 'panel'])
             ->orderBy('name')
             ->get();
 
         $colleges = College::orderBy('name')->get();
 
-        // Filter departments by selected college
         $departments = Department::query()
-            ->when($this->college_id, function ($query) {
-                $query->where('college_id', $this->college_id);
-            })
+            ->when($this->college_id, fn($q) => $q->where('college_id', $this->college_id))
             ->orderBy('name')
             ->get();
 
+        $chairpersonTaken = NbcCommittee::chairpersonExists(
+            $this->isEditMode ? $this->user_id : null
+        );
+
         return view('livewire.admin.user-management', [
-            'users' => $users,
-            'availableRoles' => $availableRoles,
-            'colleges' => $colleges,
-            'departments' => $departments,
-            'totalUsers' => $totalUsers,
-            'adminCount' => $adminCount,
-            'superAdminCount' => $superAdminCount,
-            'panelCount' => $panelCount,
-            'nbcCount' => $nbcCount,
-            'applicantCount' => $applicantCount,
+            'users'            => $users,
+            'availableRoles'   => $availableRoles,
+            'colleges'         => $colleges,
+            'departments'      => $departments,
+            'totalUsers'       => $totalUsers,
+            'adminCount'       => $adminCount,
+            'superAdminCount'  => $superAdminCount,
+            'panelCount'       => $panelCount,
+            'nbcCount'         => $nbcCount,
+            'applicantCount'   => $applicantCount,
+            'chairpersonTaken' => $chairpersonTaken,
         ]);
     }
 }
