@@ -26,7 +26,7 @@ class Nbc extends Component
     public $interviewDates = [];
 
     /**
-     * Open search modal — load ALL applicants immediately.
+     * Open search modal — load ALL applicants (approve OR hired).
      */
     public function openSearchModal()
     {
@@ -41,7 +41,8 @@ class Nbc extends Component
 
         $this->searchResults = Applicant::with('user')
             ->whereHas('jobApplications', function ($q) {
-                $q->where('status', 'approve');
+                // FIX: include 'hired' alongside 'approve'
+                $q->whereIn('status', ['approve', 'hired']);
             })
             ->orderBy('last_name')
             ->get()
@@ -70,7 +71,8 @@ class Nbc extends Component
 
         $query = Applicant::with('user')
             ->whereHas('jobApplications', function ($q) {
-                $q->where('status', 'approve');
+                // FIX: include 'hired' alongside 'approve'
+                $q->whereIn('status', ['approve', 'hired']);
             });
 
         if ($search !== '') {
@@ -123,7 +125,8 @@ class Nbc extends Component
 
         $this->positions = $applicant->jobApplications()
             ->with('position')
-            ->where('status', 'approve')
+            // FIX: include 'hired' alongside 'approve'
+            ->whereIn('status', ['approve', 'hired'])
             ->get()
             ->pluck('position.name')
             ->filter()
@@ -150,7 +153,8 @@ class Nbc extends Component
 
         $this->interviewDates = $applicant->jobApplications()
             ->with(['position', 'evaluation'])
-            ->where('status', 'approve')
+            // FIX: include 'hired' alongside 'approve'
+            ->whereIn('status', ['approve', 'hired'])
             ->whereHas('position', fn($q) => $q->where('name', $this->tempSelectedPosition))
             ->whereHas('evaluation', fn($q) => $q->whereHas('nbcAssignments', fn($a) => $a->where('status', 'complete')))
             ->get()
@@ -248,6 +252,11 @@ class Nbc extends Component
 
     /**
      * Load NBC data and compute previous / additional / total points.
+     *
+     * Logic:
+     *   - "Total Points"      = current nbc_assignment subtotals (education + experience + professional)
+     *   - "Previous Points"   = the most recent OLDER nbc_assignment for this applicant (any job application)
+     *   - "Additional Points" = Total Points - Previous Points  (0 if no previous record)
      */
     public function loadNbcData()
     {
@@ -263,9 +272,10 @@ class Nbc extends Component
             return;
         }
 
+        // FIX: include 'hired' alongside 'approve' when finding the evaluation
         $evaluation = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
                 $q->where('applicant_id', $applicant->id)
-                  ->where('status', 'approve')
+                  ->whereIn('status', ['approve', 'hired'])
                   ->whereHas('position', fn($posQ) => $posQ->where('name', $this->selectedPosition));
             })
             ->where('interview_date', $this->selectedInterviewDate)
@@ -275,6 +285,7 @@ class Nbc extends Component
             return;
         }
 
+        // Current scores — the latest complete nbc_assignment for this evaluation
         $currentScores = $this->resolveComponentScores($evaluation->id);
 
         if (!$currentScores) {
@@ -283,12 +294,15 @@ class Nbc extends Component
 
         $currentEvaluationDate = $currentScores['evaluation_date'];
 
+        // All evaluation IDs for this applicant (approve OR hired)
         $allEvaluationIds = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
                 $q->where('applicant_id', $applicant->id)
-                  ->where('status', 'approve');
+                  // FIX: include 'hired' alongside 'approve'
+                  ->whereIn('status', ['approve', 'hired']);
             })
             ->pluck('id');
 
+        // Previous scores — the most recent complete nbc_assignment BEFORE the current evaluation_date
         $previousAssignment = NbcAssignment::with([
                 'educationalQualification',
                 'experienceService',
@@ -322,13 +336,16 @@ class Nbc extends Component
             $previousEvaluationDate = $previousAssignment->evaluation_date;
         }
 
+        // Additional = current - previous  (0.00 when there is no previous record)
         $additionalEducation    = $currentScores['education']    - ($previousScores['education']    ?? 0);
         $additionalExperience   = $currentScores['experience']   - ($previousScores['experience']   ?? 0);
         $additionalProfessional = $currentScores['professional'] - ($previousScores['professional'] ?? 0);
         $additionalTotal        = $currentScores['total']        - ($previousScores['total']        ?? 0);
 
+        // FIX: include 'hired' alongside 'approve' when fetching position info
         $positionApplication = $applicant->jobApplications()
             ->whereHas('position', fn($q) => $q->where('name', $this->selectedPosition))
+            ->whereIn('status', ['approve', 'hired'])
             ->first();
 
         $position     = $positionApplication ? $positionApplication->position : null;
@@ -343,16 +360,19 @@ class Nbc extends Component
             'interview_date'          => $evaluation->interview_date,
             'previous_interview_date' => $previousEvaluationDate,
 
+            // Previous points — empty string when no previous record exists
             'previous_education'    => $previousScores ? $previousScores['education']    : '',
             'previous_experience'   => $previousScores ? $previousScores['experience']   : '',
             'previous_professional' => $previousScores ? $previousScores['professional'] : '',
             'previous_total'        => $previousScores ? $previousScores['total']        : '',
 
+            // Additional = current - previous  (0.00 when no previous)
             'additional_education'    => round($additionalEducation, 2),
             'additional_experience'   => round($additionalExperience, 2),
             'additional_professional' => round($additionalProfessional, 2),
             'additional_total'        => round($additionalTotal, 2),
 
+            // Total points = current nbc_assignment scores
             'total_education'    => $currentScores['education'],
             'total_experience'   => $currentScores['experience'],
             'total_professional' => $currentScores['professional'],
@@ -363,8 +383,6 @@ class Nbc extends Component
 
     /**
      * Fetch active NBC committee members for the print report.
-     * Returns ['chairperson' => string|null, 'evaluators' => string[]]
-     * Only members whose linked user has archive = false are included.
      */
     protected function getNbcCommitteeForPrint(): array
     {
@@ -372,13 +390,12 @@ class Nbc extends Component
             ->whereHas('user', fn($q) => $q->where('archive', false))
             ->get();
 
-        // position is decrypted by the Encrypted cast automatically
         $chairperson = $members
             ->first(fn($m) => $m->position === NbcCommittee::POSITION_CHAIRPERSON);
 
         $evaluators = $members
             ->filter(fn($m) => $m->position === NbcCommittee::POSITION_EVALUATOR)
-            ->map(fn($m) => $m->user->name)  // name is decrypted by Encrypted cast
+            ->map(fn($m) => $m->user->name)
             ->values()
             ->toArray();
 
@@ -390,6 +407,10 @@ class Nbc extends Component
 
     /**
      * Print — renders the NBC report blade to HTML and opens it in a new tab.
+     *
+     * Maps nbcData into the row shape the original blade expects:
+     *   number, name, position, email, status,
+     *   edu_score, exp_score, pro_score, total_score, evaluation_date
      */
     public function print()
     {
@@ -400,11 +421,11 @@ class Nbc extends Component
 
         $committee = $this->getNbcCommitteeForPrint();
 
-        $html = view('pdf.nbc-report', [
-            'data'          => $this->nbcData[0],
+        $html = view('print.nbc-report', [
+            'data'         => $this->nbcData[0],
             'generatedDate' => now()->format('F d, Y'),
-            'chairperson'   => $committee['chairperson'],
-            'evaluators'    => $committee['evaluators'],
+            'evaluators'   => $committee['evaluators'],
+            'chairperson'  => $committee['chairperson'],
         ])->render();
 
         $this->dispatch('openPrintTab', html: $html);

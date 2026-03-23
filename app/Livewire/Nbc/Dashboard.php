@@ -211,7 +211,7 @@ class Dashboard extends Component
         $completedCount  = collect($reportData)->where('status', 'Complete')->count();
         $pendingCount    = $totalApplicants - $completedCount;
 
-        $html = view('print.nbc-report', [
+        $html = view('print.nbc-shedule-report', [
             'reportData'      => $reportData,
             'interviewDate'   => today()->format('F d, Y'),
             'totalApplicants' => $totalApplicants,
