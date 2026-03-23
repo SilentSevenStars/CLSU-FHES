@@ -46,7 +46,8 @@ class Screening extends Component
     {
         $existingPositions = Position::whereIn('name', $this->allowedPositions)
             ->whereHas('jobApplications', function ($q) {
-                $q->where('status', 'approve')
+                // FIX: include 'hired' in addition to 'approve'
+                $q->whereIn('status', ['approve', 'hired'])
                     ->whereHas('evaluation');
             })
             ->get()
@@ -76,7 +77,8 @@ class Screening extends Component
         }
 
         $this->interviewDates = Evaluation::whereHas('jobApplication', function ($q) {
-            $q->where('status', 'approve')
+            // FIX: include 'hired' in addition to 'approve'
+            $q->whereIn('status', ['approve', 'hired'])
                 ->whereHas('position', function ($posQuery) {
                     $posQuery->where('name', $this->selectedPosition);
                 });
@@ -119,7 +121,8 @@ class Screening extends Component
         ])
             ->where('interview_date', $this->selectedDate)
             ->whereHas('jobApplication', function ($q) {
-                $q->where('status', 'approve')
+                // FIX: include 'hired' in addition to 'approve'
+                $q->whereIn('status', ['approve', 'hired'])
                     ->whereHas('position', function ($posQuery) {
                         $posQuery->where('name', $this->selectedPosition);
                     });

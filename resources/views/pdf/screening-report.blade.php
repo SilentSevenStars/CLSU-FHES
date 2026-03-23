@@ -191,7 +191,8 @@
 </div>
 
 @php
-    $rowsPerPage = 10;
+    // $rowsPerPage = 10;
+    $rowsPerPage = 8;
     $dataChunks  = array_chunk($screeningData, $rowsPerPage);
     $totalPages  = count($dataChunks);
     if (empty($dataChunks)) {
