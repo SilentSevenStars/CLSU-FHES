@@ -24,8 +24,12 @@ return new class extends Migration
             $table->decimal('q3_2_2_1_a', 8, 3);
             $table->decimal('q3_2_2_1_b', 8, 3);
             $table->decimal('q3_2_2_1_c', 8, 3);
-            $table->decimal('q3_2_2_2', 8, 3);
-            $table->decimal('q3_2_2_3', 8, 3);
+            $table->decimal('q3_2_2_2_a', 8, 3);
+            $table->decimal('q3_2_2_2_b', 8, 3);
+            $table->decimal('q3_2_2_2_c', 8, 3);
+            $table->decimal('q3_2_2_3_a', 8, 3);
+            $table->decimal('q3_2_2_3_b', 8, 3);
+            $table->decimal('q3_2_2_3_c', 8, 3);
             $table->decimal('q3_2_2_4', 8, 3);
             $table->decimal('q3_2_2_5', 8, 3);
             $table->decimal('q3_2_2_6', 8, 3);

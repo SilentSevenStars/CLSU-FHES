@@ -42,6 +42,7 @@
             </div>
         </div>
 
+        {{-- 3.2.1.3 - now with a/b/c sub-items --}}
         <div class="bg-gray-50 rounded-lg p-4">
             <p class="text-sm font-medium text-gray-700 mb-3">3.2.1.3 For participation in conferences, seminars, workshops</p>
             <div class="space-y-3 pl-4">
@@ -87,6 +88,8 @@
     <h4 class="text-base font-semibold text-gray-800 mb-3">3.2.2 Expert Services Rendered (maximum of 20 pts.)</h4>
 
     <div class="space-y-4">
+
+        {{-- 3.2.2.1 Short-term consultant --}}
         <div class="bg-gray-50 rounded-lg p-4">
             <p class="text-sm font-medium text-gray-700 mb-3">3.2.2.1 As short-term consultant/expert in educational, technological, professional, scientific, or cultural activities</p>
             <div class="space-y-3 pl-4">
@@ -104,9 +107,44 @@
             </div>
         </div>
 
+        {{-- 3.2.2.2 Coordinator/lecturer — now a/b/c --}}
+        <div class="bg-gray-50 rounded-lg p-4">
+            <p class="text-sm font-medium text-gray-700 mb-3">3.2.2.2 For services rendered as coordinator, lecturer, resource person or guest speaker in conferences, workshops, and/or training courses</p>
+            <div class="space-y-3 pl-4">
+                @foreach([
+                    ['new_q3_2_2_2_a','prev_q3_2_2_2_a','a. International'],
+                    ['new_q3_2_2_2_b','prev_q3_2_2_2_b','b. National'],
+                    ['new_q3_2_2_2_c','prev_q3_2_2_2_c','c. Local'],
+                ] as [$nf,$pf,$label])
+                <div class="grid grid-cols-12 gap-4 items-center">
+                    <div class="col-span-8"><label class="block text-sm text-gray-600">{{ $label }}</label></div>
+                    <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($$pf, 3) }}</div></div>
+                    <div class="col-span-2"><input type="number" wire:model.live="{{ $nf }}" step="0.001" min="0" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- 3.2.2.3 Thesis adviser — now a/b/c --}}
+        <div class="bg-gray-50 rounded-lg p-4">
+            <p class="text-sm font-medium text-gray-700 mb-3">3.2.2.3 For expert services as member of the doctoral dissertations, masteral and undergraduate thesis (maximum of 10 pts.)</p>
+            <div class="space-y-3 pl-4">
+                @foreach([
+                    ['new_q3_2_2_3_a','prev_q3_2_2_3_a','a. Doctoral dissertation'],
+                    ['new_q3_2_2_3_b','prev_q3_2_2_3_b','b. Master Thesis'],
+                    ['new_q3_2_2_3_c','prev_q3_2_2_3_c','c. Undergraduate Thesis'],
+                ] as [$nf,$pf,$label])
+                <div class="grid grid-cols-12 gap-4 items-center">
+                    <div class="col-span-8"><label class="block text-sm text-gray-600">{{ $label }}</label></div>
+                    <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($$pf, 3) }}</div></div>
+                    <div class="col-span-2"><input type="number" wire:model.live="{{ $nf }}" step="0.001" min="0" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- 3.2.2.4–3.2.2.7 remain single fields --}}
         @foreach([
-            ['new_q3_2_2_2','prev_q3_2_2_2','3.2.2.2 As coordinator/lecturer/resource person/guest speaker at conferences, workshops, or training programs'],
-            ['new_q3_2_2_3','prev_q3_2_2_3','3.2.2.3 As member of the Board of Examiners (PRC) or Board of Accreditors (CHED)'],
             ['new_q3_2_2_4','prev_q3_2_2_4','3.2.2.4 As member of accreditation team / Board of Directors / Technical Committee in Accreditation'],
             ['new_q3_2_2_5','prev_q3_2_2_5','3.2.2.5 As testing officer'],
             ['new_q3_2_2_6','prev_q3_2_2_6','3.2.2.6 For certification services'],
@@ -121,6 +159,7 @@
             </div>
         </div>
         @endforeach
+
     </div>
 
     <div class="mt-4 pt-4 border-t border-gray-300">

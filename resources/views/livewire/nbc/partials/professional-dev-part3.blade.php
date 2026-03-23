@@ -16,13 +16,79 @@
     <h3 class="text-lg font-semibold text-gray-900 mb-4">3.3 Academic Distinctions (maximum of 10 points)</h3>
 
     <div class="space-y-4">
+
+        {{-- 3.3.1 Professional org membership — new structure --}}
         <div class="bg-gray-50 rounded-lg p-4">
-            <p class="text-sm font-medium text-gray-700 mb-3">3.3.1 For earned latin honors from a SUC / CHED supervised institution</p>
+            <p class="text-sm font-medium text-gray-700 mb-3">
+                3.3.1 For current individual membership in relevant professional organization(s)
+            </p>
+            <div class="space-y-4 pl-4">
+
+                {{-- a. Learned society --}}
+                <div class="border-l-2 border-indigo-300 pl-3">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">a. Learned society</p>
+                    <div class="space-y-2">
+                        @foreach([
+                            ['new_q3_3_1_a_full_member',      'prev_q3_3_1_a_full_member',      'Full member'],
+                            ['new_q3_3_1_a_associate_member', 'prev_q3_3_1_a_associate_member', 'Associate member'],
+                        ] as [$nf,$pf,$sublabel])
+                        <div class="grid grid-cols-12 gap-4 items-center">
+                            <div class="col-span-8"><label class="block text-xs text-gray-600">{{ $sublabel }}</label></div>
+                            <div class="col-span-2"><div class="px-2 py-1 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-xs">{{ number_format($$pf, 3) }}</div></div>
+                            <div class="col-span-2"><input type="number" wire:model.live="{{ $nf }}" step="0.001" min="0" class="w-full px-2 py-1 border rounded text-center text-sm" placeholder="+0"></div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- b. Honor society --}}
+                <div class="border-l-2 border-indigo-300 pl-3">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">b. Honor society</p>
+                    <div class="grid grid-cols-12 gap-4 items-center">
+                        <div class="col-span-8"><label class="block text-xs text-gray-600">Score</label></div>
+                        <div class="col-span-2"><div class="px-2 py-1 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-xs">{{ number_format($prev_q3_3_1_b, 3) }}</div></div>
+                        <div class="col-span-2"><input type="number" wire:model.live="new_q3_3_1_b" step="0.001" min="0" class="w-full px-2 py-1 border rounded text-center text-sm" placeholder="+0"></div>
+                    </div>
+                </div>
+
+                {{-- c. Scientific society --}}
+                <div class="border-l-2 border-indigo-300 pl-3">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">c. Scientific society</p>
+                    <div class="grid grid-cols-12 gap-4 items-center">
+                        <div class="col-span-8"><label class="block text-xs text-gray-600">Score</label></div>
+                        <div class="col-span-2"><div class="px-2 py-1 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-xs">{{ number_format($prev_q3_3_1_c, 3) }}</div></div>
+                        <div class="col-span-2"><input type="number" wire:model.live="new_q3_3_1_c" step="0.001" min="0" class="w-full px-2 py-1 border rounded text-center text-sm" placeholder="+0"></div>
+                    </div>
+                </div>
+
+                {{-- d. Professional --}}
+                <div class="border-l-2 border-indigo-300 pl-3">
+                    <p class="text-sm font-semibold text-gray-700 mb-2">d. Professional</p>
+                    <div class="space-y-2">
+                        @foreach([
+                            ['new_q3_3_1_d_officer', 'prev_q3_3_1_d_officer', 'Officer'],
+                            ['new_q3_3_1_d_member',  'prev_q3_3_1_d_member',  'Member'],
+                        ] as [$nf,$pf,$sublabel])
+                        <div class="grid grid-cols-12 gap-4 items-center">
+                            <div class="col-span-8"><label class="block text-xs text-gray-600">{{ $sublabel }}</label></div>
+                            <div class="col-span-2"><div class="px-2 py-1 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-xs">{{ number_format($$pf, 3) }}</div></div>
+                            <div class="col-span-2"><input type="number" wire:model.live="{{ $nf }}" step="0.001" min="0" class="w-full px-2 py-1 border rounded text-center text-sm" placeholder="+0"></div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- 3.3.2 Undergraduate honors — now a/b/c --}}
+        <div class="bg-gray-50 rounded-lg p-4">
+            <p class="text-sm font-medium text-gray-700 mb-3">3.3.2 For undergraduate academic honors earned</p>
             <div class="space-y-3 pl-4">
                 @foreach([
-                    ['new_q3_3_1_a','prev_q3_3_1_a','a. International'],
-                    ['new_q3_3_1_b','prev_q3_3_1_b','b. National'],
-                    ['new_q3_3_1_c','prev_q3_3_1_c','c. Local'],
+                    ['new_q3_3_2_a','prev_q3_3_2_a','a. Summa Cum Laude'],
+                    ['new_q3_3_2_b','prev_q3_3_2_b','b. Magna Cum Laude'],
+                    ['new_q3_3_2_c','prev_q3_3_2_c','c. Cum Laude'],
                 ] as [$nf,$pf,$label])
                 <div class="grid grid-cols-12 gap-4 items-center">
                     <div class="col-span-8"><label class="block text-sm text-gray-600">{{ $label }}</label></div>
@@ -33,15 +99,7 @@
             </div>
         </div>
 
-        <div class="bg-gray-50 rounded-lg p-4">
-            <p class="text-sm font-medium text-gray-700 mb-2">3.3.2 Academic awards</p>
-            <div class="grid grid-cols-12 gap-4 items-center">
-                <div class="col-span-8"><label class="block text-sm text-gray-600">Score</label></div>
-                <div class="col-span-2"><div class="px-3 py-2 bg-gray-50 border border-gray-300 rounded text-center font-semibold text-gray-700 text-sm">{{ number_format($prev_q3_3_2, 3) }}</div></div>
-                <div class="col-span-2"><input type="number" wire:model.live="new_q3_3_2" step="0.001" min="0" class="w-full px-3 py-2 border rounded-lg text-center" placeholder="+0"></div>
-            </div>
-        </div>
-
+        {{-- 3.3.3 Scholarship/Fellowship --}}
         <div class="bg-gray-50 rounded-lg p-4">
             <p class="text-sm font-medium text-gray-700 mb-3">3.3.3 Scholarship/Fellowship (degree or non-degree granting)</p>
             <div class="space-y-4 pl-4">

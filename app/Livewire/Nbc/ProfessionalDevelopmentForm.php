@@ -30,100 +30,155 @@ class ProfessionalDevelopmentForm extends Component
     public $showApplicantModal  = false;
 
     // ── Scores from the applicant's most recent PAST completed evaluation ──
+
+    // 3.1 Creative Works
     public $prev_q3_1_1 = 0; public $prev_q3_1_2_a = 0; public $prev_q3_1_2_c = 0;
     public $prev_q3_1_2_d = 0; public $prev_q3_1_2_e = 0; public $prev_q3_1_2_f = 0;
     public $prev_q3_1_3_a = 0; public $prev_q3_1_3_b = 0; public $prev_q3_1_3_c = 0;
     public $prev_q3_1_4 = 0;
+
+    // 3.2.1 Training
     public $prev_q3_2_1_1_a = 0; public $prev_q3_2_1_1_b = 0; public $prev_q3_2_1_1_c = 0;
     public $prev_q3_2_1_2 = 0; public $prev_q3_2_1_3_a = 0; public $prev_q3_2_1_3_b = 0;
-    public $prev_q3_2_1_3_c = 0; public $prev_q3_2_2_1_a = 0; public $prev_q3_2_2_1_b = 0;
-    public $prev_q3_2_2_1_c = 0; public $prev_q3_2_2_2 = 0; public $prev_q3_2_2_3 = 0;
+    public $prev_q3_2_1_3_c = 0;
+
+    // 3.2.2 Expert Services
+    public $prev_q3_2_2_1_a = 0; public $prev_q3_2_2_1_b = 0; public $prev_q3_2_2_1_c = 0;
+    public $prev_q3_2_2_2_a = 0; public $prev_q3_2_2_2_b = 0; public $prev_q3_2_2_2_c = 0;
+    public $prev_q3_2_2_3_a = 0; public $prev_q3_2_2_3_b = 0; public $prev_q3_2_2_3_c = 0;
     public $prev_q3_2_2_4 = 0; public $prev_q3_2_2_5 = 0; public $prev_q3_2_2_6 = 0;
     public $prev_q3_2_2_7 = 0;
-    public $prev_q3_3_1_a = 0; public $prev_q3_3_1_b = 0; public $prev_q3_3_1_c = 0;
-    public $prev_q3_3_2 = 0; public $prev_q3_3_3_a_doctorate = 0;
-    public $prev_q3_3_3_a_masters = 0; public $prev_q3_3_3_a_nondegree = 0;
-    public $prev_q3_3_3_b_doctorate = 0; public $prev_q3_3_3_b_masters = 0;
-    public $prev_q3_3_3_b_nondegree = 0; public $prev_q3_3_3_c_doctorate = 0;
-    public $prev_q3_3_3_c_masters = 0; public $prev_q3_3_3_c_nondegree = 0;
-    public $prev_q3_3_3_d_doctorate = 0; public $prev_q3_3_3_d_masters = 0;
-    public $prev_q3_3_3_e = 0;
+
+    // 3.3.1 Professional Org Membership
+    public $prev_q3_3_1_a_full_member = 0; public $prev_q3_3_1_a_associate_member = 0;
+    public $prev_q3_3_1_b = 0; public $prev_q3_3_1_c = 0;
+    public $prev_q3_3_1_d_officer = 0; public $prev_q3_3_1_d_member = 0;
+
+    // 3.3.2 Undergraduate honors
+    public $prev_q3_3_2_a = 0; public $prev_q3_3_2_b = 0; public $prev_q3_3_2_c = 0;
+
+    // 3.3.3 Scholarship/Fellowship
+    public $prev_q3_3_3_a_doctorate = 0; public $prev_q3_3_3_a_masters = 0;
+    public $prev_q3_3_3_a_nondegree = 0; public $prev_q3_3_3_b_doctorate = 0;
+    public $prev_q3_3_3_b_masters = 0; public $prev_q3_3_3_b_nondegree = 0;
+    public $prev_q3_3_3_c_doctorate = 0; public $prev_q3_3_3_c_masters = 0;
+    public $prev_q3_3_3_c_nondegree = 0; public $prev_q3_3_3_d_doctorate = 0;
+    public $prev_q3_3_3_d_masters = 0; public $prev_q3_3_3_e = 0;
+
+    // 3.4 Awards
     public $prev_q3_4_a = 0; public $prev_q3_4_b = 0; public $prev_q3_4_c = 0;
+
+    // 3.5 Community Outreach
     public $prev_q3_3_5_1 = 0;
+
+    // 3.6 Licensure
     public $prev_q3_6_1_a = 0; public $prev_q3_6_1_b = 0;
     public $prev_q3_6_1_c = 0; public $prev_q3_6_1_d = 0;
 
     // ── What this NBC member enters for THIS evaluation ──
+
+    // 3.1 Creative Works
     public $new_q3_1_1 = 0; public $new_q3_1_2_a = 0; public $new_q3_1_2_c = 0;
     public $new_q3_1_2_d = 0; public $new_q3_1_2_e = 0; public $new_q3_1_2_f = 0;
     public $new_q3_1_3_a = 0; public $new_q3_1_3_b = 0; public $new_q3_1_3_c = 0;
     public $new_q3_1_4 = 0;
+
+    // 3.2.1 Training
     public $new_q3_2_1_1_a = 0; public $new_q3_2_1_1_b = 0; public $new_q3_2_1_1_c = 0;
     public $new_q3_2_1_2 = 0; public $new_q3_2_1_3_a = 0; public $new_q3_2_1_3_b = 0;
-    public $new_q3_2_1_3_c = 0; public $new_q3_2_2_1_a = 0; public $new_q3_2_2_1_b = 0;
-    public $new_q3_2_2_1_c = 0; public $new_q3_2_2_2 = 0; public $new_q3_2_2_3 = 0;
+    public $new_q3_2_1_3_c = 0;
+
+    // 3.2.2 Expert Services
+    public $new_q3_2_2_1_a = 0; public $new_q3_2_2_1_b = 0; public $new_q3_2_2_1_c = 0;
+    public $new_q3_2_2_2_a = 0; public $new_q3_2_2_2_b = 0; public $new_q3_2_2_2_c = 0;
+    public $new_q3_2_2_3_a = 0; public $new_q3_2_2_3_b = 0; public $new_q3_2_2_3_c = 0;
     public $new_q3_2_2_4 = 0; public $new_q3_2_2_5 = 0; public $new_q3_2_2_6 = 0;
     public $new_q3_2_2_7 = 0;
-    public $new_q3_3_1_a = 0; public $new_q3_3_1_b = 0; public $new_q3_3_1_c = 0;
-    public $new_q3_3_2 = 0; public $new_q3_3_3_a_doctorate = 0;
-    public $new_q3_3_3_a_masters = 0; public $new_q3_3_3_a_nondegree = 0;
-    public $new_q3_3_3_b_doctorate = 0; public $new_q3_3_3_b_masters = 0;
-    public $new_q3_3_3_b_nondegree = 0; public $new_q3_3_3_c_doctorate = 0;
-    public $new_q3_3_3_c_masters = 0; public $new_q3_3_3_c_nondegree = 0;
-    public $new_q3_3_3_d_doctorate = 0; public $new_q3_3_3_d_masters = 0;
-    public $new_q3_3_3_e = 0;
+
+    // 3.3.1 Professional Org Membership
+    public $new_q3_3_1_a_full_member = 0; public $new_q3_3_1_a_associate_member = 0;
+    public $new_q3_3_1_b = 0; public $new_q3_3_1_c = 0;
+    public $new_q3_3_1_d_officer = 0; public $new_q3_3_1_d_member = 0;
+
+    // 3.3.2 Undergraduate honors
+    public $new_q3_3_2_a = 0; public $new_q3_3_2_b = 0; public $new_q3_3_2_c = 0;
+
+    // 3.3.3 Scholarship/Fellowship
+    public $new_q3_3_3_a_doctorate = 0; public $new_q3_3_3_a_masters = 0;
+    public $new_q3_3_3_a_nondegree = 0; public $new_q3_3_3_b_doctorate = 0;
+    public $new_q3_3_3_b_masters = 0; public $new_q3_3_3_b_nondegree = 0;
+    public $new_q3_3_3_c_doctorate = 0; public $new_q3_3_3_c_masters = 0;
+    public $new_q3_3_3_c_nondegree = 0; public $new_q3_3_3_d_doctorate = 0;
+    public $new_q3_3_3_d_masters = 0; public $new_q3_3_3_e = 0;
+
+    // 3.4 Awards
     public $new_q3_4_a = 0; public $new_q3_4_b = 0; public $new_q3_4_c = 0;
+
+    // 3.5 Community Outreach
     public $new_q3_3_5_1 = 0;
+
+    // 3.6 Licensure
     public $new_q3_6_1_a = 0; public $new_q3_6_1_b = 0;
     public $new_q3_6_1_c = 0; public $new_q3_6_1_d = 0;
 
-    // ─── Previous-only subtotals (for display in the "Total Previous Points" box) ──
+    // ─── Helper: sum a list of $this property names as floats ────────────────
+
+    private function sumFields(array $fields): float
+    {
+        $total = 0.0;
+        foreach ($fields as $field) {
+            $total += (float)$this->{$field};
+        }
+        return $total;
+    }
+
+    // ─── Previous-only raw subtotals (uncapped) ───────────────────────────────
 
     public function getPrevSubtotal31Property(): float
     {
-        return (float)(
-            $this->prev_q3_1_1   + $this->prev_q3_1_2_a + $this->prev_q3_1_2_c
-          + $this->prev_q3_1_2_d + $this->prev_q3_1_2_e + $this->prev_q3_1_2_f
-          + $this->prev_q3_1_3_a + $this->prev_q3_1_3_b + $this->prev_q3_1_3_c
-          + $this->prev_q3_1_4
-        );
+        return $this->sumFields([
+            'prev_q3_1_1','prev_q3_1_2_a','prev_q3_1_2_c','prev_q3_1_2_d',
+            'prev_q3_1_2_e','prev_q3_1_2_f','prev_q3_1_3_a','prev_q3_1_3_b',
+            'prev_q3_1_3_c','prev_q3_1_4',
+        ]);
     }
 
     public function getPrevSubtotal321Property(): float
     {
-        return (float)(
-            $this->prev_q3_2_1_1_a + $this->prev_q3_2_1_1_b + $this->prev_q3_2_1_1_c
-          + $this->prev_q3_2_1_2   + $this->prev_q3_2_1_3_a + $this->prev_q3_2_1_3_b
-          + $this->prev_q3_2_1_3_c
-        );
+        return $this->sumFields([
+            'prev_q3_2_1_1_a','prev_q3_2_1_1_b','prev_q3_2_1_1_c',
+            'prev_q3_2_1_2',
+            'prev_q3_2_1_3_a','prev_q3_2_1_3_b','prev_q3_2_1_3_c',
+        ]);
     }
 
     public function getPrevSubtotal322Property(): float
     {
-        return (float)(
-            $this->prev_q3_2_2_1_a + $this->prev_q3_2_2_1_b + $this->prev_q3_2_2_1_c
-          + $this->prev_q3_2_2_2   + $this->prev_q3_2_2_3   + $this->prev_q3_2_2_4
-          + $this->prev_q3_2_2_5   + $this->prev_q3_2_2_6   + $this->prev_q3_2_2_7
-        );
+        return $this->sumFields([
+            'prev_q3_2_2_1_a','prev_q3_2_2_1_b','prev_q3_2_2_1_c',
+            'prev_q3_2_2_2_a','prev_q3_2_2_2_b','prev_q3_2_2_2_c',
+            'prev_q3_2_2_3_a','prev_q3_2_2_3_b','prev_q3_2_2_3_c',
+            'prev_q3_2_2_4','prev_q3_2_2_5','prev_q3_2_2_6','prev_q3_2_2_7',
+        ]);
     }
 
     public function getPrevSubtotal33Property(): float
     {
-        return (float)(
-            $this->prev_q3_3_1_a           + $this->prev_q3_3_1_b
-          + $this->prev_q3_3_1_c           + $this->prev_q3_3_2
-          + $this->prev_q3_3_3_a_doctorate + $this->prev_q3_3_3_a_masters
-          + $this->prev_q3_3_3_a_nondegree + $this->prev_q3_3_3_b_doctorate
-          + $this->prev_q3_3_3_b_masters   + $this->prev_q3_3_3_b_nondegree
-          + $this->prev_q3_3_3_c_doctorate + $this->prev_q3_3_3_c_masters
-          + $this->prev_q3_3_3_c_nondegree + $this->prev_q3_3_3_d_doctorate
-          + $this->prev_q3_3_3_d_masters   + $this->prev_q3_3_3_e
-        );
+        return $this->sumFields([
+            'prev_q3_3_1_a_full_member','prev_q3_3_1_a_associate_member',
+            'prev_q3_3_1_b','prev_q3_3_1_c',
+            'prev_q3_3_1_d_officer','prev_q3_3_1_d_member',
+            'prev_q3_3_2_a','prev_q3_3_2_b','prev_q3_3_2_c',
+            'prev_q3_3_3_a_doctorate','prev_q3_3_3_a_masters','prev_q3_3_3_a_nondegree',
+            'prev_q3_3_3_b_doctorate','prev_q3_3_3_b_masters','prev_q3_3_3_b_nondegree',
+            'prev_q3_3_3_c_doctorate','prev_q3_3_3_c_masters','prev_q3_3_3_c_nondegree',
+            'prev_q3_3_3_d_doctorate','prev_q3_3_3_d_masters','prev_q3_3_3_e',
+        ]);
     }
 
     public function getPrevSubtotal34Property(): float
     {
-        return (float)($this->prev_q3_4_a + $this->prev_q3_4_b + $this->prev_q3_4_c);
+        return $this->sumFields(['prev_q3_4_a','prev_q3_4_b','prev_q3_4_c']);
     }
 
     public function getPrevSubtotal35Property(): float
@@ -133,144 +188,156 @@ class ProfessionalDevelopmentForm extends Component
 
     public function getPrevSubtotal36Property(): float
     {
-        return (float)(
-            $this->prev_q3_6_1_a + $this->prev_q3_6_1_b
-          + $this->prev_q3_6_1_c + $this->prev_q3_6_1_d
-        );
+        return $this->sumFields([
+            'prev_q3_6_1_a','prev_q3_6_1_b','prev_q3_6_1_c','prev_q3_6_1_d',
+        ]);
     }
 
-    // ─── Capped combined subtotals: prev + new ────────────────────────────
+    // ─── New-only raw subtotals (uncapped) ───────────────────────────────────
 
-    // 3.1 max = 30
+    public function getNewSubtotal31Property(): float
+    {
+        return $this->sumFields([
+            'new_q3_1_1','new_q3_1_2_a','new_q3_1_2_c','new_q3_1_2_d',
+            'new_q3_1_2_e','new_q3_1_2_f','new_q3_1_3_a','new_q3_1_3_b',
+            'new_q3_1_3_c','new_q3_1_4',
+        ]);
+    }
+
+    public function getNewSubtotal321Property(): float
+    {
+        return $this->sumFields([
+            'new_q3_2_1_1_a','new_q3_2_1_1_b','new_q3_2_1_1_c',
+            'new_q3_2_1_2',
+            'new_q3_2_1_3_a','new_q3_2_1_3_b','new_q3_2_1_3_c',
+        ]);
+    }
+
+    public function getNewSubtotal322Property(): float
+    {
+        return $this->sumFields([
+            'new_q3_2_2_1_a','new_q3_2_2_1_b','new_q3_2_2_1_c',
+            'new_q3_2_2_2_a','new_q3_2_2_2_b','new_q3_2_2_2_c',
+            'new_q3_2_2_3_a','new_q3_2_2_3_b','new_q3_2_2_3_c',
+            'new_q3_2_2_4','new_q3_2_2_5','new_q3_2_2_6','new_q3_2_2_7',
+        ]);
+    }
+
+    public function getNewSubtotal33Property(): float
+    {
+        return $this->sumFields([
+            'new_q3_3_1_a_full_member','new_q3_3_1_a_associate_member',
+            'new_q3_3_1_b','new_q3_3_1_c',
+            'new_q3_3_1_d_officer','new_q3_3_1_d_member',
+            'new_q3_3_2_a','new_q3_3_2_b','new_q3_3_2_c',
+            'new_q3_3_3_a_doctorate','new_q3_3_3_a_masters','new_q3_3_3_a_nondegree',
+            'new_q3_3_3_b_doctorate','new_q3_3_3_b_masters','new_q3_3_3_b_nondegree',
+            'new_q3_3_3_c_doctorate','new_q3_3_3_c_masters','new_q3_3_3_c_nondegree',
+            'new_q3_3_3_d_doctorate','new_q3_3_3_d_masters','new_q3_3_3_e',
+        ]);
+    }
+
+    public function getNewSubtotal34Property(): float
+    {
+        return $this->sumFields(['new_q3_4_a','new_q3_4_b','new_q3_4_c']);
+    }
+
+    public function getNewSubtotal35Property(): float
+    {
+        return (float)$this->new_q3_3_5_1;
+    }
+
+    public function getNewSubtotal36Property(): float
+    {
+        return $this->sumFields([
+            'new_q3_6_1_a','new_q3_6_1_b','new_q3_6_1_c','new_q3_6_1_d',
+        ]);
+    }
+
+    // ─── Capped combined subtotals: prev + new ────────────────────────────────
+
+    // 3.1 cap = 30
     public function getSubtotal31Property(): float
     {
-        return min((float)(
-            ($this->prev_q3_1_1   + $this->new_q3_1_1)
-          + ($this->prev_q3_1_2_a + $this->new_q3_1_2_a)
-          + ($this->prev_q3_1_2_c + $this->new_q3_1_2_c)
-          + ($this->prev_q3_1_2_d + $this->new_q3_1_2_d)
-          + ($this->prev_q3_1_2_e + $this->new_q3_1_2_e)
-          + ($this->prev_q3_1_2_f + $this->new_q3_1_2_f)
-          + ($this->prev_q3_1_3_a + $this->new_q3_1_3_a)
-          + ($this->prev_q3_1_3_b + $this->new_q3_1_3_b)
-          + ($this->prev_q3_1_3_c + $this->new_q3_1_3_c)
-          + ($this->prev_q3_1_4   + $this->new_q3_1_4)
-        ), 30);
+        return min($this->prevSubtotal31 + $this->newSubtotal31, 30.0);
     }
 
-    // 3.2.1 max = 10
+    // 3.2.1 cap = 10
     public function getSubtotal321Property(): float
     {
-        return min((float)(
-            ($this->prev_q3_2_1_1_a + $this->new_q3_2_1_1_a)
-          + ($this->prev_q3_2_1_1_b + $this->new_q3_2_1_1_b)
-          + ($this->prev_q3_2_1_1_c + $this->new_q3_2_1_1_c)
-          + ($this->prev_q3_2_1_2   + $this->new_q3_2_1_2)
-          + ($this->prev_q3_2_1_3_a + $this->new_q3_2_1_3_a)
-          + ($this->prev_q3_2_1_3_b + $this->new_q3_2_1_3_b)
-          + ($this->prev_q3_2_1_3_c + $this->new_q3_2_1_3_c)
-        ), 10);
+        return min($this->prevSubtotal321 + $this->newSubtotal321, 10.0);
     }
 
-    // 3.2.2 max = 20
+    // 3.2.2 cap = 20
     public function getSubtotal322Property(): float
     {
-        return min((float)(
-            ($this->prev_q3_2_2_1_a + $this->new_q3_2_2_1_a)
-          + ($this->prev_q3_2_2_1_b + $this->new_q3_2_2_1_b)
-          + ($this->prev_q3_2_2_1_c + $this->new_q3_2_2_1_c)
-          + ($this->prev_q3_2_2_2   + $this->new_q3_2_2_2)
-          + ($this->prev_q3_2_2_3   + $this->new_q3_2_2_3)
-          + ($this->prev_q3_2_2_4   + $this->new_q3_2_2_4)
-          + ($this->prev_q3_2_2_5   + $this->new_q3_2_2_5)
-          + ($this->prev_q3_2_2_6   + $this->new_q3_2_2_6)
-          + ($this->prev_q3_2_2_7   + $this->new_q3_2_2_7)
-        ), 20);
+        return min($this->prevSubtotal322 + $this->newSubtotal322, 20.0);
     }
 
-    // 3.3 max = 10
+    // 3.3 cap = 10
     public function getSubtotal33Property(): float
     {
-        return min((float)(
-            ($this->prev_q3_3_1_a + $this->new_q3_3_1_a)
-          + ($this->prev_q3_3_1_b + $this->new_q3_3_1_b)
-          + ($this->prev_q3_3_1_c + $this->new_q3_3_1_c)
-          + ($this->prev_q3_3_2   + $this->new_q3_3_2)
-          + ($this->prev_q3_3_3_a_doctorate + $this->new_q3_3_3_a_doctorate)
-          + ($this->prev_q3_3_3_a_masters   + $this->new_q3_3_3_a_masters)
-          + ($this->prev_q3_3_3_a_nondegree + $this->new_q3_3_3_a_nondegree)
-          + ($this->prev_q3_3_3_b_doctorate + $this->new_q3_3_3_b_doctorate)
-          + ($this->prev_q3_3_3_b_masters   + $this->new_q3_3_3_b_masters)
-          + ($this->prev_q3_3_3_b_nondegree + $this->new_q3_3_3_b_nondegree)
-          + ($this->prev_q3_3_3_c_doctorate + $this->new_q3_3_3_c_doctorate)
-          + ($this->prev_q3_3_3_c_masters   + $this->new_q3_3_3_c_masters)
-          + ($this->prev_q3_3_3_c_nondegree + $this->new_q3_3_3_c_nondegree)
-          + ($this->prev_q3_3_3_d_doctorate + $this->new_q3_3_3_d_doctorate)
-          + ($this->prev_q3_3_3_d_masters   + $this->new_q3_3_3_d_masters)
-          + ($this->prev_q3_3_3_e           + $this->new_q3_3_3_e)
-        ), 10);
+        return min($this->prevSubtotal33 + $this->newSubtotal33, 10.0);
     }
 
-    // 3.4 max = 5
+    // 3.4 cap = 5
     public function getSubtotal34Property(): float
     {
-        return min((float)(
-            ($this->prev_q3_4_a + $this->new_q3_4_a)
-          + ($this->prev_q3_4_b + $this->new_q3_4_b)
-          + ($this->prev_q3_4_c + $this->new_q3_4_c)
-        ), 5);
+        return min($this->prevSubtotal34 + $this->newSubtotal34, 5.0);
     }
 
-    // 3.5 max = 5
+    // 3.5 cap = 5
     public function getSubtotal35Property(): float
     {
-        return min((float)($this->prev_q3_3_5_1 + $this->new_q3_3_5_1), 5);
+        return min($this->prevSubtotal35 + $this->newSubtotal35, 5.0);
     }
 
-    // 3.6 max = 10
+    // 3.6 cap = 10
     public function getSubtotal36Property(): float
     {
-        return min((float)(
-            ($this->prev_q3_6_1_a + $this->new_q3_6_1_a)
-          + ($this->prev_q3_6_1_b + $this->new_q3_6_1_b)
-          + ($this->prev_q3_6_1_c + $this->new_q3_6_1_c)
-          + ($this->prev_q3_6_1_d + $this->new_q3_6_1_d)
-        ), 10);
+        return min($this->prevSubtotal36 + $this->newSubtotal36, 10.0);
     }
 
-    // Page running totals (for the bottom summary box on each page)
-    // Page 1: Section 3.1 only (max 30)
+    // ─── Page running totals ──────────────────────────────────────────────────
+
+    // Page 1: only section 3.1 (cap 30)
     public function getPage1TotalProperty(): float
     {
         return $this->subtotal31;
     }
 
-    // Page 2: 3.1 + 3.2.1 + 3.2.2 (max 30 + 10 + 20 = 60, but grand total will cap at 90)
+    // Page 2: sections 3.1 + 3.2.1 + 3.2.2 (cap 60)
     public function getPage2TotalProperty(): float
     {
-        return $this->subtotal31 + $this->subtotal321 + $this->subtotal322;
+        return min(
+            $this->subtotal31 + $this->subtotal321 + $this->subtotal322,
+            60.0
+        );
     }
 
-    // Page 3: all sections combined (capped at 90)
+    // Page 3: all sections (cap 90)
     public function getPage3TotalProperty(): float
     {
         return min(
-            $this->subtotal31 + $this->subtotal321 + $this->subtotal322
-          + $this->subtotal33 + $this->subtotal34  + $this->subtotal35 + $this->subtotal36,
-            90
+            $this->subtotal31  + $this->subtotal321 + $this->subtotal322
+          + $this->subtotal33  + $this->subtotal34  + $this->subtotal35
+          + $this->subtotal36,
+            90.0
         );
     }
 
-    // Previous-only grand total (for the "Total Previous Points" display box on page 3)
+    // Previous grand total (cap 90)
     public function getPrevGrandTotalProperty(): float
     {
         return min(
-            $this->prevSubtotal31 + $this->prevSubtotal321 + $this->prevSubtotal322
-          + $this->prevSubtotal33 + $this->prevSubtotal34  + $this->prevSubtotal35
+            $this->prevSubtotal31  + $this->prevSubtotal321 + $this->prevSubtotal322
+          + $this->prevSubtotal33  + $this->prevSubtotal34  + $this->prevSubtotal35
           + $this->prevSubtotal36,
-            90
+            90.0
         );
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     public function mount(int $evaluationId)
     {
@@ -335,15 +402,37 @@ class ProfessionalDevelopmentForm extends Component
         $pd = $this->professionalDevelopment;
 
         if (!$pd->creative_work_id) {
-            $cw = CreativeWork::create(['q3_1_1'=>0,'q3_1_2_a'=>0,'q3_1_2_c'=>0,'q3_1_2_d'=>0,'q3_1_2_e'=>0,'q3_1_2_f'=>0,'q3_1_3_a'=>0,'q3_1_3_b'=>0,'q3_1_3_c'=>0,'q3_1_4'=>0,'subtotal'=>0]);
+            $cw = CreativeWork::create([
+                'q3_1_1'=>0,'q3_1_2_a'=>0,'q3_1_2_c'=>0,'q3_1_2_d'=>0,
+                'q3_1_2_e'=>0,'q3_1_2_f'=>0,'q3_1_3_a'=>0,'q3_1_3_b'=>0,
+                'q3_1_3_c'=>0,'q3_1_4'=>0,'subtotal'=>0,
+            ]);
             $pd->update(['creative_work_id' => $cw->id]);
         }
         if (!$pd->activity_id) {
-            $act = Activity::create(['q3_2_1_1_a'=>0,'q3_2_1_1_b'=>0,'q3_2_1_1_c'=>0,'q3_2_1_2'=>0,'q3_2_1_3_a'=>0,'q3_2_1_3_b'=>0,'q3_2_1_3_c'=>0,'q3_2_2_1_a'=>0,'q3_2_2_1_b'=>0,'q3_2_2_1_c'=>0,'q3_2_2_2'=>0,'q3_2_2_3'=>0,'q3_2_2_4'=>0,'q3_2_2_5'=>0,'q3_2_2_6'=>0,'q3_2_2_7'=>0,'subtotal'=>0]);
+            $act = Activity::create([
+                'q3_2_1_1_a'=>0,'q3_2_1_1_b'=>0,'q3_2_1_1_c'=>0,'q3_2_1_2'=>0,
+                'q3_2_1_3_a'=>0,'q3_2_1_3_b'=>0,'q3_2_1_3_c'=>0,
+                'q3_2_2_1_a'=>0,'q3_2_2_1_b'=>0,'q3_2_2_1_c'=>0,
+                'q3_2_2_2_a'=>0,'q3_2_2_2_b'=>0,'q3_2_2_2_c'=>0,
+                'q3_2_2_3_a'=>0,'q3_2_2_3_b'=>0,'q3_2_2_3_c'=>0,
+                'q3_2_2_4'=>0,'q3_2_2_5'=>0,'q3_2_2_6'=>0,'q3_2_2_7'=>0,
+                'subtotal_321'=>0,'subtotal_322'=>0,'subtotal'=>0,
+            ]);
             $pd->update(['activity_id' => $act->id]);
         }
         if (!$pd->recognition_id) {
-            $rec = Recognition::create(['q3_3_1_a'=>0,'q3_3_1_b'=>0,'q3_3_1_c'=>0,'q3_3_2'=>0,'q3_3_3_a_doctorate'=>0,'q3_3_3_a_masters'=>0,'q3_3_3_a_nondegree'=>0,'q3_3_3_b_doctorate'=>0,'q3_3_3_b_masters'=>0,'q3_3_3_b_nondegree'=>0,'q3_3_3_c_doctorate'=>0,'q3_3_3_c_masters'=>0,'q3_3_3_c_nondegree'=>0,'q3_3_3_d_doctorate'=>0,'q3_3_3_d_masters'=>0,'q3_3_3_e'=>0,'subtotal'=>0]);
+            $rec = Recognition::create([
+                'q3_3_1_a_full_member'=>0,'q3_3_1_a_associate_member'=>0,
+                'q3_3_1_b'=>0,'q3_3_1_c'=>0,
+                'q3_3_1_d_officer'=>0,'q3_3_1_d_member'=>0,
+                'q3_3_2_a'=>0,'q3_3_2_b'=>0,'q3_3_2_c'=>0,
+                'q3_3_3_a_doctorate'=>0,'q3_3_3_a_masters'=>0,'q3_3_3_a_nondegree'=>0,
+                'q3_3_3_b_doctorate'=>0,'q3_3_3_b_masters'=>0,'q3_3_3_b_nondegree'=>0,
+                'q3_3_3_c_doctorate'=>0,'q3_3_3_c_masters'=>0,'q3_3_3_c_nondegree'=>0,
+                'q3_3_3_d_doctorate'=>0,'q3_3_3_d_masters'=>0,'q3_3_3_e'=>0,
+                'subtotal'=>0,
+            ]);
             $pd->update(['recognition_id' => $rec->id]);
         }
         if (!$pd->award_id) {
@@ -395,30 +484,39 @@ class ProfessionalDevelopmentForm extends Component
             $this->prev_q3_2_2_1_a = (float)($act->q3_2_2_1_a ?? 0);
             $this->prev_q3_2_2_1_b = (float)($act->q3_2_2_1_b ?? 0);
             $this->prev_q3_2_2_1_c = (float)($act->q3_2_2_1_c ?? 0);
-            $this->prev_q3_2_2_2   = (float)($act->q3_2_2_2   ?? 0);
-            $this->prev_q3_2_2_3   = (float)($act->q3_2_2_3   ?? 0);
+            $this->prev_q3_2_2_2_a = (float)($act->q3_2_2_2_a ?? 0);
+            $this->prev_q3_2_2_2_b = (float)($act->q3_2_2_2_b ?? 0);
+            $this->prev_q3_2_2_2_c = (float)($act->q3_2_2_2_c ?? 0);
+            $this->prev_q3_2_2_3_a = (float)($act->q3_2_2_3_a ?? 0);
+            $this->prev_q3_2_2_3_b = (float)($act->q3_2_2_3_b ?? 0);
+            $this->prev_q3_2_2_3_c = (float)($act->q3_2_2_3_c ?? 0);
             $this->prev_q3_2_2_4   = (float)($act->q3_2_2_4   ?? 0);
             $this->prev_q3_2_2_5   = (float)($act->q3_2_2_5   ?? 0);
             $this->prev_q3_2_2_6   = (float)($act->q3_2_2_6   ?? 0);
             $this->prev_q3_2_2_7   = (float)($act->q3_2_2_7   ?? 0);
         }
         if ($rec) {
-            $this->prev_q3_3_1_a           = (float)($rec->q3_3_1_a           ?? 0);
-            $this->prev_q3_3_1_b           = (float)($rec->q3_3_1_b           ?? 0);
-            $this->prev_q3_3_1_c           = (float)($rec->q3_3_1_c           ?? 0);
-            $this->prev_q3_3_2             = (float)($rec->q3_3_2             ?? 0);
-            $this->prev_q3_3_3_a_doctorate = (float)($rec->q3_3_3_a_doctorate ?? 0);
-            $this->prev_q3_3_3_a_masters   = (float)($rec->q3_3_3_a_masters   ?? 0);
-            $this->prev_q3_3_3_a_nondegree = (float)($rec->q3_3_3_a_nondegree ?? 0);
-            $this->prev_q3_3_3_b_doctorate = (float)($rec->q3_3_3_b_doctorate ?? 0);
-            $this->prev_q3_3_3_b_masters   = (float)($rec->q3_3_3_b_masters   ?? 0);
-            $this->prev_q3_3_3_b_nondegree = (float)($rec->q3_3_3_b_nondegree ?? 0);
-            $this->prev_q3_3_3_c_doctorate = (float)($rec->q3_3_3_c_doctorate ?? 0);
-            $this->prev_q3_3_3_c_masters   = (float)($rec->q3_3_3_c_masters   ?? 0);
-            $this->prev_q3_3_3_c_nondegree = (float)($rec->q3_3_3_c_nondegree ?? 0);
-            $this->prev_q3_3_3_d_doctorate = (float)($rec->q3_3_3_d_doctorate ?? 0);
-            $this->prev_q3_3_3_d_masters   = (float)($rec->q3_3_3_d_masters   ?? 0);
-            $this->prev_q3_3_3_e           = (float)($rec->q3_3_3_e           ?? 0);
+            $this->prev_q3_3_1_a_full_member      = (float)($rec->q3_3_1_a_full_member      ?? 0);
+            $this->prev_q3_3_1_a_associate_member  = (float)($rec->q3_3_1_a_associate_member  ?? 0);
+            $this->prev_q3_3_1_b                  = (float)($rec->q3_3_1_b                  ?? 0);
+            $this->prev_q3_3_1_c                  = (float)($rec->q3_3_1_c                  ?? 0);
+            $this->prev_q3_3_1_d_officer          = (float)($rec->q3_3_1_d_officer          ?? 0);
+            $this->prev_q3_3_1_d_member           = (float)($rec->q3_3_1_d_member           ?? 0);
+            $this->prev_q3_3_2_a                  = (float)($rec->q3_3_2_a                  ?? 0);
+            $this->prev_q3_3_2_b                  = (float)($rec->q3_3_2_b                  ?? 0);
+            $this->prev_q3_3_2_c                  = (float)($rec->q3_3_2_c                  ?? 0);
+            $this->prev_q3_3_3_a_doctorate        = (float)($rec->q3_3_3_a_doctorate        ?? 0);
+            $this->prev_q3_3_3_a_masters          = (float)($rec->q3_3_3_a_masters          ?? 0);
+            $this->prev_q3_3_3_a_nondegree        = (float)($rec->q3_3_3_a_nondegree        ?? 0);
+            $this->prev_q3_3_3_b_doctorate        = (float)($rec->q3_3_3_b_doctorate        ?? 0);
+            $this->prev_q3_3_3_b_masters          = (float)($rec->q3_3_3_b_masters          ?? 0);
+            $this->prev_q3_3_3_b_nondegree        = (float)($rec->q3_3_3_b_nondegree        ?? 0);
+            $this->prev_q3_3_3_c_doctorate        = (float)($rec->q3_3_3_c_doctorate        ?? 0);
+            $this->prev_q3_3_3_c_masters          = (float)($rec->q3_3_3_c_masters          ?? 0);
+            $this->prev_q3_3_3_c_nondegree        = (float)($rec->q3_3_3_c_nondegree        ?? 0);
+            $this->prev_q3_3_3_d_doctorate        = (float)($rec->q3_3_3_d_doctorate        ?? 0);
+            $this->prev_q3_3_3_d_masters          = (float)($rec->q3_3_3_d_masters          ?? 0);
+            $this->prev_q3_3_3_e                  = (float)($rec->q3_3_3_e                  ?? 0);
         }
         if ($aw) {
             $this->prev_q3_4_a = (float)($aw->q3_4_a ?? 0);
@@ -469,30 +567,39 @@ class ProfessionalDevelopmentForm extends Component
             $this->new_q3_2_2_1_a = (float)($act->q3_2_2_1_a ?? 0);
             $this->new_q3_2_2_1_b = (float)($act->q3_2_2_1_b ?? 0);
             $this->new_q3_2_2_1_c = (float)($act->q3_2_2_1_c ?? 0);
-            $this->new_q3_2_2_2   = (float)($act->q3_2_2_2   ?? 0);
-            $this->new_q3_2_2_3   = (float)($act->q3_2_2_3   ?? 0);
+            $this->new_q3_2_2_2_a = (float)($act->q3_2_2_2_a ?? 0);
+            $this->new_q3_2_2_2_b = (float)($act->q3_2_2_2_b ?? 0);
+            $this->new_q3_2_2_2_c = (float)($act->q3_2_2_2_c ?? 0);
+            $this->new_q3_2_2_3_a = (float)($act->q3_2_2_3_a ?? 0);
+            $this->new_q3_2_2_3_b = (float)($act->q3_2_2_3_b ?? 0);
+            $this->new_q3_2_2_3_c = (float)($act->q3_2_2_3_c ?? 0);
             $this->new_q3_2_2_4   = (float)($act->q3_2_2_4   ?? 0);
             $this->new_q3_2_2_5   = (float)($act->q3_2_2_5   ?? 0);
             $this->new_q3_2_2_6   = (float)($act->q3_2_2_6   ?? 0);
             $this->new_q3_2_2_7   = (float)($act->q3_2_2_7   ?? 0);
         }
         if ($rec) {
-            $this->new_q3_3_1_a           = (float)($rec->q3_3_1_a           ?? 0);
-            $this->new_q3_3_1_b           = (float)($rec->q3_3_1_b           ?? 0);
-            $this->new_q3_3_1_c           = (float)($rec->q3_3_1_c           ?? 0);
-            $this->new_q3_3_2             = (float)($rec->q3_3_2             ?? 0);
-            $this->new_q3_3_3_a_doctorate = (float)($rec->q3_3_3_a_doctorate ?? 0);
-            $this->new_q3_3_3_a_masters   = (float)($rec->q3_3_3_a_masters   ?? 0);
-            $this->new_q3_3_3_a_nondegree = (float)($rec->q3_3_3_a_nondegree ?? 0);
-            $this->new_q3_3_3_b_doctorate = (float)($rec->q3_3_3_b_doctorate ?? 0);
-            $this->new_q3_3_3_b_masters   = (float)($rec->q3_3_3_b_masters   ?? 0);
-            $this->new_q3_3_3_b_nondegree = (float)($rec->q3_3_3_b_nondegree ?? 0);
-            $this->new_q3_3_3_c_doctorate = (float)($rec->q3_3_3_c_doctorate ?? 0);
-            $this->new_q3_3_3_c_masters   = (float)($rec->q3_3_3_c_masters   ?? 0);
-            $this->new_q3_3_3_c_nondegree = (float)($rec->q3_3_3_c_nondegree ?? 0);
-            $this->new_q3_3_3_d_doctorate = (float)($rec->q3_3_3_d_doctorate ?? 0);
-            $this->new_q3_3_3_d_masters   = (float)($rec->q3_3_3_d_masters   ?? 0);
-            $this->new_q3_3_3_e           = (float)($rec->q3_3_3_e           ?? 0);
+            $this->new_q3_3_1_a_full_member      = (float)($rec->q3_3_1_a_full_member      ?? 0);
+            $this->new_q3_3_1_a_associate_member  = (float)($rec->q3_3_1_a_associate_member  ?? 0);
+            $this->new_q3_3_1_b                  = (float)($rec->q3_3_1_b                  ?? 0);
+            $this->new_q3_3_1_c                  = (float)($rec->q3_3_1_c                  ?? 0);
+            $this->new_q3_3_1_d_officer          = (float)($rec->q3_3_1_d_officer          ?? 0);
+            $this->new_q3_3_1_d_member           = (float)($rec->q3_3_1_d_member           ?? 0);
+            $this->new_q3_3_2_a                  = (float)($rec->q3_3_2_a                  ?? 0);
+            $this->new_q3_3_2_b                  = (float)($rec->q3_3_2_b                  ?? 0);
+            $this->new_q3_3_2_c                  = (float)($rec->q3_3_2_c                  ?? 0);
+            $this->new_q3_3_3_a_doctorate        = (float)($rec->q3_3_3_a_doctorate        ?? 0);
+            $this->new_q3_3_3_a_masters          = (float)($rec->q3_3_3_a_masters          ?? 0);
+            $this->new_q3_3_3_a_nondegree        = (float)($rec->q3_3_3_a_nondegree        ?? 0);
+            $this->new_q3_3_3_b_doctorate        = (float)($rec->q3_3_3_b_doctorate        ?? 0);
+            $this->new_q3_3_3_b_masters          = (float)($rec->q3_3_3_b_masters          ?? 0);
+            $this->new_q3_3_3_b_nondegree        = (float)($rec->q3_3_3_b_nondegree        ?? 0);
+            $this->new_q3_3_3_c_doctorate        = (float)($rec->q3_3_3_c_doctorate        ?? 0);
+            $this->new_q3_3_3_c_masters          = (float)($rec->q3_3_3_c_masters          ?? 0);
+            $this->new_q3_3_3_c_nondegree        = (float)($rec->q3_3_3_c_nondegree        ?? 0);
+            $this->new_q3_3_3_d_doctorate        = (float)($rec->q3_3_3_d_doctorate        ?? 0);
+            $this->new_q3_3_3_d_masters          = (float)($rec->q3_3_3_d_masters          ?? 0);
+            $this->new_q3_3_3_e                  = (float)($rec->q3_3_3_e                  ?? 0);
         }
         if ($aw) {
             $this->new_q3_4_a = (float)($aw->q3_4_a ?? 0);
@@ -514,42 +621,93 @@ class ProfessionalDevelopmentForm extends Component
     {
         $pd = $this->professionalDevelopment;
 
-        $cw_fields = ['q3_1_1','q3_1_2_a','q3_1_2_c','q3_1_2_d','q3_1_2_e','q3_1_2_f','q3_1_3_a','q3_1_3_b','q3_1_3_c','q3_1_4'];
+        // ── 3.1 Creative Works (cap 30) ──────────────────────────────────────
+        $cw_fields = [
+            'q3_1_1','q3_1_2_a','q3_1_2_c','q3_1_2_d',
+            'q3_1_2_e','q3_1_2_f','q3_1_3_a','q3_1_3_b',
+            'q3_1_3_c','q3_1_4',
+        ];
         $cwData = [];
-        foreach ($cw_fields as $f) { $cwData[$f] = (float)$this->{'new_'.$f}; }
-        $cwData['subtotal'] = min(array_sum($cwData), 30);
+        foreach ($cw_fields as $f) {
+            $cwData[$f] = (float)$this->{'new_'.$f};
+        }
+        $cwData['subtotal'] = min(array_sum($cwData), 30.0);
         $pd->creativeWork->update($cwData);
 
-        $act_fields = ['q3_2_1_1_a','q3_2_1_1_b','q3_2_1_1_c','q3_2_1_2','q3_2_1_3_a','q3_2_1_3_b','q3_2_1_3_c','q3_2_2_1_a','q3_2_2_1_b','q3_2_2_1_c','q3_2_2_2','q3_2_2_3','q3_2_2_4','q3_2_2_5','q3_2_2_6','q3_2_2_7'];
-        $actData = [];
-        foreach ($act_fields as $f) { $actData[$f] = (float)$this->{'new_'.$f}; }
-        $actData['subtotal'] = min(array_sum($actData), 30);
+        // ── 3.2.1 Training fields (cap 10) ───────────────────────────────────
+        $act321_fields = [
+            'q3_2_1_1_a','q3_2_1_1_b','q3_2_1_1_c',
+            'q3_2_1_2',
+            'q3_2_1_3_a','q3_2_1_3_b','q3_2_1_3_c',
+        ];
+        $act321Data = [];
+        foreach ($act321_fields as $f) {
+            $act321Data[$f] = (float)$this->{'new_'.$f};
+        }
+        $subtotal321 = min(array_sum($act321Data), 10.0);
+
+        // ── 3.2.2 Expert Services fields (cap 20) ─────────────────────────────
+        $act322_fields = [
+            'q3_2_2_1_a','q3_2_2_1_b','q3_2_2_1_c',
+            'q3_2_2_2_a','q3_2_2_2_b','q3_2_2_2_c',
+            'q3_2_2_3_a','q3_2_2_3_b','q3_2_2_3_c',
+            'q3_2_2_4','q3_2_2_5','q3_2_2_6','q3_2_2_7',
+        ];
+        $act322Data = [];
+        foreach ($act322_fields as $f) {
+            $act322Data[$f] = (float)$this->{'new_'.$f};
+        }
+        $subtotal322 = min(array_sum($act322Data), 20.0);
+
+        // Persist activity with separate subtotals stored and combined total
+        $actData = array_merge($act321Data, $act322Data, [
+            'subtotal_321' => $subtotal321,
+            'subtotal_322' => $subtotal322,
+            'subtotal'     => min($subtotal321 + $subtotal322, 30.0),
+        ]);
         $pd->activity->update($actData);
 
-        $rec_fields = ['q3_3_1_a','q3_3_1_b','q3_3_1_c','q3_3_2','q3_3_3_a_doctorate','q3_3_3_a_masters','q3_3_3_a_nondegree','q3_3_3_b_doctorate','q3_3_3_b_masters','q3_3_3_b_nondegree','q3_3_3_c_doctorate','q3_3_3_c_masters','q3_3_3_c_nondegree','q3_3_3_d_doctorate','q3_3_3_d_masters','q3_3_3_e'];
+        // ── 3.3 Recognition (cap 10) ──────────────────────────────────────────
+        $rec_fields = [
+            'q3_3_1_a_full_member','q3_3_1_a_associate_member',
+            'q3_3_1_b','q3_3_1_c','q3_3_1_d_officer','q3_3_1_d_member',
+            'q3_3_2_a','q3_3_2_b','q3_3_2_c',
+            'q3_3_3_a_doctorate','q3_3_3_a_masters','q3_3_3_a_nondegree',
+            'q3_3_3_b_doctorate','q3_3_3_b_masters','q3_3_3_b_nondegree',
+            'q3_3_3_c_doctorate','q3_3_3_c_masters','q3_3_3_c_nondegree',
+            'q3_3_3_d_doctorate','q3_3_3_d_masters','q3_3_3_e',
+        ];
         $recData = [];
-        foreach ($rec_fields as $f) { $recData[$f] = (float)$this->{'new_'.$f}; }
-        $recData['subtotal'] = min(array_sum($recData), 10);
+        foreach ($rec_fields as $f) {
+            $recData[$f] = (float)$this->{'new_'.$f};
+        }
+        $recData['subtotal'] = min(array_sum($recData), 10.0);
         $pd->recognition->update($recData);
 
+        // ── 3.4 Awards (cap 5) ────────────────────────────────────────────────
         $awData = [
             'q3_4_a' => (float)$this->new_q3_4_a,
             'q3_4_b' => (float)$this->new_q3_4_b,
             'q3_4_c' => (float)$this->new_q3_4_c,
         ];
-        $awData['subtotal'] = min(array_sum($awData), 5);
+        $awData['subtotal'] = min(array_sum($awData), 5.0);
         $pd->award->update($awData);
 
+        // ── 3.5 Outreach (cap 5) ──────────────────────────────────────────────
         $outVal = (float)$this->new_q3_3_5_1;
-        $pd->outreach->update(['q3_3_5_1' => $outVal, 'subtotal' => min($outVal, 5)]);
+        $pd->outreach->update([
+            'q3_3_5_1' => $outVal,
+            'subtotal'  => min($outVal, 5.0),
+        ]);
 
+        // ── 3.6 Licensure (cap 10) ────────────────────────────────────────────
         $licData = [
             'q3_6_1_a' => (float)$this->new_q3_6_1_a,
             'q3_6_1_b' => (float)$this->new_q3_6_1_b,
             'q3_6_1_c' => (float)$this->new_q3_6_1_c,
             'q3_6_1_d' => (float)$this->new_q3_6_1_d,
         ];
-        $licData['subtotal'] = min(array_sum($licData), 10);
+        $licData['subtotal'] = min(array_sum($licData), 10.0);
         $pd->licensure->update($licData);
     }
 
