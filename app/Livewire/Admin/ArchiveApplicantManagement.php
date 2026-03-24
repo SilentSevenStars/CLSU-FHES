@@ -37,7 +37,7 @@ class ArchiveApplicantManagement extends Component
     public function openRestoreModal($id)
     {
         $jobApplication = JobApplication::with('applicant')->findOrFail($id);
-        
+
         if ($jobApplication->status === 'hired') {
             session()->flash('error', 'Cannot restore this application. It was used to hire/promote this applicant and must be kept for records.');
             return;
@@ -55,7 +55,7 @@ class ArchiveApplicantManagement extends Component
     public function restore()
     {
         $jobApplication = JobApplication::with('applicant')->findOrFail($this->selectedJobApplicationId);
-        
+
         if ($jobApplication->status === 'hired') {
             session()->flash('error', 'Cannot restore this application. It was used to hire/promote this applicant and must be kept for records.');
             $this->closeRestoreModal();
@@ -66,14 +66,13 @@ class ArchiveApplicantManagement extends Component
             ->update(['archive' => false]);
 
         session()->flash('success', 'Applicant restored successfully.');
-
         $this->closeRestoreModal();
     }
 
     public function openDeleteModal($id)
     {
         $jobApplication = JobApplication::with('applicant')->findOrFail($id);
-        
+
         if ($jobApplication->status === 'hired') {
             session()->flash('error', 'Cannot delete this application. It was used to hire/promote this applicant and must be kept for records.');
             return;
@@ -91,7 +90,7 @@ class ArchiveApplicantManagement extends Component
     public function delete()
     {
         $jobApplication = JobApplication::with('applicant')->findOrFail($this->selectedJobApplicationId);
-        
+
         if ($jobApplication->status === 'hired') {
             session()->flash('error', 'Cannot delete this application. It was used to hire/promote this applicant and must be kept for records.');
             $this->closeDeleteModal();
@@ -101,24 +100,48 @@ class ArchiveApplicantManagement extends Component
         $jobApplication->delete();
 
         session()->flash('success', 'Applicant permanently deleted.');
-
         $this->closeDeleteModal();
     }
 
     public function render()
     {
-        $archivedApplicants = JobApplication::query()
+        // Base query — archive/hired filters applied at DB level (not encrypted)
+        $query = JobApplication::query()
             ->with(['applicant.user', 'position'])
             ->where('archive', true)
             ->where('status', '!=', 'hired')
-            ->when($this->search, function ($q) {
-                $q->whereHas('applicant.user', function ($u) {
-                    $u->where('name', 'like', "%{$this->search}%")
-                      ->orWhere('email', 'like', "%{$this->search}%");
-                });
-            })
-            ->latest()
-            ->paginate($this->perPage);
+            ->latest();
+
+        // If no search, paginate at DB level for performance
+        if (!$this->search) {
+            $archivedApplicants = $query->paginate($this->perPage);
+        } else {
+            // Pull all results first so Eloquent casts can decrypt name/email
+            $search = strtolower($this->search);
+
+            $all = $query->get()->filter(function ($application) use ($search) {
+                // user->name and user->email are auto-decrypted by the Encrypted cast
+                $name     = strtolower($application->applicant?->user?->name ?? '');
+                $email    = strtolower($application->applicant?->user?->email ?? '');
+                $position = strtolower($application->position?->name ?? '');
+
+                return str_contains($name, $search)
+                    || str_contains($email, $search)
+                    || str_contains($position, $search);
+            })->values();
+
+            // Manual pagination on the filtered collection
+            $perPage     = (int) $this->perPage;
+            $currentPage = $this->getPage();
+
+            $archivedApplicants = new \Illuminate\Pagination\LengthAwarePaginator(
+                $all->forPage($currentPage, $perPage),
+                $all->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        }
 
         return view('livewire.admin.archive-applicant-management', [
             'archivedApplicants' => $archivedApplicants,
