@@ -89,7 +89,6 @@ class UserManagement extends Component
             ],
         ];
 
-        // Password rules
         if ($this->isEditMode) {
             $rules['password'] = 'nullable|min:8|confirmed';
         } else {
@@ -98,26 +97,23 @@ class UserManagement extends Component
             }
         }
 
-        // Role-specific validation
         switch ($this->filterRole) {
             case 'applicant':
-                $rules['first_name'] = 'required|string|max:255';
-                $rules['last_name']  = 'required|string|max:255';
+                $rules['first_name']  = 'required|string|max:255';
+                $rules['last_name']   = 'required|string|max:255';
                 $rules['middle_name'] = 'nullable|string|max:255';
-                $rules['suffix']     = 'nullable|string|max:50';
+                $rules['suffix']      = 'nullable|string|max:50';
                 break;
 
             case 'panel':
                 $rules['name']           = 'required|string|max:255';
                 $rules['panel_position'] = 'required|in:head,señior,dean,chair_fsb,fai_president,clutches_president,director_hr';
-
-                $rules['college_id'] = [
+                $rules['college_id']     = [
                     Rule::requiredIf(fn() => !$this->isNoCollegeDeptPosition()),
                     'nullable',
                     'exists:colleges,id',
                 ];
-
-                $rules['department_id'] = [
+                $rules['department_id']  = [
                     Rule::requiredIf(fn() => !$this->isNoDeptPosition()),
                     'nullable',
                     'exists:departments,id',
@@ -146,8 +142,8 @@ class UserManagement extends Component
         return $rules;
     }
 
-    public function updatingSearch()   { $this->resetPage(); }
-    public function updatingPerPage()  { $this->resetPage(); }
+    public function updatingSearch()    { $this->resetPage(); }
+    public function updatingPerPage()   { $this->resetPage(); }
     public function updatingFilterRole() { $this->resetPage(); }
 
     public function updatedCollegeId()
@@ -208,7 +204,6 @@ class UserManagement extends Component
                 $this->name = $user->name;
                 $nbcCommittee = NbcCommittee::where('user_id', $user->id)->first();
                 if ($nbcCommittee) {
-                    // position is decrypted automatically by the Encrypted cast
                     $this->nbc_position = $nbcCommittee->position;
                 }
                 break;
@@ -225,7 +220,7 @@ class UserManagement extends Component
 
     public function openArchiveModal($id)
     {
-        $this->archiveUserId  = $id;
+        $this->archiveUserId    = $id;
         $this->showArchiveModal = true;
     }
 
@@ -243,20 +238,20 @@ class UserManagement extends Component
 
     public function resetForm()
     {
-        $this->user_id              = null;
-        $this->name                 = '';
-        $this->first_name           = '';
-        $this->middle_name          = '';
-        $this->last_name            = '';
-        $this->suffix               = '';
-        $this->email                = '';
-        $this->password             = '';
+        $this->user_id               = null;
+        $this->name                  = '';
+        $this->first_name            = '';
+        $this->middle_name           = '';
+        $this->last_name             = '';
+        $this->suffix                = '';
+        $this->email                 = '';
+        $this->password              = '';
         $this->password_confirmation = '';
-        $this->role                 = '';
-        $this->panel_position       = '';
-        $this->college_id           = '';
-        $this->department_id        = '';
-        $this->nbc_position         = '';
+        $this->role                  = '';
+        $this->panel_position        = '';
+        $this->college_id            = '';
+        $this->department_id         = '';
+        $this->nbc_position          = '';
         $this->resetValidation();
     }
 
@@ -264,7 +259,6 @@ class UserManagement extends Component
     {
         $this->validate();
 
-        // ── Chairperson uniqueness guard ──────────────────────────────────────
         if ($this->filterRole === 'nbc' &&
             $this->nbc_position === NbcCommittee::POSITION_CHAIRPERSON)
         {
@@ -295,8 +289,8 @@ class UserManagement extends Component
     private function createUser()
     {
         $userData = [
-            'email'              => $this->email,
-            'email_verified_at'  => now(),
+            'email'             => $this->email,
+            'email_verified_at' => now(),
         ];
 
         if ($this->password) {
@@ -334,7 +328,6 @@ class UserManagement extends Component
 
             case 'nbc':
                 $user->assignRole('nbc');
-                // position is encrypted automatically by the Encrypted cast
                 NbcCommittee::create([
                     'user_id'  => $user->id,
                     'position' => $this->nbc_position,
@@ -399,7 +392,6 @@ class UserManagement extends Component
             case 'nbc':
                 $nbcCommittee = NbcCommittee::where('user_id', $user->id)->first();
                 if ($nbcCommittee) {
-                    // position encrypted automatically by the Encrypted cast
                     $nbcCommittee->update(['position' => $this->nbc_position]);
                 }
                 break;
@@ -433,6 +425,7 @@ class UserManagement extends Component
 
     public function render()
     {
+        // Base DB query — role filter applied at DB level (not encrypted)
         $query = User::with(['roles', 'panel.college', 'panel.department', 'nbcCommittee', 'applicant'])
             ->where('id', '!=', Auth::id())
             ->where('archive', false);
@@ -443,26 +436,14 @@ class UserManagement extends Component
             });
         }
 
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('applicant', function ($subQ) {
-                        $subQ->where('first_name', 'like', '%' . $this->search . '%')
-                            ->orWhere('last_name', 'like', '%' . $this->search . '%');
-                    });
-            });
-        }
-
-        $users = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
-
-        $baseQuery    = User::where('id', '!=', Auth::id())->where('archive', false);
-        $totalUsers   = $baseQuery->count();
-        $adminCount   = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'admin'))->count();
+        // Stats queries (always DB-level, no encryption involved)
+        $baseQuery       = User::where('id', '!=', Auth::id())->where('archive', false);
+        $totalUsers      = $baseQuery->count();
+        $adminCount      = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'admin'))->count();
         $superAdminCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'super-admin'))->count();
-        $panelCount   = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'panel'))->count();
-        $nbcCount     = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'nbc'))->count();
-        $applicantCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'applicant'))->count();
+        $panelCount      = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'panel'))->count();
+        $nbcCount        = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'nbc'))->count();
+        $applicantCount  = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'applicant'))->count();
 
         $availableRoles = Role::whereNotIn('name', ['applicant', 'nbc', 'panel'])
             ->orderBy('name')
@@ -478,6 +459,49 @@ class UserManagement extends Component
         $chairpersonTaken = NbcCommittee::chairpersonExists(
             $this->isEditMode ? $this->user_id : null
         );
+
+        // If no search, paginate at DB level for performance
+        if (!$this->search) {
+            $users = $query->orderBy('created_at', 'desc')->paginate($this->perPage);
+        } else {
+            // Pull all role-filtered users first so Eloquent casts can decrypt name/email
+            $search = strtolower($this->search);
+
+            $all = $query->orderBy('created_at', 'desc')->get()->filter(function ($user) use ($search) {
+                $roleName = $user->roles->first()?->name ?? '';
+
+                // For applicants: search first_name, middle_name, last_name (encrypted on Applicant model)
+                if ($roleName === 'applicant' && $user->applicant) {
+                    $firstName  = strtolower($user->applicant->first_name ?? '');
+                    $middleName = strtolower($user->applicant->middle_name ?? '');
+                    $lastName   = strtolower($user->applicant->last_name ?? '');
+
+                    if (str_contains($firstName, $search)
+                        || str_contains($middleName, $search)
+                        || str_contains($lastName, $search)) {
+                        return true;
+                    }
+                }
+
+                // For all users: search name and email (both encrypted on User model via Encrypted cast)
+                $name  = strtolower($user->name ?? '');
+                $email = strtolower($user->email ?? '');
+
+                return str_contains($name, $search) || str_contains($email, $search);
+            })->values();
+
+            // Manual pagination on the filtered collection
+            $perPage     = (int) $this->perPage;
+            $currentPage = $this->getPage();
+
+            $users = new \Illuminate\Pagination\LengthAwarePaginator(
+                $all->forPage($currentPage, $perPage),
+                $all->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+        }
 
         return view('livewire.admin.user-management', [
             'users'            => $users,

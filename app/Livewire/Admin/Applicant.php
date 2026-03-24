@@ -15,8 +15,8 @@ class Applicant extends Component
     use WithPagination;
 
     public $status = 'pending';
-    public $college_id = '';        
-    public $department_id = '';     
+    public $college_id = '';
+    public $department_id = '';
     public $departments = [];
     public $perPage = 10;
     public $search = '';
@@ -53,7 +53,7 @@ class Applicant extends Component
 
     public function updatedDepartmentId()
     {
-
+        //
     }
 
     public function updatingPerPage()
@@ -96,7 +96,9 @@ class Applicant extends Component
                 ->get();
         }
 
-        $query = JobApplication::with(['applicant.user', 'position.college', 'position.department']);
+        // Base query with all filters EXCEPT search (search is done in PHP after decryption)
+        $query = JobApplication::with(['applicant.user', 'position.college', 'position.department'])
+            ->latest();
 
         if (in_array($this->status, ['pending', 'approve', 'decline'])) {
             $query->where('status', $this->status);
@@ -120,23 +122,44 @@ class Applicant extends Component
             });
         }
 
-        if ($this->search) {
-            $query->whereHas('applicant.user', function ($q) {
-                $q->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('email', 'like', "%{$this->search}%");
-            });
+        // If no search, paginate at DB level for performance
+        if (!$this->search) {
+            $applications = $query->paginate($this->perPage);
+        } else {
+            // Pull all filtered results first so Eloquent casts can decrypt name/email
+            $search = strtolower($this->search);
+
+            $all = $query->get()->filter(function ($application) use ($search) {
+                $name     = strtolower($application->applicant?->user?->name ?? '');
+                $email    = strtolower($application->applicant?->user?->email ?? '');
+                $position = strtolower($application->position?->name ?? '');
+
+                return str_contains($name, $search)
+                    || str_contains($email, $search)
+                    || str_contains($position, $search);
+            })->values();
+
+            // Manual pagination on the filtered collection
+            $perPage     = (int) $this->perPage;
+            $currentPage = $this->getPage();
+
+            $applications = new \Illuminate\Pagination\LengthAwarePaginator(
+                $all->forPage($currentPage, $perPage),
+                $all->count(),
+                $perPage,
+                $currentPage,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
         }
 
-        $applications = $query->latest()->paginate($this->perPage);
-
         return view('livewire.admin.applicant', [
-            'applications' => $applications,
-            'pendingCount' => $pendingCount,
+            'applications'  => $applications,
+            'pendingCount'  => $pendingCount,
             'approvedCount' => $approvedCount,
             'declinedCount' => $declinedCount,
-            'colleges' => College::orderBy('name')->get(),
-            'departments' => $this->departments,
-            'positions' => Position::orderBy('name')->get(),
+            'colleges'      => College::orderBy('name')->get(),
+            'departments'   => $this->departments,
+            'positions'     => Position::orderBy('name')->get(),
         ]);
     }
 }
