@@ -48,28 +48,14 @@ class Dashboard extends Component
             return collect()->paginate($this->perPage);
         }
 
+        // Fetch all evaluations where deadline has not passed, with all needed relations
         $query = Evaluation::with([
             'jobApplication.applicant.user',
             'jobApplication.position',
         ])
-        // interview_date is the DEADLINE — show evaluations where deadline has not passed
         ->whereDate('interview_date', '>=', today());
 
-        // Search filter
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->whereHas('jobApplication.applicant', function ($applicantQuery) {
-                    $applicantQuery->where('first_name', 'like', '%' . $this->search . '%')
-                        ->orWhere('middle_name', 'like', '%' . $this->search . '%')
-                        ->orWhere('last_name', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('jobApplication.position', function ($positionQuery) {
-                    $positionQuery->where('name', 'like', '%' . $this->search . '%');
-                });
-            });
-        }
-
-        // Sort: pending first, complete last; then alphabetically by applicant last_name
+        // Sort: pending first, complete last
         $query->orderByRaw('
             CASE
                 WHEN EXISTS (
@@ -84,16 +70,46 @@ class Dashboard extends Component
                 ) THEN 1
                 ELSE 0
             END
-        ', [Auth::id()])
-        ->orderBy(
-            \App\Models\Applicant::select('last_name')
-                ->join('job_applications', 'job_applications.applicant_id', '=', 'applicants.id')
-                ->whereColumn('job_applications.id', 'evaluations.job_application_id')
-                ->limit(1),
-            'asc'
-        );
+        ', [Auth::id()]);
 
-        return $query->paginate($this->perPage);
+        // Get all results first so Eloquent casts can decrypt the fields
+        $all = $query->get();
+
+        // PHP-side search: name (encrypted via cast), email (encrypted via cast), position (plaintext)
+        if ($this->search) {
+            $search = strtolower($this->search);
+            $all = $all->filter(function ($evaluation) use ($search) {
+                $applicant = $evaluation->jobApplication?->applicant;
+                $user      = $applicant?->user;
+
+                // full_name may be a computed attribute — also check individual parts
+                $firstName = strtolower($applicant?->first_name ?? '');
+                $middleName = strtolower($applicant?->middle_name ?? '');
+                $lastName  = strtolower($applicant?->last_name ?? '');
+                $email     = strtolower($user?->email ?? '');
+                $position  = strtolower($evaluation->jobApplication?->position?->name ?? '');
+
+                return str_contains($firstName, $search)
+                    || str_contains($middleName, $search)
+                    || str_contains($lastName, $search)
+                    || str_contains($email, $search)
+                    || str_contains($position, $search);
+            })->values();
+        }
+
+        // Manual pagination on the filtered collection
+        $perPage     = (int) $this->perPage;
+        $currentPage = $this->getPage();
+        $total       = $all->count();
+        $items       = $all->forPage($currentPage, $perPage);
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
     }
 
     public function getPendingTodayCountProperty()
@@ -104,7 +120,6 @@ class Dashboard extends Component
             return 0;
         }
 
-        // Count evaluations where deadline has not yet passed AND not yet completed by THIS member
         return Evaluation::whereDate('interview_date', '>=', today())
             ->whereDoesntHave('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
                 $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
@@ -121,7 +136,6 @@ class Dashboard extends Component
             return 0;
         }
 
-        // Count evaluations that THIS member has already completed (regardless of deadline)
         return Evaluation::whereHas('nbcAssignments', function ($assignmentQuery) use ($nbcCommittee) {
                 $assignmentQuery->where('nbc_committee_id', $nbcCommittee->id)
                     ->where('status', 'complete');
@@ -131,8 +145,6 @@ class Dashboard extends Component
 
     /**
      * Print the NBC evaluation report for all active evaluations (deadline not yet passed).
-     * Shows all applicants (pending and complete) sorted by last name.
-     * Each row shows the scores from THIS member's nbc_assignment (if complete), otherwise zeros.
      */
     public function printReport()
     {
@@ -159,13 +171,11 @@ class Dashboard extends Component
             $a = $evaluation->jobApplication->applicant;
             $p = $evaluation->jobApplication->position;
 
-            // Format name as "LAST, First M."
             $middleInitial = $a->middle_name
                 ? ' ' . strtoupper(substr($a->middle_name, 0, 1)) . '.'
                 : '';
             $fullName = strtoupper($a->last_name) . ', ' . $a->first_name . $middleInitial;
 
-            // Get THIS member's assignment for this evaluation
             $assignment = NbcAssignment::with([
                 'educationalQualification',
                 'experienceService',
@@ -177,7 +187,6 @@ class Dashboard extends Component
 
             $isComplete = $assignment && $assignment->status === 'complete';
 
-            // Scores — zero if pending, actual subtotals if complete
             $eduScore  = $isComplete && $assignment->educationalQualification
                 ? (float) $assignment->educationalQualification->subtotal
                 : 0;

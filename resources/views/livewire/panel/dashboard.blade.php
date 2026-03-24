@@ -117,7 +117,7 @@
                         </div>
                         <input wire:model.live.debounce.300ms="search"
                                type="text"
-                               placeholder="Search by applicant name or email..."
+                               placeholder="Search applicant name, email, or position..."
                                class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] transition-all duration-200 shadow-sm">
                     </div>
                 </div>

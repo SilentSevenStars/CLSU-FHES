@@ -17,10 +17,6 @@ class Dashboard extends Component
 
     protected $paginationTheme = 'tailwind';
 
-    /**
-     * University-level positions: see ALL applications across all colleges/departments,
-     * and route to interview (same as dean/señior).
-     */
     private const UNIVERSITY_POSITIONS = [
         'chair_fsb',
         'fai_president',
@@ -135,26 +131,29 @@ class Dashboard extends Component
             }
         }
 
-        // Search filter
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->whereHas('applicant', function ($sub) {
-                    $sub->where('first_name', 'like', "%{$this->search}%")
-                        ->orWhere('last_name', 'like', "%{$this->search}%");
-                })
-                ->orWhereHas('applicant.user', function ($sub) {
-                    $sub->where('email', 'like', "%{$this->search}%");
-                });
-            });
-        }
-
-        // Get all matching applications with eager loading
+        // Eager load everything BEFORE PHP-side filtering
         $applications = $query->with([
             'applicant.user',
             'position.college',
             'position.department',
             'evaluation',
         ])->get();
+
+        // PHP-side search: Eloquent casts auto-decrypt name/email
+        // We cannot use MySQL AES_DECRYPT because Laravel's Crypt::encrypt()
+        // uses OpenSSL AES-256-CBC with a serialized JSON payload — incompatible with MySQL.
+        if ($this->search) {
+            $search = strtolower($this->search);
+            $applications = $applications->filter(function ($app) use ($search) {
+                $name     = strtolower($app->applicant?->user?->name ?? '');
+                $email    = strtolower($app->applicant?->user?->email ?? '');
+                $position = strtolower($app->position?->name ?? '');
+
+                return str_contains($name, $search)
+                    || str_contains($email, $search)
+                    || str_contains($position, $search);
+            });
+        }
 
         // Get assignments for this panel
         $assignments = PanelAssignment::where('panel_id', $panel->id)
