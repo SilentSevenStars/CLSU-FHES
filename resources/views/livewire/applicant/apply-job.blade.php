@@ -82,21 +82,18 @@
             <div class="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-8">
                 @foreach($positions as $index => $position)
                 @php
-                    // This specific position was applied to by the user
                     $isAppliedToThis = in_array($position->id, $applied);
-
-                    // User has applied somewhere else — lock this card
                     $isLockedOut = $hasActiveApplication && !$isAppliedToThis;
                 @endphp
 
                 <div class="group bg-white rounded-xl shadow-lg transition-all duration-300 animate-slideInLeft border-l-4
-                    {{ $isLockedOut ? 'opacity-60 border-gray-300 cursor-default' : 'hover:shadow-2xl transform hover:-translate-y-1 border-[#0A6025]' }}"
+                    hover:shadow-2xl transform hover:-translate-y-1 border-[#0A6025]"
                     style="animation-delay: {{ $index * 0.1 }}s;">
                     <div class="p-6">
 
                         <!-- Icon -->
                         <div class="rounded-2xl p-4 shadow-lg w-16 h-16 flex items-center justify-center mb-4
-                            {{ $isLockedOut ? 'bg-gray-300' : 'bg-gradient-to-br from-yellow-500 to-[#0A6025] group-hover:scale-110 transition-transform duration-300' }}">
+                            bg-gradient-to-br from-yellow-500 to-[#0A6025] group-hover:scale-110 transition-transform duration-300">
                             <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -105,7 +102,7 @@
 
                         <!-- Job Title -->
                         <h5 class="text-xl font-bold mb-3 leading-tight transition-colors duration-300
-                            {{ $isLockedOut ? 'text-gray-400' : 'text-gray-800 group-hover:text-[#0A6025]' }}">
+                            text-gray-800 group-hover:text-[#0A6025]">
                             {{ $position->name }}@if($position->department) - {{ $position->department->name }}@endif
                         </h5>
 
@@ -115,7 +112,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
-                            <p class="text-sm font-medium {{ $isLockedOut ? 'text-gray-400' : 'text-gray-600' }}">
+                            <p class="text-sm font-medium text-gray-600">
                                 {{ $position->college->name ?? 'Various Colleges' }}
                             </p>
                         </div>
@@ -133,17 +130,23 @@
                         </div>
 
                         <!-- Card Button -->
-                        @if($isLockedOut)
-                            <div class="block w-full text-center font-semibold rounded-lg text-sm px-4 py-3 bg-gray-200 text-gray-400 cursor-not-allowed select-none">
+                        @if($isAppliedToThis)
+                            <button wire:click="viewDetails({{ $position->id }})"
+                                class="block w-full text-center font-semibold rounded-lg text-sm px-4 py-3 transition-all duration-300
+                                text-white bg-yellow-600 hover:bg-yellow-700 shadow-md hover:shadow-lg">
+                                View Application
+                            </button>
+                        @elseif($isLockedOut)
+                            <button disabled
+                                class="block w-full text-center font-semibold rounded-lg text-sm px-4 py-3
+                                bg-gray-200 text-gray-400 cursor-not-allowed select-none">
                                 Not Available
-                            </div>
+                            </button>
                         @else
                             <button wire:click="viewDetails({{ $position->id }})"
                                 class="block w-full text-center font-semibold rounded-lg text-sm px-4 py-3 transition-all duration-300
-                                {{ $isAppliedToThis
-                                    ? 'text-white bg-yellow-600 hover:bg-yellow-700 shadow-md hover:shadow-lg'
-                                    : 'text-white bg-[#0A6025] hover:bg-[#0B712C] focus:ring-4 focus:ring-[#0A6025] shadow-md hover:shadow-lg transform hover:scale-105' }}">
-                                {{ $isAppliedToThis ? 'View Application' : 'View Details' }}
+                                text-white bg-[#0A6025] hover:bg-[#0B712C] focus:ring-4 focus:ring-[#0A6025] shadow-md hover:shadow-lg transform hover:scale-105">
+                                View Details
                             </button>
                         @endif
 
@@ -289,7 +292,6 @@
                         </button>
 
                         @if($selectedIsApplied)
-                            {{-- Applied to THIS position --}}
                             @if($this->canEditApplication($selectedPosition->id))
                                 <a href="{{ route('edit-job-application', ['application_id' => $this->getApplicationId($selectedPosition->id)]) }}"
                                     class="px-6 py-2.5 text-sm font-semibold text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-all duration-200 shadow-md hover:shadow-lg">
@@ -302,7 +304,6 @@
                                 </button>
                             @endif
                         @else
-                            {{-- Not applied to this position — show Apply Now --}}
                             <a href="{{ route('job-application', ['position_id' => $selectedPosition->id]) }}"
                                 class="px-6 py-2.5 text-sm font-semibold text-white bg-[#0A6025] rounded-lg hover:bg-[#0B712C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A6025] transition-all duration-200 shadow-md hover:shadow-lg">
                                 Apply Now
