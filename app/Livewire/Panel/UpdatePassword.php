@@ -26,9 +26,9 @@ class UpdatePassword extends Component
 
     public function mount()
     {
-        if (Auth::user()->role !== 'panel') {
-            abort(403, 'Unauthorized access.');
-        }
+        // if (Auth::user()->role !== 'panel') {
+        //     abort(403, 'Unauthorized access.');
+        // }
     }
 
     public function updatePassword()

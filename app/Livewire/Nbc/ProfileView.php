@@ -12,9 +12,9 @@ class ProfileView extends Component
 
     public function mount()
     {
-        if (Auth::user()->role !== 'nbc') {
-            abort(403, 'Unauthorized access.');
-        }
+        // if (Auth::user()->role !== 'nbc') {
+        //     abort(403, 'Unauthorized access.');
+        // }
 
         $this->nbc = Auth::user();
         $this->nbcInfo = \App\Models\NbcCommittee::where('user_id', Auth::id())->first();

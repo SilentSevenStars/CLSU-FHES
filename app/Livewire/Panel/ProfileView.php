@@ -12,9 +12,9 @@ class ProfileView extends Component
 
     public function mount()
     {
-        if (Auth::user()->role !== 'panel') {
-            abort(403, 'Unauthorized access.');
-        }
+        // if (Auth::user()->role !== 'panel') {
+        //     abort(403, 'Unauthorized access.');
+        // }
 
         $this->panel = Auth::user();
         // Get panel information from panels table
