@@ -12,7 +12,6 @@ use Livewire\Component;
 
 class OtpVerify extends Component
 {
-    // Individual digit fields bound to the 6 input boxes
     #[Rule('required|digits:1')]
     public string $d1 = '';
     public string $d2 = '';
@@ -24,13 +23,8 @@ class OtpVerify extends Component
     public string $statusMessage = '';
     public string $errorMessage  = '';
 
-    // Countdown seconds remaining before resend is allowed
     public int $resendCooldown = 60;
     public bool $canResend = false;
-
-    // -------------------------------------------------------------------------
-    // Lifecycle
-    // -------------------------------------------------------------------------
 
     public function mount(): void
     {
@@ -47,7 +41,6 @@ class OtpVerify extends Component
             return;
         }
 
-        // Auto-send OTP on first load if none exists or existing is expired
         $existing = OtpVerification::where('user_id', $user->id)->latest()->first();
 
         if (! $existing || $existing->isExpired()) {
@@ -56,13 +49,7 @@ class OtpVerify extends Component
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Actions
-    // -------------------------------------------------------------------------
 
-    /**
-     * Called when user clicks "Verify OTP".
-     */
     public function verify(): void
     {
         $this->errorMessage  = '';
@@ -76,7 +63,6 @@ class OtpVerify extends Component
             return;
         }
 
-        // Combine the 6 digit fields
         $otp = $this->d1 . $this->d2 . $this->d3 . $this->d4 . $this->d5 . $this->d6;
 
         if (strlen($otp) !== 6 || ! ctype_digit($otp)) {
@@ -104,7 +90,6 @@ class OtpVerify extends Component
             return;
         }
 
-        // ✅ Valid — mark verified and clean up
         $user->markEmailAsVerified();
         $otpRecord->delete();
 
@@ -112,9 +97,6 @@ class OtpVerify extends Component
         $this->redirectByRole($user);
     }
 
-    /**
-     * Called when user clicks "Resend OTP".
-     */
     public function resend(): void
     {
         $this->errorMessage  = '';
@@ -134,13 +116,8 @@ class OtpVerify extends Component
         $this->resendCooldown = 60;
         $this->statusMessage  = 'A new OTP has been sent to your email address.';
 
-        // Restart the cooldown timer on the frontend
         $this->dispatch('otp-resent');
     }
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
 
     private function generateAndSendOtp(\App\Models\User $user): void
     {
@@ -154,7 +131,6 @@ class OtpVerify extends Component
             'expires_at' => now()->addMinutes(10),
         ]);
 
-        // $user->email and $user->name are auto-decrypted by the Encrypted cast
         Mail::to($user->email)->send(new OtpMail($otp, $user->name ?? 'User'));
     }
 
@@ -182,10 +158,6 @@ class OtpVerify extends Component
 
         $this->redirect(route('dashboard'), navigate: true);
     }
-
-    // -------------------------------------------------------------------------
-    // Render
-    // -------------------------------------------------------------------------
 
     public function render()
     {
