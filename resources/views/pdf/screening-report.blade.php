@@ -2,22 +2,22 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>NBC Evaluation Report</title>
+    <title>Comparative Assessment Form</title>
     <style>
         @page {
-            margin: 10mm 12mm 10mm 12mm;
-            size: A4 landscape;
+            margin: 10mm 15mm 10mm 15mm;
+            size: legal landscape;
         }
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 9pt;
-            line-height: 1.3;
-            color: #000;
+            font-size: 10pt;
+            line-height: 1.2;
         }
 
         .page {
             page-break-after: always;
+            height: 100%;
             display: flex;
             flex-direction: column;
         }
@@ -26,177 +26,150 @@
             page-break-after: avoid;
         }
 
-        /* ── Header ── */
-        .header-meta {
-            font-size: 7pt;
+        .header {
+            margin-bottom: 10px;
+        }
+
+        .header-left {
+            text-align: left;
+            font-size: 8pt;
             margin-bottom: 2px;
-        }
-
-        .header-table {
-            width: 100%;
-            border: none;
-            margin-bottom: 3px;
-            border-collapse: collapse;
-        }
-
-        .header-table td {
-            border: none;
-            padding: 1px 4px;
         }
 
         .university-name {
             font-weight: bold;
-            font-size: 10.5pt;
+            font-size: 11pt;
+            margin: 2px 0;
         }
 
         .sub-header {
-            font-size: 8.5pt;
+            font-size: 9pt;
+            margin: 1px 0;
         }
 
         .form-title {
+            font-size: 9pt;
+            margin: 1px 0;
             font-weight: bold;
-            font-size: 9.5pt;
-            text-align: center;
-            margin: 3px 0 2px;
         }
 
-        .report-meta {
-            font-size: 8pt;
-            margin: 4px 0 6px;
-            border: 1px solid #ccc;
-            padding: 4px 8px;
-            background: #f9f9f9;
+        .form-subtitle {
+            font-size: 9pt;
+            margin: 1px 0;
+            font-style: italic;
+            text-decoration: underline;
         }
 
-        .report-meta table {
-            width: 100%;
-            border: none;
-            border-collapse: collapse;
+        .position-name {
+            text-align: left;
+            font-style: italic;
+            font-weight: bold;
+            font-size: 9pt;
+            margin-bottom: 4px;
+            margin-top: 6px;
         }
 
-        .report-meta td {
-            border: none;
-            padding: 1px 6px;
-            font-size: 8pt;
-        }
-
-        /* ── Main Table ── */
-        table.main {
+        /* ── Main table ── */
+        table {
             width: 100%;
             border-collapse: collapse;
             margin: 4px 0;
         }
 
-        table.main th {
-            background-color: #d9d9d9;
+        th {
             border: 1px solid #000;
-            padding: 4px 3px;
+            padding: 5px 4px;
             text-align: center;
-            font-size: 7.5pt;
+            font-size: 8pt;
             font-weight: bold;
+            vertical-align: middle;
         }
 
-        table.main td {
+        td {
             border: 1px solid #000;
-            padding: 4px 3px;
-            font-size: 8pt;
+            padding: 5px 4px;
+            font-size: 9pt;
             text-align: center;
             vertical-align: middle;
         }
 
-        table.main td.text-left {
+        td.text-left {
             text-align: left;
         }
 
-        .score-zero {
-            color: #9ca3af;
-            font-style: italic;
-        }
-
-        .score-value {
-            font-weight: 600;
-            color: #166534;
-        }
-
-        .total-score {
+        .rank-number {
             font-weight: bold;
-            font-size: 8.5pt;
         }
 
-        .total-zero {
-            font-weight: bold;
-            font-size: 8.5pt;
-            color: #9ca3af;
-            font-style: italic;
-        }
-
-        .status-complete {
-            font-weight: bold;
-            color: #166534;
-        }
-
-        .status-pending {
-            font-weight: bold;
-            color: #92400e;
-        }
-
-        /* ── Footer ── */
+        /* ── Signatures ── */
         .footer {
             margin-top: 10px;
-            font-size: 7.5pt;
+            page-break-inside: avoid;
         }
 
-        .footer-note {
-            font-style: italic;
-            margin-bottom: 8px;
-        }
-
-        .sig-table {
+        .signature-section {
+            display: table;
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
+            margin-bottom: 10px;
         }
 
-        .sig-table td {
-            border: none;
+        .signature-row {
+            display: table-row;
+        }
+
+        .signature-cell {
+            display: table-cell;
             text-align: center;
-            padding: 3px 8px;
-            font-size: 7.5pt;
-            vertical-align: top;
-            width: 50%;
+            padding: 3px 6px;
+            font-size: 7pt;
+            vertical-align: bottom;
         }
 
-        .sig-line {
-            border-bottom: 1px solid #000;
-            margin: 2px 20px 0 20px;
-        }
-
-        .sig-name {
+        .signature-name {
             font-weight: bold;
-            font-size: 8.5pt;
-            margin-bottom: 2px;
+            font-size: 8pt;
+            margin-bottom: 0;
+            min-height: 14px;
         }
 
-        .sig-title {
+        .signature-line {
+            border-bottom: 1px solid #000;
+            margin: 2px 10px 2px 10px;
+        }
+
+        .signature-title {
             font-size: 7pt;
             margin-top: 2px;
+            font-style: italic;
         }
 
+        /* ── Form footer ── */
         .form-footer {
             margin-top: 8px;
-            font-size: 6.5pt;
+            font-size: 7pt;
             color: #666;
         }
 
-        /* ── Screen only ── */
+        .revision-info {
+            text-align: left;
+        }
+
+        .center-text {
+            text-align: center;
+        }
+
+        .prepared-by {
+            font-size: 9pt;
+        }
+
+        /* ── Screen preview ── */
         @media screen {
             body { background: #e5e7eb; }
             .page {
                 background: white;
-                /* A4 landscape width */
-                width: 272mm;
+                width: 355mm;
                 margin: 20px auto;
-                padding: 10mm 12mm;
+                padding: 12mm;
                 box-shadow: 0 0 12px rgba(0,0,0,0.25);
             }
             .print-btn-wrap {
@@ -206,7 +179,7 @@
             .print-btn {
                 display: inline-block;
                 padding: 10px 32px;
-                background: #1d4ed8;
+                background: #156B2D;
                 color: white;
                 border: none;
                 border-radius: 8px;
@@ -215,7 +188,7 @@
                 cursor: pointer;
                 margin-bottom: 10px;
             }
-            .print-btn:hover { background: #1e40af; }
+            .print-btn:hover { background: #125A26; }
         }
 
         @media print {
@@ -232,176 +205,214 @@
 </div>
 
 @php
-    // Support both dashboard-style printing (multiple rows) and the
-    // admin single-record case.
-    if (!isset($reportData)) {
-        $reportData = isset($data) ? [$data] : [];
-    }
-
-    $interviewDate   = $interviewDate   ?? ($reportData[0]['interview_date'] ?? '');
-    $totalApplicants = $totalApplicants ?? count($reportData);
-    $completedCount  = $completedCount  ?? collect($reportData)->where('status', 'Complete')->count();
-    $pendingCount    = $pendingCount    ?? ($totalApplicants - $completedCount);
-
-    $rowsPerPage = 12;   // fewer rows per page because of the extra columns on landscape
-    $dataChunks  = array_chunk($reportData, $rowsPerPage);
+    $rowsPerPage = 8;
+    $dataChunks  = array_chunk($screeningData, $rowsPerPage);
     $totalPages  = count($dataChunks);
     if (empty($dataChunks)) {
         $dataChunks = [[]];
-        $totalPages = 1;
     }
 @endphp
 
-@foreach($dataChunks as $pageIndex => $pageRows)
+@foreach($dataChunks as $pageIndex => $pageData)
 <div class="page">
 
-    <!-- Header -->
-    <div class="header-meta">NBC EVALUATION REPORT</div>
+    <!-- ══ HEADER ══ -->
+    <div class="header">
+        <div class="header-left">COMPARATIVE ASSESSMENT FORM</div>
 
-    <table class="header-table">
-        <tr>
-            <td style="width: 10%; text-align: right; vertical-align: middle;">
-                <img src="{{ asset('image/clsu.png') }}" alt="CLSU Logo" style="height: 46px; width: auto;">
-            </td>
-            <td style="text-align: center; vertical-align: middle;">
-                <div style="font-size: 8.5pt;">Republic of the Philippines</div>
-                <div class="university-name">CENTRAL LUZON STATE UNIVERSITY</div>
-                <div class="sub-header">Science City of Muñoz, Nueva Ecija</div>
-            </td>
-            <td style="width: 10%;"></td>
-        </tr>
-    </table>
-
-    <div class="sub-header" style="text-align:center;">HUMAN RESOURCE MANAGEMENT OFFICE</div>
-    <div class="form-title">NBC EVALUATION — LIST OF APPLICANTS</div>
-
-    <!-- Report meta -->
-    <div class="report-meta">
-        <table>
+        <table style="border: none; margin-bottom: 2px;">
             <tr>
-                <td><strong>Interview / Deadline Date:</strong> {{ $interviewDate }}</td>
-                <td><strong>Total Applicants:</strong> {{ $totalApplicants }}</td>
-                <td><strong>Completed:</strong> {{ $completedCount }}</td>
-                <td><strong>Pending:</strong> {{ $pendingCount }}</td>
+                <td style="border: none; width: 15%; text-align: right; vertical-align: middle; padding-right: 8px;">
+                    <img src="{{ asset('image/clsu.png') }}" alt="CLSU Logo"
+                         style="height: 55px; width: auto;">
+                </td>
+                <td style="border: none; text-align: center; vertical-align: middle;">
+                    <div style="font-size: 9pt;">Republic of the Philippines</div>
+                    <div class="university-name">CENTRAL LUZON STATE UNIVERSITY</div>
+                    <div class="sub-header">Science City of Muñoz, Nueva Ecija</div>
+                </td>
+                <td style="border: none; width: 15%;"></td>
             </tr>
         </table>
+
+        <div class="sub-header center-text">HUMAN RESOURCE MANAGEMENT OFFICE</div>
+        <div class="form-title center-text">SUMMARY OF EVALUATION</div>
+        <div class="form-title center-text">SCREENING OF APPLICANTS FOR FACULTY POSITIONS</div>
+        <div class="form-subtitle center-text">VARIOUS COLLEGES</div>
     </div>
 
-    <!-- Main Table -->
-    <table class="main">
+    <!-- ══ POSITION NAME ══ -->
+    <div class="position-name">{{ $positionName }}</div>
+
+    <!-- ══ MAIN TABLE ══ -->
+    <table>
         <thead>
             <tr>
-                <th style="width: 4%;">No.</th>
-                <th style="width: 20%;">Name of Applicant</th>
-                <th style="width: 17%;">Position Applied</th>
-                <th style="width: 16%;">Email</th>
-                <th style="width: 10%;">Educational<br>Qualification<br>Score</th>
-                <th style="width: 10%;">Experience<br>Service<br>Score</th>
-                <th style="width: 10%;">Professional<br>Development<br>Score</th>
-                <th style="width: 7%;">Total<br>Score</th>
-                <th style="width: 6%;">Date of<br>Evaluation</th>
+                <th style="width: 20%;">NAME OF APPLICANTS</th>
+                <th style="width: 18%;">FIELD OF SPECIALIZATION</th>
+                <th style="width: 12%;">
+                    Performance (SPMS)<br>
+                    <span style="font-weight: normal; font-size: 6pt;">(Max.30 pts.)</span>
+                </th>
+                <th style="width: 14%;">
+                    Credentials &amp; Related<br>Experiences<br>
+                    <span style="font-weight: normal; font-size: 6pt;">(Max.200 pts.)</span>
+                </th>
+                <th style="width: 12%;">
+                    Interview<br>
+                    <span style="font-weight: normal; font-size: 6pt;">(Max.60 pts.)</span>
+                </th>
+                <th style="width: 12%;">TOTAL</th>
+                <th style="width: 12%;">RANK</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($pageRows as $row)
-            @php
-                $isPending = ($row['status'] === 'Pending');
-            @endphp
+            @foreach($pageData as $data)
             <tr>
-                <td>{{ $row['number'] }}</td>
-                <td class="text-left">{{ $row['name'] }}</td>
-                <td class="text-left">{{ $row['position'] }}</td>
-                <td class="text-left" style="font-size: 7pt;">{{ $row['email'] }}</td>
-
-                {{-- Educational Qualification Score --}}
-                <td>
-                    @if($isPending)
-                        <span class="score-zero">0.000</span>
-                    @else
-                        <span class="score-value">{{ $row['edu_score'] }}</span>
-                    @endif
-                </td>
-
-                {{-- Experience Service Score --}}
-                <td>
-                    @if($isPending)
-                        <span class="score-zero">0.000</span>
-                    @else
-                        <span class="score-value">{{ $row['exp_score'] }}</span>
-                    @endif
-                </td>
-
-                {{-- Professional Development Score --}}
-                <td>
-                    @if($isPending)
-                        <span class="score-zero">0.000</span>
-                    @else
-                        <span class="score-value">{{ $row['pro_score'] }}</span>
-                    @endif
-                </td>
-
-                {{-- Total Score --}}
-                <td>
-                    @if($isPending)
-                        <span class="total-zero">0.000</span>
-                    @else
-                        <span class="total-score">{{ $row['total_score'] }}</span>
-                    @endif
-                </td>
-
-                {{-- Date of Evaluation — blank if pending --}}
-                <td>
-                    @if(!empty($row['evaluation_date']))
-                        {{ $row['evaluation_date'] }}
-                    @else
-                        &nbsp;
-                    @endif
-                </td>
+                <td class="text-left">{{ $data['name'] }}</td>
+                <td class="text-left">{{ $data['specialization'] }}</td>
+                <td>{{ number_format($data['performance'], 2) }}</td>
+                <td>{{ number_format($data['credentials_experience'], 2) }}</td>
+                <td>{{ number_format($data['interview'], 2) }}</td>
+                <td style="font-weight: bold;">{{ number_format($data['total'], 2) }}</td>
+                <td><span class="rank-number">{{ $data['rank'] }}</span></td>
             </tr>
             @endforeach
 
-            {{-- Fill blank rows to maintain consistent table height --}}
-            @for($i = count($pageRows); $i < $rowsPerPage; $i++)
+            {{-- Fill remaining rows to make exactly $rowsPerPage per page --}}
+            @for($i = count($pageData); $i < $rowsPerPage; $i++)
             <tr>
                 <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-                <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-                <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+                <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
             </tr>
             @endfor
+
+            {{-- One extra blank row --}}
+            <tr>
+                <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+                <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+            </tr>
+
+            {{-- Prepared by row --}}
+            <tr>
+                <td class="text-left prepared-by"><strong>Prepared by: Jameka S. Lucido</strong></td>
+                <td>&nbsp;</td><td>&nbsp;</td>
+                <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+            </tr>
         </tbody>
     </table>
 
-    <!-- Footer -->
+    <!-- ══ FOOTER / SIGNATURES ══ -->
     <div class="footer">
-        <div class="footer-note">
-            Page {{ $pageIndex + 1 }} of {{ $totalPages }}
-            &nbsp;&nbsp;|&nbsp;&nbsp;
-            Generated: {{ $generatedDate }}
-            &nbsp;&nbsp;|&nbsp;&nbsp;
-            Scores shown are per evaluating NBC committee member. Pending rows show 0 until evaluation is submitted.
+
+        <!-- Row 1 – Members -->
+        <div class="signature-section">
+            <div class="signature-row">
+                <div class="signature-cell" style="width: 25%;">
+                    <div class="signature-name">{{ $panelMembers['supervising_admin'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Member, Supervising Admin. Officer, HRMO</div>
+                </div>
+                <div class="signature-cell" style="width: 25%;">
+                    <div class="signature-name">{{ $panelMembers['fai_president'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Member, FAI President/Representative</div>
+                </div>
+                <div class="signature-cell" style="width: 25%;">
+                    <div class="signature-name">{{ $panelMembers['glutches_preside'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Member, CLUTCHES Preside</div>
+                </div>
+                <div class="signature-cell" style="width: 25%;">
+                    <div class="signature-name">{{ $panelMembers['ranking_faculty'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Member, Ranking Faculty</div>
+                </div>
+            </div>
         </div>
 
-        <table class="sig-table">
-            <tr>
-                <td>
-                    <div class="sig-name">&nbsp;</div>
-                    <div class="sig-line"></div>
-                    <div class="sig-title">Prepared by (NBC Committee Member)</div>
-                </td>
-                <td>
-                    <div class="sig-name">&nbsp;</div>
-                    <div class="sig-line"></div>
-                    <div class="sig-title">Noted by (HRMO Officer)</div>
-                </td>
-            </tr>
-        </table>
-    </div>
+        <!-- Row 2 – Deans -->
+        <div class="signature-section">
+            <div class="signature-row">
+                <div class="signature-cell" style="width: 16.66%;">
+                    <div class="signature-name">{{ $panelMembers['dean_cass'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Dean, CASS</div>
+                </div>
+                <div class="signature-cell" style="width: 16.66%;">
+                    <div class="signature-name">{{ $panelMembers['dean_cen'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Dean, CEN Representative</div>
+                </div>
+                <div class="signature-cell" style="width: 16.66%;">
+                    <div class="signature-name">{{ $panelMembers['dean_cos'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Dean, COS</div>
+                </div>
+                <div class="signature-cell" style="width: 16.66%;">
+                    <div class="signature-name">{{ $panelMembers['dean_ced'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Dean, CED</div>
+                </div>
+                <div class="signature-cell" style="width: 16.66%;">
+                    <div class="signature-name">{{ $panelMembers['dean_cf'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Dean, CF</div>
+                </div>
+                <div class="signature-cell" style="width: 16.66%;">
+                    <div class="signature-name">{{ $panelMembers['dean_cba'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Dean, CBA</div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Row 3 – Senior Faculty and Heads -->
+        <div class="signature-section">
+            <div class="signature-row">
+                <div class="signature-cell" style="width: 20%;">
+                    <div class="signature-name">{{ $panelMembers['senior_faculty'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Senior Faculty</div>
+                </div>
+                <div class="signature-cell" style="width: 20%;">
+                    <div class="signature-name">{{ $panelMembers['head_dabe'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Head, Dept DABE, Representative</div>
+                </div>
+                <div class="signature-cell" style="width: 20%;">
+                    <div class="signature-name">{{ $panelMembers['head_business'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Head, Dept Business</div>
+                </div>
+                <div class="signature-cell" style="width: 20%;">
+                    <div class="signature-name">{{ $panelMembers['head_ispels'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Head, ISPELS</div>
+                </div>
+                <div class="signature-cell" style="width: 20%;">
+                    <div class="signature-name">{{ $panelMembers['chairman_fsb'] }}</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-title">Chairman, Faculty Selection Board &amp; VPAA</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 4 – University President (Centered) -->
+        <div class="center-text" style="margin-top: 6px;">
+            <div class="signature-name" style="font-weight: bold;">{{ $panelMembers['university_president'] }}</div>
+            <div class="signature-line" style="width: 250px; margin: 2px auto;"></div>
+            <div class="signature-title" style="font-size: 7pt; font-style: italic;">University President</div>
+        </div>
+
+    </div><!-- /footer -->
+
+    <!-- ══ FORM FOOTER ══ -->
     <div class="form-footer">
-        ADM.ADS.HRM.NBC.F.001 (Revision No. 0; {{ $generatedDate }})
+        <div class="revision-info">ADM.ADS.HRM.F.036 (Revision No. 0; June 29, 2021)</div>
     </div>
 
-</div>
+</div><!-- /page -->
 @endforeach
 
 <script>

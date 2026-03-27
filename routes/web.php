@@ -48,6 +48,7 @@ use App\Livewire\Nbc\Profile as NbcProfile;
 use App\Livewire\Nbc\ProfileView as NbcProfileView;
 use App\Livewire\Nbc\UpdatePassword as NbcUpdatePassword;
 use App\Livewire\NotificationManager;
+use App\Livewire\OtpVerify;
 use App\Livewire\Panel\Dashboard as PanelDashboard;
 use App\Livewire\Panel\Experience;
 use App\Livewire\Panel\Interview;
@@ -70,6 +71,16 @@ use Illuminate\Support\Facades\Route;
 //         return view('dashboard');
 //     })->name('dashboard');
 // });
+
+Route::middleware('auth')->group(function () {
+ 
+    Route::get('/email/verify', OtpVerify::class)
+        ->name('verification.notice');
+ 
+    Route::get('/otp/verify', OtpVerify::class)
+        ->name('otp.verify');
+ 
+});
 
 Route::middleware([
     'auth',
