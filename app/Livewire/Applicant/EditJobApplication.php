@@ -18,45 +18,86 @@ class EditJobApplication extends Component
 {
     use WithFileUploads;
 
-    public string $first_name = "";
+    // ── Pagination ────────────────────────────────────────────────────────────
+    public int $currentStep = 1;
+    public int $totalSteps  = 4;
+
+    // ── Personal Information ──────────────────────────────────────────────────
+    public string $first_name  = "";
     public string $middle_name = "";
-    public string $last_name = "";
-    public string $suffix = "";
+    public string $last_name   = "";
+    public string $suffix      = "";
     public string $phone_number = "";
 
-    public string $region = "";
-    public string $province = "";
-    public string $city = "";
-    public string $barangay = "";
-    public string $street = "";
+    // ── Address ───────────────────────────────────────────────────────────────
+    public string $region      = "";
+    public string $province    = "";
+    public string $city        = "";
+    public string $barangay    = "";
+    public string $street      = "";
     public string $postal_code = "";
 
-    public string $present_position = "";
-    public string $education = "";
-    public $educationOptions = [];
+    // ── Employment ────────────────────────────────────────────────────────────
+    public string $present_position   = "";
+    public string $education          = "";
+    public $educationOptions          = [];
     public $experience;
     public $training;
-    public string $eligibility = "";
-    public bool $eligibilityIsFixed = false;
+    public string $eligibility        = "";
+    public bool   $eligibilityIsFixed = false;
     public string $positionEligibility = "";
-    public string $other_involvement = "";
+    public string $other_involvement  = "";
+
+    // ── Documents / Privacy ───────────────────────────────────────────────────
     public $requirements_file;
     public $application_id;
     public $position_id;
     public $existing_file_path = null;
-
     public bool $agree_to_terms = false;
 
+    // ── Meta ──────────────────────────────────────────────────────────────────
     public $deadlineTimestamp;
     public $isSubmitting = false;
 
-    public $regions = [];
+    // ── Address lists ─────────────────────────────────────────────────────────
+    public $regions   = [];
     public $provinces = [];
-    public $cities = [];
+    public $cities    = [];
     public $barangays = [];
 
-    // Snapshot of original values for change detection
+    // ── Change tracking ───────────────────────────────────────────────────────
     protected array $originalData = [];
+
+    // ── Per-step validation rules ─────────────────────────────────────────────
+    protected array $stepRules = [
+        1 => [
+            'first_name'   => 'required|string|max:255',
+            'middle_name'  => 'nullable|string|max:255',
+            'last_name'    => 'required|string|max:255',
+            'suffix'       => 'nullable|string|max:5',
+            'phone_number' => 'required|regex:/^09[0-9]{9}$/|size:11',
+        ],
+        2 => [
+            'region'      => 'required|string|max:255',
+            'province'    => 'required|string|max:255',
+            'city'        => 'required|string|max:255',
+            'barangay'    => 'required|string|max:255',
+            'street'      => 'required|string|max:255',
+            'postal_code' => 'required|string|max:10',
+        ],
+        3 => [
+            'present_position'  => 'required|string|max:255',
+            'education'         => 'required|string|max:255',
+            'experience'        => 'required|integer|min:0',
+            'training'          => 'required|integer|min:0',
+            'eligibility'       => 'required|string|max:255',
+            'other_involvement' => 'required|string|max:255',
+        ],
+        4 => [
+            'requirements_file' => 'nullable|mimes:pdf|max:102400',
+            'agree_to_terms'    => 'accepted',
+        ],
+    ];
 
     protected $rules = [
         'first_name'        => 'required|string|max:255',
@@ -126,17 +167,17 @@ class EditJobApplication extends Component
             return redirect()->route('apply-job');
         }
 
-        $this->first_name     = $applicant->first_name;
-        $this->middle_name    = $applicant->middle_name ?? '';
-        $this->last_name      = $applicant->last_name;
-        $this->suffix         = $applicant->suffix ?? '';
-        $this->phone_number   = $applicant->phone_number ?? '';
-        $this->region         = $applicant->region ?? '';
-        $this->province       = $applicant->province ?? '';
-        $this->city           = $applicant->city ?? '';
-        $this->barangay       = $applicant->barangay ?? '';
-        $this->street         = $applicant->street ?? '';
-        $this->postal_code    = $applicant->postal_code ?? '';
+        $this->first_name   = $applicant->first_name;
+        $this->middle_name  = $applicant->middle_name ?? '';
+        $this->last_name    = $applicant->last_name;
+        $this->suffix       = $applicant->suffix ?? '';
+        $this->phone_number = $applicant->phone_number ?? '';
+        $this->region       = $applicant->region ?? '';
+        $this->province     = $applicant->province ?? '';
+        $this->city         = $applicant->city ?? '';
+        $this->barangay     = $applicant->barangay ?? '';
+        $this->street       = $applicant->street ?? '';
+        $this->postal_code  = $applicant->postal_code ?? '';
 
         $this->present_position  = $application->present_position;
         $this->education         = $application->education;
@@ -153,7 +194,6 @@ class EditJobApplication extends Component
             $this->eligibility = $application->eligibility;
         }
 
-        // Snapshot all trackable fields after loading so save() can diff against them
         $this->originalData = [
             'first_name'        => $this->first_name,
             'middle_name'       => $this->middle_name,
@@ -190,6 +230,52 @@ class EditJobApplication extends Component
     {
         return stripos(trim($eligibility), 'None required') === 0;
     }
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+
+    public function nextStep()
+    {
+        $this->validateStep($this->currentStep);
+
+        if ($this->currentStep < $this->totalSteps) {
+            $this->currentStep++;
+            $this->dispatch('step-changed');
+        }
+    }
+
+    public function previousStep()
+    {
+        if ($this->currentStep > 1) {
+            $this->currentStep--;
+            $this->dispatch('step-changed');
+        }
+    }
+
+    public function goToStep(int $step)
+    {
+        if ($step < $this->currentStep) {
+            $this->currentStep = $step;
+            $this->dispatch('step-changed');
+        }
+    }
+
+    protected function validateStep(int $step): void
+    {
+        if ($step === 3 && $this->eligibilityIsFixed) {
+            $this->eligibility = 'None Required';
+        }
+
+        $rules = $this->stepRules[$step] ?? [];
+
+        try {
+            $this->validate($rules);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('scroll-to-error');
+            throw $e;
+        }
+    }
+
+    // ── Address loaders ───────────────────────────────────────────────────────
 
     public function loadRegions()
     {
@@ -252,17 +338,6 @@ class EditJobApplication extends Component
         }
     }
 
-    public function updatedRegion($value)
-    {
-        $this->province  = '';
-        $this->city      = '';
-        $this->barangay  = '';
-        $this->provinces = [];
-        $this->cities    = [];
-        $this->barangays = [];
-        if ($value) $this->loadProvinces();
-    }
-
     public function loadProvinces()
     {
         if (!$this->region) return;
@@ -276,15 +351,6 @@ class EditJobApplication extends Component
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to load provinces.');
         }
-    }
-
-    public function updatedProvince($value)
-    {
-        $this->city      = '';
-        $this->barangay  = '';
-        $this->cities    = [];
-        $this->barangays = [];
-        if ($value) $this->loadCities();
     }
 
     public function loadCities()
@@ -302,13 +368,6 @@ class EditJobApplication extends Component
         }
     }
 
-    public function updatedCity($value)
-    {
-        $this->barangay  = '';
-        $this->barangays = [];
-        if ($value) $this->loadBarangays();
-    }
-
     public function loadBarangays()
     {
         if (!$this->city) return;
@@ -322,6 +381,33 @@ class EditJobApplication extends Component
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to load barangays.');
         }
+    }
+
+    public function updatedRegion($value)
+    {
+        $this->province  = '';
+        $this->city      = '';
+        $this->barangay  = '';
+        $this->provinces = [];
+        $this->cities    = [];
+        $this->barangays = [];
+        if ($value) $this->loadProvinces();
+    }
+
+    public function updatedProvince($value)
+    {
+        $this->city      = '';
+        $this->barangay  = '';
+        $this->cities    = [];
+        $this->barangays = [];
+        if ($value) $this->loadCities();
+    }
+
+    public function updatedCity($value)
+    {
+        $this->barangay  = '';
+        $this->barangays = [];
+        if ($value) $this->loadBarangays();
     }
 
     public function updatedPhoneNumber($value)
@@ -339,11 +425,6 @@ class EditJobApplication extends Component
         if (strlen($this->phone_number) > 11) {
             $this->phone_number = substr($this->phone_number, 0, 11);
         }
-    }
-
-    public function updated($field)
-    {
-        $this->validateOnly($field);
     }
 
     public function confirmSubmission()
@@ -424,7 +505,6 @@ class EditJobApplication extends Component
         ]);
         $jobApplication->save();
 
-        // Build a human-readable diff of every changed field
         $fieldLabels = [
             'first_name'        => 'First Name',
             'middle_name'       => 'Middle Name',
@@ -487,7 +567,6 @@ class EditJobApplication extends Component
                     . implode(', ', $changes) . '.'
             );
         } else {
-            // Log even when no field changed, e.g. user just re-submitted without edits
             AccountActivityService::log(
                 Auth::user(),
                 "Saved job application (ID: {$this->application_id}) for position \"{$position->title}\" with no changes."

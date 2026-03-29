@@ -18,40 +18,81 @@ class JobApplication extends Component
 {
     use WithFileUploads;
 
-    public string $first_name = "";
+    // ── Pagination ────────────────────────────────────────────────────────────
+    public int $currentStep = 1;
+    public int $totalSteps  = 4;
+
+    // ── Personal Information ──────────────────────────────────────────────────
+    public string $first_name  = "";
     public string $middle_name = "";
-    public string $last_name = "";
-    public string $suffix = "";
+    public string $last_name   = "";
+    public string $suffix      = "";
     public string $phone_number = "";
 
-    public string $region = "";
-    public string $province = "";
-    public string $city = "";
-    public string $barangay = "";
-    public string $street = "";
+    // ── Address ───────────────────────────────────────────────────────────────
+    public string $region      = "";
+    public string $province    = "";
+    public string $city        = "";
+    public string $barangay    = "";
+    public string $street      = "";
     public string $postal_code = "";
 
-    public string $present_position = "";
-    public string $education = "";
-    public $educationOptions = [];
+    // ── Employment ────────────────────────────────────────────────────────────
+    public string $present_position  = "";
+    public string $education         = "";
+    public $educationOptions         = [];
     public $experience;
     public $training;
-    public string $eligibility = "";
-    public bool $eligibilityIsFixed = false;
+    public string $eligibility       = "";
+    public bool   $eligibilityIsFixed = false;
     public string $positionEligibility = "";
-    public string $other_involvement = "";
+    public string $other_involvement  = "";
+
+    // ── Documents / Privacy ───────────────────────────────────────────────────
     public $requirements_file;
     public $position_id;
-
     public bool $agree_to_terms = false;
 
+    // ── Meta ──────────────────────────────────────────────────────────────────
     public $deadlineTimestamp;
     public $isSubmitting = false;
 
-    public $regions = [];
+    // ── Address lists ─────────────────────────────────────────────────────────
+    public $regions   = [];
     public $provinces = [];
-    public $cities = [];
+    public $cities    = [];
     public $barangays = [];
+
+    // ── Per-step validation rules ─────────────────────────────────────────────
+    protected array $stepRules = [
+        1 => [
+            'first_name'   => 'required|string|max:255',
+            'middle_name'  => 'nullable|string|max:255',
+            'last_name'    => 'required|string|max:255',
+            'suffix'       => 'nullable|string|max:5',
+            'phone_number' => 'required|regex:/^09[0-9]{9}$/|size:11',
+        ],
+        2 => [
+            'region'      => 'required|string|max:255',
+            'province'    => 'required|string|max:255',
+            'city'        => 'required|string|max:255',
+            'barangay'    => 'required|string|max:255',
+            'street'      => 'required|string|max:255',
+            'postal_code' => 'required|string|max:10',
+        ],
+        3 => [
+            'present_position'  => 'required|string|max:255',
+            'education'         => 'required|string|max:255',
+            'experience'        => 'required|integer|min:0',
+            'training'          => 'required|integer|min:0',
+            'eligibility'       => 'required|string|max:255',
+            'other_involvement' => 'required|string|max:255',
+        ],
+        4 => [
+            'requirements_file' => 'required|mimes:pdf|max:102400',
+            'agree_to_terms'    => 'accepted',
+        ],
+    ];
 
     protected $rules = [
         'first_name'        => 'required|string|max:255',
@@ -164,6 +205,53 @@ class JobApplication extends Component
     {
         return stripos(trim($eligibility), 'None required') === 0;
     }
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+
+    public function nextStep()
+    {
+        $this->validateStep($this->currentStep);
+
+        if ($this->currentStep < $this->totalSteps) {
+            $this->currentStep++;
+            $this->dispatch('step-changed');
+        }
+    }
+
+    public function previousStep()
+    {
+        if ($this->currentStep > 1) {
+            $this->currentStep--;
+            $this->dispatch('step-changed');
+        }
+    }
+
+    public function goToStep(int $step)
+    {
+        // Only allow going back to previously completed steps
+        if ($step < $this->currentStep) {
+            $this->currentStep = $step;
+            $this->dispatch('step-changed');
+        }
+    }
+
+    protected function validateStep(int $step): void
+    {
+        if ($step === 3 && $this->eligibilityIsFixed) {
+            $this->eligibility = 'None Required';
+        }
+
+        $rules = $this->stepRules[$step] ?? [];
+
+        try {
+            $this->validate($rules);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->dispatch('scroll-to-error');
+            throw $e;
+        }
+    }
+
+    // ── Address loaders ───────────────────────────────────────────────────────
 
     public function loadRegions()
     {
@@ -380,7 +468,6 @@ class JobApplication extends Component
         ]);
         $jobApplication->save();
 
-        // Fetch position title for a meaningful log message
         $position = Position::find($this->position_id);
 
         AccountActivityService::log(
