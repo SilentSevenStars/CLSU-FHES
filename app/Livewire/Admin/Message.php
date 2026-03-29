@@ -5,6 +5,8 @@ namespace App\Livewire\Admin;
 use App\Models\Applicant;
 use App\Models\Notification;
 use App\Mail\NotificationMail;
+use App\Services\AccountActivityService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
@@ -20,9 +22,9 @@ class Message extends Component
     public $attachments = [];
 
     protected $rules = [
-        'subject' => 'required|string|max:255',
-        'message' => 'required|string',
-        'attachments.*' => 'nullable|file|max:10240',
+        'subject'        => 'required|string|max:255',
+        'message'        => 'required|string',
+        'attachments.*'  => 'nullable|file|max:10240',
     ];
 
     public function mount()
@@ -56,29 +58,49 @@ class Message extends Component
 
             $applicants = Applicant::with('user')->whereIn('id', $this->applicantIds)->get();
 
+            $sentCount   = 0;
+            $failedCount = 0;
+            $recipients  = [];  
+
             foreach ($applicants as $applicant) {
-                // Create notification and store in variable
                 $notification = Notification::create([
                     'applicant_id' => $applicant->id,
-                    'subject' => $this->subject,
-                    'message' => (string) $this->message,
-                    'attachments' => $uploadedFilePaths,
-                    'is_read' => false,
-                    'email_sent' => false,
+                    'subject'      => $this->subject,
+                    'message'      => (string) $this->message,
+                    'attachments'  => $uploadedFilePaths,
+                    'is_read'      => false,
+                    'email_sent'   => false,
                 ]);
 
                 try {
                     Mail::to($applicant->user->email)
                         ->send(new \App\Mail\NotificationMail($notification));
 
-                    // Mark as sent
                     $notification->update([
-                        'email_sent' => true,
+                        'email_sent'    => true,
                         'email_sent_at' => now(),
                     ]);
+
+                    $sentCount++;
+                    $recipients[] = trim("{$applicant->first_name} {$applicant->last_name}") 
+                                    . " ({$applicant->user->email})";  
                 } catch (\Exception $e) {
                     Log::error('Failed to send email to ' . $applicant->user->email . ': ' . $e->getMessage());
+                    $failedCount++;
                 }
+            }
+
+            if ($sentCount > 0) {
+                $recipientList = implode(', ', $recipients);
+                $attachmentNote = !empty($uploadedFilePaths)
+                    ? ' with ' . count($uploadedFilePaths) . ' attachment(s)'
+                    : '';
+
+                AccountActivityService::log(
+                    Auth::user(),
+                    "Sent notification\"{$this->subject}\"{$attachmentNote} to {$sentCount} applicant(s): {$recipientList}."
+                        . ($failedCount > 0 ? " ({$failedCount} failed to deliver.)" : '')
+                );
             }
 
             session()->flash('success', 'Message sent successfully to ' . $applicants->count() . ' applicant(s).');

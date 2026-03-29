@@ -2,148 +2,164 @@
 
 namespace App\Livewire\Admin;
 
-use App\Models\User;
+use App\Services\AccountActivityService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
+use App\Models\JobApplication;
 
-class ArchiveUserManagement extends Component
+class ArchiveApplicantManagement extends Component
 {
     use WithPagination;
 
-    public $restoreUserId;
-    public $deleteUserId;
-    public $showRestoreModal = false;
-    public $showDeleteModal = false;
-    public $perPage = 10;
-    public $search = '';
-    public $filterRole = 'all';
-
     protected $paginationTheme = 'tailwind';
 
-    public function updatingSearch()   { $this->resetPage(); }
-    public function updatingPerPage()  { $this->resetPage(); }
-    public function updatingFilterRole() { $this->resetPage(); }
+    public $search = '';
+    public $perPage = 10;
+
+    public $showRestoreModal = false;
+    public $showDeleteModal = false;
+    public $selectedJobApplicationId = null;
+
+    protected $queryString = [
+        'search'  => ['except' => ''],
+        'perPage' => ['except' => 10],
+    ];
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
 
     public function openRestoreModal($id)
     {
-        $this->restoreUserId    = $id;
-        $this->showRestoreModal = true;
-    }
+        $jobApplication = JobApplication::with('applicant')->findOrFail($id);
 
-    public function openDeleteModal($id)
-    {
-        $this->deleteUserId    = $id;
-        $this->showDeleteModal = true;
+        if ($jobApplication->status === 'hired') {
+            session()->flash('error', 'Cannot restore this application. It was used to hire/promote this applicant and must be kept for records.');
+            return;
+        }
+
+        $this->selectedJobApplicationId = $id;
+        $this->showRestoreModal = true;
     }
 
     public function closeRestoreModal()
     {
-        $this->showRestoreModal = false;
-        $this->restoreUserId   = null;
-    }
-
-    public function closeDeleteModal()
-    {
-        $this->showDeleteModal = false;
-        $this->deleteUserId   = null;
+        $this->reset(['showRestoreModal', 'selectedJobApplicationId']);
     }
 
     public function restore()
     {
-        try {
-            $user = User::findOrFail($this->restoreUserId);
+        // Load with all relations needed for the activity log
+        $jobApplication = JobApplication::with(['applicant.user', 'position'])->findOrFail($this->selectedJobApplicationId);
 
-            if ($user->id === Auth::id()) {
-                session()->flash('error', 'You cannot restore your own account from here!');
-                $this->closeRestoreModal();
-                return;
-            }
-
-            $user->update(['archive' => false]);
-            session()->flash('success', 'User restored successfully!');
+        if ($jobApplication->status === 'hired') {
+            session()->flash('error', 'Cannot restore this application. It was used to hire/promote this applicant and must be kept for records.');
             $this->closeRestoreModal();
-        } catch (\Exception $e) {
-            session()->flash('error', 'An error occurred: ' . $e->getMessage());
+            return;
         }
+
+        // Capture details before the update for use in the activity log
+        $applicantName = $jobApplication->applicant->user->name ?? 'Unknown';
+        $positionName  = $jobApplication->position->name        ?? 'Unknown';
+
+        $jobApplication->update(['archive' => false]);
+
+        // ── Activity log ──────────────────────────────────────────────────────
+        AccountActivityService::log(
+            Auth::user(),
+            "Restored archived job application for \"{$applicantName}\" — Position: \"{$positionName}\"."
+        );
+        // ─────────────────────────────────────────────────────────────────────
+
+        session()->flash('success', 'Applicant restored successfully.');
+        $this->closeRestoreModal();
+    }
+
+    public function openDeleteModal($id)
+    {
+        $jobApplication = JobApplication::with('applicant')->findOrFail($id);
+
+        if ($jobApplication->status === 'hired') {
+            session()->flash('error', 'Cannot delete this application. It was used to hire/promote this applicant and must be kept for records.');
+            return;
+        }
+
+        $this->selectedJobApplicationId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->reset(['showDeleteModal', 'selectedJobApplicationId']);
     }
 
     public function delete()
     {
-        try {
-            $user = User::findOrFail($this->deleteUserId);
+        // Load with all relations needed for the activity log
+        $jobApplication = JobApplication::with(['applicant.user', 'position'])->findOrFail($this->selectedJobApplicationId);
 
-            if ($user->id === Auth::id()) {
-                session()->flash('error', 'You cannot delete your own account!');
-                $this->closeDeleteModal();
-                return;
-            }
-
-            $user->delete();
-            session()->flash('success', 'User deleted permanently!');
+        if ($jobApplication->status === 'hired') {
+            session()->flash('error', 'Cannot delete this application. It was used to hire/promote this applicant and must be kept for records.');
             $this->closeDeleteModal();
-        } catch (\Exception $e) {
-            session()->flash('error', 'An error occurred: ' . $e->getMessage());
+            return;
         }
+
+        // Capture details BEFORE delete — relations are gone after the record is destroyed
+        $applicantName = $jobApplication->applicant->user->name ?? 'Unknown';
+        $positionName  = $jobApplication->position->name        ?? 'Unknown';
+
+        $jobApplication->delete();
+
+        // ── Activity log ──────────────────────────────────────────────────────
+        AccountActivityService::log(
+            Auth::user(),
+            "Permanently deleted archived job application for \"{$applicantName}\" — Position: \"{$positionName}\"."
+        );
+        // ─────────────────────────────────────────────────────────────────────
+
+        session()->flash('success', 'Applicant permanently deleted.');
+        $this->closeDeleteModal();
     }
 
     public function render()
     {
-        // Base DB query — role filter and archive flag applied at DB level
-        $query = User::with(['roles', 'panel.college', 'panel.department', 'nbcCommittee', 'applicant'])
-            ->where('id', '!=', Auth::id())
-            ->where('archive', true);
-
-        if ($this->filterRole !== 'all') {
-            $query->whereHas('roles', function ($q) {
-                $q->where('name', $this->filterRole);
-            });
-        }
-
-        // Stats queries (no encryption involved)
-        $baseQuery               = User::where('id', '!=', Auth::id())->where('archive', true);
-        $totalArchived           = $baseQuery->count();
-        $archivedAdminCount      = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'admin'))->count();
-        $archivedSuperAdminCount = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'super-admin'))->count();
-        $archivedPanelCount      = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'panel'))->count();
-        $archivedNbcCount        = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'nbc'))->count();
-        $archivedApplicantCount  = (clone $baseQuery)->whereHas('roles', fn($q) => $q->where('name', 'applicant'))->count();
+        // Base query — archive/hired filters applied at DB level (not encrypted)
+        $query = JobApplication::query()
+            ->with(['applicant.user', 'position'])
+            ->where('archive', true)
+            ->where('status', '!=', 'hired')
+            ->latest();
 
         // If no search, paginate at DB level for performance
         if (!$this->search) {
-            $archivedUsers = $query->orderBy('updated_at', 'desc')->paginate($this->perPage);
+            $archivedApplicants = $query->paginate($this->perPage);
         } else {
-            // Pull all role-filtered users first so Eloquent casts can decrypt name/email
+            // Pull all results first so Eloquent casts can decrypt name/email
             $search = strtolower($this->search);
 
-            $all = $query->orderBy('updated_at', 'desc')->get()->filter(function ($user) use ($search) {
-                $roleName = $user->roles->first()?->name ?? '';
+            $all = $query->get()->filter(function ($application) use ($search) {
+                // user->name and user->email are auto-decrypted by the Encrypted cast
+                $name     = strtolower($application->applicant?->user?->name  ?? '');
+                $email    = strtolower($application->applicant?->user?->email ?? '');
+                $position = strtolower($application->position?->name          ?? '');
 
-                // For applicants: search first_name, middle_name, last_name (encrypted on Applicant model)
-                if ($roleName === 'applicant' && $user->applicant) {
-                    $firstName  = strtolower($user->applicant->first_name ?? '');
-                    $middleName = strtolower($user->applicant->middle_name ?? '');
-                    $lastName   = strtolower($user->applicant->last_name ?? '');
-
-                    if (str_contains($firstName, $search)
-                        || str_contains($middleName, $search)
-                        || str_contains($lastName, $search)) {
-                        return true;
-                    }
-                }
-
-                // For all users: search name and email (both encrypted via Encrypted cast)
-                $name  = strtolower($user->name ?? '');
-                $email = strtolower($user->email ?? '');
-
-                return str_contains($name, $search) || str_contains($email, $search);
+                return str_contains($name, $search)
+                    || str_contains($email, $search)
+                    || str_contains($position, $search);
             })->values();
 
             // Manual pagination on the filtered collection
             $perPage     = (int) $this->perPage;
             $currentPage = $this->getPage();
 
-            $archivedUsers = new \Illuminate\Pagination\LengthAwarePaginator(
+            $archivedApplicants = new \Illuminate\Pagination\LengthAwarePaginator(
                 $all->forPage($currentPage, $perPage),
                 $all->count(),
                 $perPage,
@@ -152,14 +168,8 @@ class ArchiveUserManagement extends Component
             );
         }
 
-        return view('livewire.admin.archive-user-management', [
-            'archivedUsers'          => $archivedUsers,
-            'totalArchived'          => $totalArchived,
-            'archivedAdminCount'     => $archivedAdminCount,
-            'archivedSuperAdminCount' => $archivedSuperAdminCount,
-            'archivedPanelCount'     => $archivedPanelCount,
-            'archivedNbcCount'       => $archivedNbcCount,
-            'archivedApplicantCount' => $archivedApplicantCount,
+        return view('livewire.admin.archive-applicant-management', [
+            'archivedApplicants' => $archivedApplicants,
         ]);
     }
 }

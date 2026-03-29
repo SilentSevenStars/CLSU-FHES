@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ScreeningExportController;
+use App\Livewire\Admin\AccountActivities;
+use App\Livewire\Admin\AccountLogs;
 use App\Livewire\Admin\Applicant;
 use App\Livewire\Admin\ApplicantEdit;
 use App\Livewire\Admin\ApplicantShow;
@@ -214,6 +216,9 @@ Route::middleware([
         Route::get('/profile-view', AdminProfileView::class)->name('profile-view');
         Route::get('/update-password', AdminUpdatePassword::class)->name('update-password');
         Route::get('/profile', AdminProfile::class)->name('profile');
+
+        Route::get('/account-log', AccountLogs::class)->name('account-log');
+        Route::get('/account-activity', AccountActivities::class)->name('account-activity');
     });
 });
 

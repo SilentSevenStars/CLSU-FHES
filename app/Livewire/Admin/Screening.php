@@ -6,6 +6,9 @@ use Livewire\Component;
 use App\Models\Evaluation;
 use App\Models\Representative;
 use App\Models\Position;
+use App\Services\AccountActivityService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class Screening extends Component
 {
@@ -17,9 +20,19 @@ class Screening extends Component
     public $screeningData = [];
     public $vacancies = null;
 
-    private $allowedPositions = [
+    /**
+     * Instructor I & II  →  panel-based scoring
+     * (experience + performance scores from panel_assignments)
+     */
+    private $panelBasedPositions = [
         'Instructor I',
         'Instructor II',
+    ];
+
+    /**
+     * Instructor III and above  →  NBC-based scoring
+     */
+    private $nbcBasedPositions = [
         'Instructor III',
         'Assistant Professor I',
         'Assistant Professor II',
@@ -34,19 +47,37 @@ class Screening extends Component
         'Professor II',
     ];
 
+    // Removed: No NBC fallback for Instructor I/II - use panel scoring only
+
+    private function getAllowedPositions(): array
+    {
+        return array_merge($this->panelBasedPositions, $this->nbcBasedPositions);
+    }
+
+    private function isNbcBased(string $positionName): bool
+    {
+        return in_array($positionName, $this->nbcBasedPositions);
+    }
+
+    /**
+     * Check if position uses NBC scoring (Instructor III+ only)
+     */
+
     public function mount()
     {
         $this->loadPositions();
     }
 
     /**
-     * Load unique positions (faculty only) - in predefined order
+     * Load unique positions (faculty only) - in predefined order.
+     * A position only appears if at least one evaluation qualifies under its scoring type.
      */
     public function loadPositions()
     {
-        $existingPositions = Position::whereIn('name', $this->allowedPositions)
+        $allowedPositions = $this->getAllowedPositions();
+
+        $existingPositions = Position::whereIn('name', $allowedPositions)
             ->whereHas('jobApplications', function ($q) {
-                // FIX: include 'hired' in addition to 'approve'
                 $q->whereIn('status', ['approve', 'hired'])
                     ->whereHas('evaluation');
             })
@@ -55,20 +86,18 @@ class Screening extends Component
             ->unique()
             ->toArray();
 
-        $this->positions = collect($this->allowedPositions)
-            ->filter(function ($positionName) use ($existingPositions) {
-                return in_array($positionName, $existingPositions);
-            })
+        $this->positions = collect($allowedPositions)
+            ->filter(fn($p) => in_array($p, $existingPositions))
             ->values()
             ->toArray();
     }
 
     /**
-     * Load unique interview dates for the selected position name
+     * Load unique interview dates for the selected position.
      */
     public function updatedSelectedPosition()
     {
-        $this->selectedDate = null;
+        $this->selectedDate  = null;
         $this->screeningData = [];
 
         if (!$this->selectedPosition) {
@@ -77,11 +106,8 @@ class Screening extends Component
         }
 
         $this->interviewDates = Evaluation::whereHas('jobApplication', function ($q) {
-            // FIX: include 'hired' in addition to 'approve'
             $q->whereIn('status', ['approve', 'hired'])
-                ->whereHas('position', function ($posQuery) {
-                    $posQuery->where('name', $this->selectedPosition);
-                });
+                ->whereHas('position', fn($pq) => $pq->where('name', $this->selectedPosition));
         })
             ->whereNotNull('interview_date')
             ->get()
@@ -103,7 +129,29 @@ class Screening extends Component
     }
 
     /**
-     * Load screening data + compute weighted scores
+     * Load screening data and compute weighted scores.
+     *
+     * Instructor I & II  → panel-based scoring rules:
+     *
+     *   INCLUSION RULE:
+     *   - The applicant must have at least one panel assignment with status = 'complete'.
+     *   - Every complete assignment must have an interview score (interview_id not null).
+     *   - Every complete assignment must have a performance score (performance_id not null).
+     *   - Experience (experience_id) is done by only ONE panel, so it is optional per
+     *     assignment. The applicant is NOT excluded if experience is null — it simply
+     *     contributes 0 to the average. The applicant is only excluded if ALL complete
+     *     assignments have null experience AND null performance AND null interview.
+     *
+     *   SCORE COMPUTATION:
+     *   - Interview score   → average of interview.total_score across all complete assignments
+     *   - Performance score → average of performance.total_score across all complete assignments
+     *                         that have a performance record
+     *   - Experience score  → average of experience.total_score across all complete assignments
+     *                         that have an experience record (may be just one panel)
+     *
+     * Instructor III+  → NBC-based scoring (unchanged).
+     *
+     * Archived job applications (archive = 1) are always excluded.
      */
     public function loadScreeningData()
     {
@@ -112,68 +160,113 @@ class Screening extends Component
             return;
         }
 
+        $useNbc = $this->isNbcBased($this->selectedPosition);
+
+        // ── Base query ────────────────────────────────────────────────────────
         $evaluations = Evaluation::with([
             'jobApplication.applicant',
             'jobApplication.position',
+            // Panel-based relations
             'panelAssignments.interview',
             'panelAssignments.experience',
-            'panelAssignments.performance'
+            'panelAssignments.performance',
+            // NBC-based relations
+            'nbcAssignments.educationalQualification',
+            'nbcAssignments.experienceService',
+            'nbcAssignments.professionalDevelopment',
         ])
-            ->where('interview_date', $this->selectedDate)
+            ->whereDate('interview_date', $this->selectedDate)
             ->whereHas('jobApplication', function ($q) {
-                // FIX: include 'hired' in addition to 'approve'
                 $q->whereIn('status', ['approve', 'hired'])
-                    ->whereHas('position', function ($posQuery) {
-                        $posQuery->where('name', $this->selectedPosition);
-                    });
+                    ->whereHas('position', fn($pq) => $pq->where('name', $this->selectedPosition));
             })
             ->get();
 
-        // Include only completed assignments
-        $evaluations = $evaluations->filter(function ($evaluation) {
-            if ($evaluation->panelAssignments->isEmpty()) {
-                return false;
-            }
+//         dd($evaluations->map(fn($e) => [
+//     'id' => $e->id,
+//     'panel_count' => count($e->panelAssignments),
+// ]));
 
-            return $evaluation->panelAssignments->every(function ($pa) {
-                return strtolower($pa->status) === 'complete';
-            });
-        });
+        // Filter: Require at least one qualifying assignment (panel or NBC)
+        // TODO: Uncomment if strict filtering needed after testing
 
-        // Apply search
+
+        // ── Apply search ──────────────────────────────────────────────────────
         if ($this->searchTerm) {
             $search = strtolower($this->searchTerm);
 
             $evaluations = $evaluations->filter(function ($evaluation) use ($search) {
-                $a = $evaluation->jobApplication->applicant;
-                $full = strtolower("$a->first_name $a->middle_name $a->last_name");
+                $a    = $evaluation->jobApplication->applicant;
+                $full = strtolower("{$a->first_name} {$a->middle_name} {$a->last_name}");
 
                 return str_contains($full, $search);
             });
         }
 
-        // Compute scores
-        $this->screeningData = $evaluations->map(function ($evaluation) {
-
-            $assignments = $evaluation->panelAssignments;
-
-            $avgPerformance = $assignments->pluck('performance.total_score')->filter()->avg() ?? 0;
-            $avgExperience  = $assignments->pluck('experience.total_score')->filter()->avg() ?? 0;
-            $avgInterview   = $assignments->pluck('interview.total_score')->filter()->avg() ?? 0;
-
-            $total = $avgPerformance + $avgExperience + $avgInterview;
+        // ── Compute scores ────────────────────────────────────────────────────
+        $this->screeningData = $evaluations->map(function ($evaluation) use ($useNbc) {
 
             $a = $evaluation->jobApplication->applicant;
             $p = $evaluation->jobApplication->position;
 
+            if ($useNbc) {
+                // NBC scoring — only COMPLETE assignments with all three sub-scores
+                $qualifyingAssignments = ($evaluation->nbcAssignments ?? collect())->filter(function ($na) {
+                    return Str::lower($na->status) === 'complete'
+                        && $na->educationalQualification !== null
+                        && $na->experienceService !== null
+                        && $na->professionalDevelopment !== null;
+                });
+
+                $avgEduQual = $qualifyingAssignments->map(fn($na) => (float) $na->educationalQualification->subtotal)->avg() ?? 0;
+                $avgExpSvc  = $qualifyingAssignments->map(fn($na) => (float) $na->experienceService->subtotal)->avg() ?? 0;
+                $avgProfDev = $qualifyingAssignments->map(fn($na) => (float) $na->professionalDevelopment->subtotal)->avg() ?? 0;
+
+                $credentialsExperience = $avgEduQual + $avgExpSvc + $avgProfDev;
+                $performance           = $avgProfDev;
+
+                $qualifyingPanelAssignments = ($evaluation->panelAssignments ?? collect())->filter(function ($pa) {
+                    return Str::lower($pa->status) === 'complete' && $pa->interview !== null;
+                });
+                $avgInterview = $qualifyingPanelAssignments->pluck('interview.total_score')->filter()->avg() ?? 0;
+
+            } else {
+                // Panel-based scoring: avg only qualifying assignments (with required scores)
+                $qualifyingInterviewPerf = ($evaluation->panelAssignments ?? collect())->filter(function ($pa) {
+                    return Str::lower($pa->status) === 'complete';
+                }); // Lenient: status complete only, avg available scores (0 if missing)
+
+                $avgInterview = $qualifyingInterviewPerf
+                    ->pluck('interview.total_score')
+                    ->filter()
+                    ->avg() ?? 0;
+
+                $performance = $qualifyingInterviewPerf
+                    ->pluck('performance.total_score')
+                    ->filter()
+                    ->avg() ?? 0;
+
+                // Experience → avg assignments with experience record (lenient)
+                $qualifyingExperience = ($evaluation->panelAssignments ?? collect())->filter(function ($pa) {
+                    return Str::lower($pa->status) === 'complete';
+                }); // 0 if no experience
+
+                $credentialsExperience = $qualifyingExperience
+                    ->pluck('experience.total_score')
+                    ->filter()
+                    ->avg() ?? 0;
+            }
+
+            $total = $performance + $credentialsExperience + $avgInterview;
+
             return [
                 'evaluation_id'          => $evaluation->id,
-                'name'                   => "$a->first_name $a->middle_name $a->last_name",
+                'name'                   => "{$a->first_name} {$a->middle_name} {$a->last_name}",
                 'department'             => $p->department->name ?? $p->name,
                 'specialization'         => $p->specialization ?? 'N/A',
                 'college'                => $p->college->name ?? '',
-                'performance'            => round($avgPerformance, 2),
-                'credentials_experience' => round($avgExperience, 2),
+                'performance'            => round($performance, 2),
+                'credentials_experience' => round($credentialsExperience, 2),
                 'interview'              => round($avgInterview, 2),
                 'total'                  => round($total, 2),
             ];
@@ -181,7 +274,7 @@ class Screening extends Component
             ->sortByDesc('total')
             ->values();
 
-        // Save rank + totals in DB
+        // ── Persist rank & total in DB ────────────────────────────────────────
         $this->screeningData = $this->screeningData->transform(function ($row, $index) {
             $rank = $index + 1;
 
@@ -197,7 +290,7 @@ class Screening extends Component
     }
 
     /**
-     * Print — renders the screening report blade to HTML and opens in a new tab
+     * Print — renders the screening report blade to HTML and opens in a new tab.
      */
     public function print()
     {
@@ -206,17 +299,16 @@ class Screening extends Component
             return;
         }
 
-        $positionName      = $this->selectedPosition;
-        $exportCollection  = collect($this->screeningData)->sortBy('rank');
+        $positionName     = $this->selectedPosition;
+        $exportCollection = collect($this->screeningData)->sortBy('rank');
 
-        // Limit to vacancies if set
         if ($this->vacancies && $this->vacancies > 0) {
             $exportCollection = $exportCollection->take((int) $this->vacancies);
         }
 
-        $exportData    = $exportCollection->values()->toArray();
-        $panelMembers  = $this->getPanelMembersFromRepresentatives();
-        $rowsPerPage   = 10;
+        $exportData   = $exportCollection->values()->toArray();
+        $panelMembers = $this->getPanelMembersFromRepresentatives();
+        $rowsPerPage  = 10;
 
         $html = view('pdf.screening-report', [
             'screeningData' => $exportData,
@@ -231,6 +323,18 @@ class Screening extends Component
         ])->render();
 
         $this->dispatch('openPrintTab', html: $html);
+
+        $candidateCount = count($exportData);
+        $vacancyNote    = ($this->vacancies && $this->vacancies > 0)
+            ? ", limited to {$this->vacancies} vacancy/vacancies"
+            : '';
+
+        AccountActivityService::log(
+            Auth::user(),
+            "Printed screening report — Position: \"{$positionName}\", "
+                . "Interview Date: " . date('M d, Y', strtotime($this->selectedDate))
+                . ", Candidates printed: {$candidateCount}{$vacancyNote}."
+        );
     }
 
     private function getPanelMembersFromRepresentatives()
@@ -238,21 +342,21 @@ class Screening extends Component
         $representatives = Representative::all();
 
         $panelMembers = [
-            'supervising_admin'  => 'TBA',
-            'fai_president'      => 'TBA',
-            'glutches_preside'   => 'TBA',
-            'ranking_faculty'    => 'TBA',
-            'dean_cass'          => 'TBA',
-            'dean_cen'           => 'TBA',
-            'dean_cos'           => 'TBA',
-            'dean_ced'           => 'TBA',
-            'dean_cf'            => 'TBA',
-            'dean_cba'           => 'TBA',
-            'senior_faculty'     => 'TBA',
-            'head_dabe'          => 'TBA',
-            'head_business'      => 'TBA',
-            'head_ispels'        => 'TBA',
-            'chairman_fsb'       => 'TBA',
+            'supervising_admin'    => 'TBA',
+            'fai_president'        => 'TBA',
+            'glutches_preside'     => 'TBA',
+            'ranking_faculty'      => 'TBA',
+            'dean_cass'            => 'TBA',
+            'dean_cen'             => 'TBA',
+            'dean_cos'             => 'TBA',
+            'dean_ced'             => 'TBA',
+            'dean_cf'              => 'TBA',
+            'dean_cba'             => 'TBA',
+            'senior_faculty'       => 'TBA',
+            'head_dabe'            => 'TBA',
+            'head_business'        => 'TBA',
+            'head_ispels'          => 'TBA',
+            'chairman_fsb'         => 'TBA',
             'university_president' => 'TBA',
         ];
 

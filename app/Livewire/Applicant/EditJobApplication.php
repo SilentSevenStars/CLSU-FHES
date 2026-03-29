@@ -6,6 +6,7 @@ use App\Models\Applicant;
 use App\Models\JobApplication as ModelsJobApplication;
 use App\Models\Position;
 use App\Models\EducationalBackground;
+use App\Services\AccountActivityService;
 use App\Services\FileEncryptionService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -53,6 +54,9 @@ class EditJobApplication extends Component
     public $provinces = [];
     public $cities = [];
     public $barangays = [];
+
+    // Snapshot of original values for change detection
+    protected array $originalData = [];
 
     protected $rules = [
         'first_name'        => 'required|string|max:255',
@@ -148,6 +152,27 @@ class EditJobApplication extends Component
         } else {
             $this->eligibility = $application->eligibility;
         }
+
+        // Snapshot all trackable fields after loading so save() can diff against them
+        $this->originalData = [
+            'first_name'        => $this->first_name,
+            'middle_name'       => $this->middle_name,
+            'last_name'         => $this->last_name,
+            'suffix'            => $this->suffix,
+            'phone_number'      => $this->phone_number,
+            'region'            => $this->region,
+            'province'          => $this->province,
+            'city'              => $this->city,
+            'barangay'          => $this->barangay,
+            'street'            => $this->street,
+            'postal_code'       => $this->postal_code,
+            'present_position'  => $this->present_position,
+            'education'         => $this->education,
+            'experience'        => (string) $this->experience,
+            'training'          => (string) $this->training,
+            'eligibility'       => $this->eligibility,
+            'other_involvement' => $this->other_involvement,
+        ];
 
         $this->loadRegions();
 
@@ -361,11 +386,13 @@ class EditJobApplication extends Component
         $encryptionService = new FileEncryptionService();
 
         $encryptedPath = $this->existing_file_path;
+        $fileReplaced  = false;
         if ($this->requirements_file) {
             if ($this->existing_file_path) {
                 $encryptionService->deleteEncryptedFile($this->existing_file_path);
             }
             $encryptedPath = $encryptionService->encryptAndStore($this->requirements_file);
+            $fileReplaced  = true;
         }
 
         $applicant = Applicant::updateOrCreate(
@@ -396,6 +423,76 @@ class EditJobApplication extends Component
             'requirements_file' => $encryptedPath,
         ]);
         $jobApplication->save();
+
+        // Build a human-readable diff of every changed field
+        $fieldLabels = [
+            'first_name'        => 'First Name',
+            'middle_name'       => 'Middle Name',
+            'last_name'         => 'Last Name',
+            'suffix'            => 'Suffix',
+            'phone_number'      => 'Phone Number',
+            'region'            => 'Region',
+            'province'          => 'Province',
+            'city'              => 'City',
+            'barangay'          => 'Barangay',
+            'street'            => 'Street',
+            'postal_code'       => 'Postal Code',
+            'present_position'  => 'Present Position',
+            'education'         => 'Education',
+            'experience'        => 'Experience',
+            'training'          => 'Training',
+            'eligibility'       => 'Eligibility',
+            'other_involvement' => 'Other Involvement',
+        ];
+
+        $currentData = [
+            'first_name'        => $this->first_name,
+            'middle_name'       => $this->middle_name,
+            'last_name'         => $this->last_name,
+            'suffix'            => $this->suffix,
+            'phone_number'      => $this->phone_number,
+            'region'            => $this->region,
+            'province'          => $this->province,
+            'city'              => $this->city,
+            'barangay'          => $this->barangay,
+            'street'            => $this->street,
+            'postal_code'       => $this->postal_code,
+            'present_position'  => $this->present_position,
+            'education'         => $this->education,
+            'experience'        => (string) $this->experience,
+            'training'          => (string) $this->training,
+            'eligibility'       => $this->eligibility,
+            'other_involvement' => $this->other_involvement,
+        ];
+
+        $changes = [];
+        foreach ($fieldLabels as $key => $label) {
+            $old = $this->originalData[$key] ?? '';
+            $new = $currentData[$key] ?? '';
+            if ($old !== $new) {
+                $changes[] = "{$label}: \"{$old}\" → \"{$new}\"";
+            }
+        }
+
+        if ($fileReplaced) {
+            $changes[] = "Requirements File: replaced with a new upload";
+        }
+
+        $position = Position::find($this->position_id);
+
+        if (!empty($changes)) {
+            AccountActivityService::log(
+                Auth::user(),
+                "Updated job application (ID: {$this->application_id}) for position \"{$position->title}\" — "
+                    . implode(', ', $changes) . '.'
+            );
+        } else {
+            // Log even when no field changed, e.g. user just re-submitted without edits
+            AccountActivityService::log(
+                Auth::user(),
+                "Saved job application (ID: {$this->application_id}) for position \"{$position->title}\" with no changes."
+            );
+        }
 
         $this->dispatch('job-application-submitted');
 

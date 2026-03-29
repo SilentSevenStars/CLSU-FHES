@@ -3,6 +3,8 @@
 namespace App\Livewire\Admin;
 
 use App\Models\College;
+use App\Services\AccountActivityService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -16,6 +18,8 @@ class CollegeManager extends Component
     public $editMode = false;
     public $collegeId;
     public $name = '';
+
+    public string $oldName = ''; 
 
     protected $paginationTheme = 'tailwind';
 
@@ -60,6 +64,11 @@ class CollegeManager extends Component
                 'name' => $this->name,
             ]);
 
+            AccountActivityService::log(
+                Auth::user(),
+                "Created a new college \"{$this->name}\"."
+            );
+
             $this->showModal = false;
             $this->resetInputFields();
             $this->dispatch('alert', type: 'success', title: 'Success!', text: 'College created successfully!');
@@ -73,6 +82,7 @@ class CollegeManager extends Component
         $college = College::findOrFail($id);
         $this->collegeId = $id;
         $this->name = $college->name;
+        $this->oldName = $college->name;  
         $this->editMode = true;
         $this->showModal = true;
     }
@@ -89,6 +99,14 @@ class CollegeManager extends Component
                 'name' => $this->name,
             ]);
 
+            if ($this->oldName !== $this->name) {
+                AccountActivityService::log(
+                    Auth::user(),
+                    "Updated college (ID: {$this->collegeId}) — "
+                        . "name: \"{$this->oldName}\" → \"{$this->name}\"."
+                );
+            }
+
             $this->showModal = false;
             $this->resetInputFields();
             $this->dispatch('alert', type: 'success', title: 'Success!', text: 'College updated successfully!');
@@ -100,7 +118,7 @@ class CollegeManager extends Component
     public function confirmDelete($id)
     {
         $this->collegeId = $id;
-        $this->dispatch('confirmation', 
+        $this->dispatch('confirmation',
             id: $id,
             title: 'Are you sure?',
             text: "You won't be able to revert this!",
@@ -115,7 +133,17 @@ class CollegeManager extends Component
     public function delete()
     {
         try {
-            College::findOrFail($this->collegeId)->delete();
+            $college = College::findOrFail($this->collegeId);
+
+            $deletedName = $college->name;  
+
+            $college->delete();
+
+            AccountActivityService::log(
+                Auth::user(),
+                "Deleted college \"{$deletedName}\" (ID: {$this->collegeId})."
+            );
+
             $this->dispatch('alert', type: 'success', title: 'Deleted!', text: 'College deleted successfully!');
         } catch (\Exception $e) {
             $this->dispatch('alert', type: 'error', title: 'Error!', text: 'Failed to delete college');
@@ -132,6 +160,7 @@ class CollegeManager extends Component
     {
         $this->name = '';
         $this->collegeId = null;
+        $this->oldName = '';  
         $this->resetErrorBag();
     }
 }

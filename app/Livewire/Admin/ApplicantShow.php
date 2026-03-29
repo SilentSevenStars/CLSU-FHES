@@ -5,8 +5,10 @@ namespace App\Livewire\Admin;
 use App\Models\JobApplication;
 use App\Models\Notification;
 use App\Mail\NotificationMail;
+use App\Services\AccountActivityService;
 use App\Services\FileEncryptionService;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -33,7 +35,7 @@ class ApplicantShow extends Component
 
     public function getCanReviewProperty()
     {
-        $today = now()->toDateString();
+        $today    = now()->toDateString();
         $position = $this->application->position;
 
         if (!$position->start_date || !$position->end_date) {
@@ -45,7 +47,7 @@ class ApplicantShow extends Component
 
     public function getIsWithinApplicationPeriodProperty()
     {
-        $today = now()->toDateString();
+        $today    = now()->toDateString();
         $position = $this->application->position;
 
         if (!$position->start_date || !$position->end_date) {
@@ -55,9 +57,6 @@ class ApplicantShow extends Component
         return $today >= $position->start_date && $today <= $position->end_date;
     }
 
-    /**
-     * Generate base64 encoded PDF for viewing in modal
-     */
     public function getFileDataUrl()
     {
         $encryptionService = new FileEncryptionService();
@@ -70,7 +69,7 @@ class ApplicantShow extends Component
 
         try {
             $decryptedContents = $encryptionService->decryptFile($this->application->requirements_file);
-            $base64 = base64_encode($decryptedContents);
+            $base64            = base64_encode($decryptedContents);
             return 'data:application/pdf;base64,' . $base64;
         } catch (\Exception $e) {
             $this->dispatch('show-error', message: 'Error loading file: ' . $e->getMessage());
@@ -81,31 +80,38 @@ class ApplicantShow extends Component
     public function submitReview()
     {
         Log::info('submitReview called', [
-            'status' => $this->status,
+            'status'         => $this->status,
             'interview_date' => $this->interview_date,
             'interview_room' => $this->interview_room,
             'application_id' => $this->application->id
         ]);
 
         $this->validate([
-            'status' => 'required|in:approve,decline',
+            'status'         => 'required|in:approve,decline',
             'interview_date' => $this->status === 'approve' ? 'required|date|after_or_equal:today' : 'nullable',
             'interview_room' => $this->status === 'approve' ? 'required|string|max:255' : 'nullable',
-            'admin_message' => 'nullable|string',
+            'admin_message'  => 'nullable|string',
         ]);
 
         DB::beginTransaction();
 
         try {
-            $newStatus = $this->status;
+            $applicant = $this->application->applicant;
+            $position  = $this->application->position;
+
+            $applicantName = trim(
+                ($applicant->first_name  ?? '') . ' ' .
+                ($applicant->middle_name ?? '') . ' ' .
+                ($applicant->last_name   ?? '')
+            );
 
             Log::info('Updating application status', [
                 'from' => $this->application->status,
-                'to' => $newStatus
+                'to'   => $this->status,
             ]);
 
             $this->application->update([
-                'status' => $newStatus,
+                'status'      => $this->status,
                 'reviewed_at' => now(),
             ]);
 
@@ -115,8 +121,8 @@ class ApplicantShow extends Component
                 $this->application->evaluation()->create([
                     'interview_date' => $this->interview_date,
                     'interview_room' => $this->interview_room,
-                    'total_score' => 0,
-                    'rank' => null,
+                    'total_score'    => 0,
+                    'rank'           => null,
                 ]);
 
                 $this->application->load('evaluation');
@@ -129,6 +135,18 @@ class ApplicantShow extends Component
 
             DB::commit();
             $this->application->refresh();
+
+            $statusLabel = ucfirst($this->status) . 'd'; 
+
+            $detail = $this->status === 'approve'
+                ? " — Interview Date: {$this->interview_date}, Room: {$this->interview_room}"
+                : '';
+
+            AccountActivityService::log(
+                Auth::user(),
+                "{$statusLabel} job application of {$applicantName} (Application ID: {$this->application->id}) "
+                    . "for position \"{$position->name}\"{$detail}."
+            );
 
             Log::info('Transaction committed successfully');
 
@@ -152,7 +170,7 @@ class ApplicantShow extends Component
     {
         try {
             $applicant = $this->application->applicant;
-            $position = $this->application->position;
+            $position  = $this->application->position;
 
             if (!$applicant || !$applicant->user) {
                 Log::error("Applicant or user not found for application #{$this->application->id}");
@@ -161,8 +179,8 @@ class ApplicantShow extends Component
 
             Log::info('Preparing approval email', [
                 'applicant_email' => $applicant->user->email,
-                'interview_date' => $this->interview_date,
-                'interview_room' => $this->interview_room
+                'interview_date'  => $this->interview_date,
+                'interview_room'  => $this->interview_room
             ]);
 
             $adminMessageBlock = '';
@@ -199,11 +217,11 @@ class ApplicantShow extends Component
 
             $notification = Notification::create([
                 'applicant_id' => $applicant->id,
-                'subject' => "Application Approved - Interview Scheduled for {$position->name}",
-                'message' => $messageContent,
-                'attachments' => null,
-                'is_read' => false,
-                'email_sent' => false,
+                'subject'      => "Application Approved - Interview Scheduled for {$position->name}",
+                'message'      => $messageContent,
+                'attachments'  => null,
+                'is_read'      => false,
+                'email_sent'   => false,
             ]);
 
             Log::info("Notification created", ['notification_id' => $notification->id]);
@@ -212,7 +230,7 @@ class ApplicantShow extends Component
                 ->send(new NotificationMail($notification));
 
             $notification->update([
-                'email_sent' => true,
+                'email_sent'    => true,
                 'email_sent_at' => now(),
             ]);
 
@@ -227,7 +245,7 @@ class ApplicantShow extends Component
     {
         try {
             $applicant = $this->application->applicant;
-            $position = $this->application->position;
+            $position  = $this->application->position;
 
             if (!$applicant || !$applicant->user) {
                 Log::error("Applicant or user not found for application #{$this->application->id}");
@@ -256,18 +274,18 @@ class ApplicantShow extends Component
 
             $notification = Notification::create([
                 'applicant_id' => $applicant->id,
-                'subject' => "Application Status Update - {$position->name}",
-                'message' => $messageContent,
-                'attachments' => null,
-                'is_read' => false,
-                'email_sent' => false,
+                'subject'      => "Application Status Update - {$position->name}",
+                'message'      => $messageContent,
+                'attachments'  => null,
+                'is_read'      => false,
+                'email_sent'   => false,
             ]);
 
             Mail::to($applicant->user->email)
                 ->send(new NotificationMail($notification));
 
             $notification->update([
-                'email_sent' => true,
+                'email_sent'    => true,
                 'email_sent_at' => now(),
             ]);
 
@@ -280,8 +298,8 @@ class ApplicantShow extends Component
     public function render()
     {
         return view('livewire.admin.applicant-show', [
-            'application' => $this->application,
-            'canReview' => $this->canReview,
+            'application'               => $this->application,
+            'canReview'                 => $this->canReview,
             'isWithinApplicationPeriod' => $this->isWithinApplicationPeriod,
         ]);
     }

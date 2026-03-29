@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\NbcCommittee;
 use App\Models\Panel;
 use App\Models\User;
+use App\Services\AccountActivityService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -142,8 +143,8 @@ class UserManagement extends Component
         return $rules;
     }
 
-    public function updatingSearch()    { $this->resetPage(); }
-    public function updatingPerPage()   { $this->resetPage(); }
+    public function updatingSearch()     { $this->resetPage(); }
+    public function updatingPerPage()    { $this->resetPage(); }
     public function updatingFilterRole() { $this->resetPage(); }
 
     public function updatedCollegeId()
@@ -286,6 +287,66 @@ class UserManagement extends Component
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helpers: build a human-readable display name from the current form state
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Returns a readable label for the role being managed.
+     * e.g. 'panel' → 'Panel Member', 'nbc' → 'NBC Committee', etc.
+     */
+    private function roleLabel(): string
+    {
+        return match($this->filterRole) {
+            'panel'     => 'Panel Member',
+            'nbc'       => 'NBC Committee',
+            'applicant' => 'Applicant',
+            default     => ucfirst($this->role ?: $this->filterRole),
+        };
+    }
+
+    /**
+     * Returns the display name of the user being created / edited
+     * based on the current form fields (before the model is persisted).
+     */
+    private function formDisplayName(): string
+    {
+        if ($this->filterRole === 'applicant') {
+            return trim(
+                $this->first_name . ' ' .
+                ($this->middle_name ?? '') . ' ' .
+                $this->last_name . ' ' .
+                ($this->suffix ?? '')
+            );
+        }
+
+        return $this->name ?? $this->email;
+    }
+
+    /**
+     * Resolves a saved user's display name from the DB after create/update.
+     */
+    private function savedDisplayName(User $user): string
+    {
+        $user->loadMissing(['roles', 'applicant']);
+        $roleName = $user->roles->first()?->name ?? '';
+
+        if ($roleName === 'applicant' && $user->applicant) {
+            return trim(
+                ($user->applicant->first_name  ?? '') . ' ' .
+                ($user->applicant->middle_name ?? '') . ' ' .
+                ($user->applicant->last_name   ?? '') . ' ' .
+                ($user->applicant->suffix      ?? '')
+            );
+        }
+
+        return $user->name ?? $user->email ?? "ID #{$user->id}";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // CRUD
+    // ─────────────────────────────────────────────────────────────────────────
+
     private function createUser()
     {
         $userData = [
@@ -339,12 +400,37 @@ class UserManagement extends Component
                 break;
         }
 
+        // ── Activity log ─────────────────────────────────────────────────────
+        $displayName = $this->savedDisplayName($user);
+        $roleLabel   = $this->roleLabel();
+
+        $detail = match($this->filterRole) {
+            'panel' => " — Position: {$this->panel_position}" .
+                       ($this->college_id
+                           ? ', College ID: ' . $this->college_id
+                           : '') .
+                       ($this->department_id
+                           ? ', Department ID: ' . $this->department_id
+                           : ''),
+            'nbc'   => " — Position: {$this->nbc_position}",
+            default => '',
+        };
+
+        AccountActivityService::log(
+            Auth::user(),
+            "Created a new {$roleLabel} account for {$displayName} ({$this->email}){$detail}."
+        );
+        // ─────────────────────────────────────────────────────────────────────
+
         session()->flash('success', ucfirst($this->filterRole) . ' user created successfully!');
     }
 
     private function updateUser()
     {
         $user = User::findOrFail($this->user_id);
+
+        // Capture old values before updating for a richer log message
+        $oldEmail = $user->email;
 
         $userData = [
             'email'             => $this->email,
@@ -401,13 +487,50 @@ class UserManagement extends Component
                 break;
         }
 
+        // ── Activity log ─────────────────────────────────────────────────────
+        $displayName = $this->savedDisplayName($user);
+        $roleLabel   = $this->roleLabel();
+
+        $changes = [];
+
+        // Detect email change
+        if ($oldEmail !== $this->email) {
+            $changes[] = "email changed from {$oldEmail} to {$this->email}";
+        }
+
+        // Detect password change
+        if ($this->password) {
+            $changes[] = 'password was updated';
+        }
+
+        // Role-specific change details
+        $changes[] = match($this->filterRole) {
+            'panel' => "position: {$this->panel_position}" .
+                       ($this->college_id
+                           ? ', college ID: ' . $this->college_id
+                           : '') .
+                       ($this->department_id
+                           ? ', department ID: ' . $this->department_id
+                           : ''),
+            'nbc'   => "position: {$this->nbc_position}",
+            default => "role: {$this->role}",
+        };
+
+        $changesSummary = implode('; ', array_filter($changes));
+
+        AccountActivityService::log(
+            Auth::user(),
+            "Updated {$roleLabel} account for {$displayName} ({$this->email}) — {$changesSummary}."
+        );
+        // ─────────────────────────────────────────────────────────────────────
+
         session()->flash('success', ucfirst($this->filterRole) . ' user updated successfully!');
     }
 
     public function archive()
     {
         try {
-            $user = User::findOrFail($this->archiveUserId);
+            $user = User::with(['roles', 'applicant'])->findOrFail($this->archiveUserId);
 
             if ($user->id === Auth::id()) {
                 session()->flash('error', 'You cannot archive your own account!');
@@ -416,6 +539,17 @@ class UserManagement extends Component
             }
 
             $user->update(['archive' => true]);
+
+            // ── Activity log ─────────────────────────────────────────────────
+            $displayName = $this->savedDisplayName($user);
+            $roleName    = $user->roles->first()?->name ?? 'unknown';
+
+            AccountActivityService::log(
+                Auth::user(),
+                "Archived user account for {$displayName} ({$user->email}) — Role: " . ucfirst(str_replace('-', ' ', $roleName)) . ", User ID: {$user->id}."
+            );
+            // ─────────────────────────────────────────────────────────────────
+
             session()->flash('success', 'User archived successfully!');
             $this->closeArchiveModal();
         } catch (\Exception $e) {

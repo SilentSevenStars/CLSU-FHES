@@ -6,6 +6,7 @@ use App\Models\Applicant;
 use App\Models\JobApplication as ModelsJobApplication;
 use App\Models\Position;
 use App\Models\EducationalBackground;
+use App\Services\AccountActivityService;
 use App\Services\FileEncryptionService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -117,7 +118,6 @@ class JobApplication extends Component
                 return redirect()->route('apply-job');
             }
 
-            // Only block if there's an active (non-archived, non-hired) application
             $anyActiveApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
                 ->where('archive', false)
                 ->where('status', '!=', 'hired')
@@ -144,7 +144,7 @@ class JobApplication extends Component
 
         $this->positionEligibility = $position->eligibility ?? '';
         if ($this->isNoneRequiredEligibility($this->positionEligibility)) {
-            $this->eligibility      = 'None Required';
+            $this->eligibility        = 'None Required';
             $this->eligibilityIsFixed = true;
         }
 
@@ -328,7 +328,6 @@ class JobApplication extends Component
 
         $applicant = Applicant::where('user_id', Auth::id())->first();
         if ($applicant) {
-            // Only block if there's an active (non-archived, non-hired) application
             $anyActiveApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
                 ->where('archive', false)
                 ->where('status', '!=', 'hired')
@@ -380,6 +379,14 @@ class JobApplication extends Component
             'position_id'       => $this->position_id,
         ]);
         $jobApplication->save();
+
+        // Fetch position title for a meaningful log message
+        $position = Position::find($this->position_id);
+
+        AccountActivityService::log(
+            Auth::user(),
+            "Submitted a job application (ID: {$jobApplication->id}) for position \"{$position->title}\" (Position ID: {$this->position_id})."
+        );
 
         $this->dispatch('job-application-submitted');
 

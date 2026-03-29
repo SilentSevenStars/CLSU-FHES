@@ -4,12 +4,14 @@ namespace App\Livewire\Admin\Position;
 
 use App\Models\College;
 use App\Models\Department;
+use App\Models\EducationalBackground;
 use App\Models\Position;
 use App\Models\PositionRank;
+use App\Services\AccountActivityService;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use App\Models\EducationalBackground;
 
 class PositionEdit extends Component
 {
@@ -29,6 +31,20 @@ class PositionEdit extends Component
     public $colleges = [];
     public $departments = [];
     public $positionRanks = [];
+
+    // Snapshot of original DB values for diffing on save.
+    // Must be PUBLIC so Livewire serialises them into the component state
+    // and preserves them across subsequent wire requests (e.g. updatedName,
+    // updatedCollegeId, etc.) — private/protected properties are NOT kept.
+    public string $oldName           = "";
+    public string $oldCollegeName    = "";
+    public string $oldDepartmentName = "";
+    public string $oldSpecialization = "";
+    public string $oldEducation      = "";
+    public int    $oldExperience     = 0;
+    public int    $oldTraining       = 0;
+    public string $oldStartDate      = "";
+    public string $oldEndDate        = "";
 
     protected array $positionRequirements = [
         'Instructor I'                 => ['experience' => 0, 'training' => 0,  'eligibility' => 'None required, RA 1080 (For courses requiring BAR or BOARD eligibility)'],
@@ -54,7 +70,7 @@ class PositionEdit extends Component
 
     public function mount($id)
     {
-        $this->colleges = College::orderBy('name')->get();
+        $this->colleges      = College::orderBy('name')->get();
         $this->positionRanks = PositionRank::orderBy('id')->get();
 
         $position = Position::with(['college', 'department'])->findOrFail($id);
@@ -68,7 +84,7 @@ class PositionEdit extends Component
         $this->experience     = $position->experience;
         $this->training       = $position->training;
         $this->eligibility    = $position->eligibility;
-        $this->college_id     = $position->college_id ? (string) $position->college_id : null;
+        $this->college_id     = $position->college_id    ? (string) $position->college_id    : null;
         $this->department_id  = $position->department_id ? (string) $position->department_id : null;
 
         if ($this->college_id) {
@@ -76,6 +92,17 @@ class PositionEdit extends Component
         }
 
         $this->educationOptions = EducationalBackground::orderBy('name')->pluck('name')->toArray();
+
+        // Store originals — set once in mount, never touched again until update()
+        $this->oldName           = $position->name;
+        $this->oldCollegeName    = $position->college->name    ?? 'Various Colleges';
+        $this->oldDepartmentName = $position->department->name ?? 'Various Departments';
+        $this->oldSpecialization = $position->specialization;
+        $this->oldEducation      = $position->education;
+        $this->oldExperience     = $position->experience;
+        $this->oldTraining       = $position->training;
+        $this->oldStartDate      = $position->start_date ?? '';
+        $this->oldEndDate        = $position->end_date   ?? '';
     }
 
     public function updatedName($value)
@@ -95,11 +122,9 @@ class PositionEdit extends Component
     public function updatedCollegeId($value)
     {
         $this->department_id = null;
-        if ($value) {
-            $this->departments = Department::where('college_id', $value)->orderBy('name')->get();
-        } else {
-            $this->departments = [];
-        }
+        $this->departments   = $value
+            ? Department::where('college_id', $value)->orderBy('name')->get()
+            : [];
     }
 
     public function update()
@@ -121,7 +146,7 @@ class PositionEdit extends Component
         try {
             $position = Position::findOrFail($this->position_id);
             $position->name           = $this->name;
-            $position->college_id     = $this->college_id ?: null;
+            $position->college_id     = $this->college_id    ?: null;
             $position->department_id  = $this->department_id ?: null;
             $position->start_date     = $this->start_date;
             $position->end_date       = $this->end_date;
@@ -133,6 +158,51 @@ class PositionEdit extends Component
             $position->save();
 
             DB::commit();
+
+            // ── Activity log — only record what actually changed ──────────────
+            $position->load(['college', 'department']);
+            $newCollegeName    = $position->college->name    ?? 'Various Colleges';
+            $newDepartmentName = $position->department->name ?? 'Various Departments';
+
+            $changes = [];
+
+            if ($this->oldName !== $this->name)
+                $changes[] = "name: \"{$this->oldName}\" → \"{$this->name}\"";
+
+            if ($this->oldCollegeName !== $newCollegeName)
+                $changes[] = "college: \"{$this->oldCollegeName}\" → \"{$newCollegeName}\"";
+
+            if ($this->oldDepartmentName !== $newDepartmentName)
+                $changes[] = "department: \"{$this->oldDepartmentName}\" → \"{$newDepartmentName}\"";
+
+            if ($this->oldSpecialization !== $this->specialization)
+                $changes[] = "specialization: \"{$this->oldSpecialization}\" → \"{$this->specialization}\"";
+
+            if ($this->oldEducation !== $this->education)
+                $changes[] = "education: \"{$this->oldEducation}\" → \"{$this->education}\"";
+
+            if ($this->oldExperience !== $this->experience)
+                $changes[] = "experience: {$this->oldExperience} → {$this->experience} year(s)";
+
+            if ($this->oldTraining !== $this->training)
+                $changes[] = "training: {$this->oldTraining} → {$this->training} hour(s)";
+
+            if ($this->oldStartDate !== $this->start_date)
+                $changes[] = "start date: {$this->oldStartDate} → {$this->start_date}";
+
+            if ($this->oldEndDate !== $this->end_date)
+                $changes[] = "end date: {$this->oldEndDate} → {$this->end_date}";
+
+            // Skip writing a log entry entirely if nothing changed
+            if (!empty($changes)) {
+                AccountActivityService::log(
+                    Auth::user(),
+                    "Updated position \"{$this->name}\" (ID: {$this->position_id}) — "
+                        . implode('; ', $changes) . '.'
+                );
+            }
+            // ─────────────────────────────────────────────────────────────────
+
             session()->flash('success', 'Position has been updated successfully');
             return redirect()->route('admin.position');
         } catch (Exception $e) {

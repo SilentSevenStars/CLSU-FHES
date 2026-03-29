@@ -35,8 +35,7 @@
                     <div class="flex items-center gap-2 text-blue-600 font-semibold">
                         <span>View Here</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
-                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                     </div>
                 </div>
@@ -58,12 +57,10 @@
                 </div>
 
                 <div class="p-8">
-
                     <!-- Instructions -->
                     <div class="mb-8 bg-gradient-to-r from-[#0A6025]/10 to-green-50 border-l-4 border-[#0A6025] p-6 rounded-lg">
                         <div class="flex items-start gap-3">
-                            <svg class="w-6 h-6 text-[#0A6025] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-6 h-6 text-[#0A6025] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
@@ -78,15 +75,17 @@
                         </div>
                     </div>
 
+                    @php
+                        $appPositionName   = strtolower($evaluation->jobApplication->position->name ?? '');
+                        $panelPositionName = strtolower($panel->panel_position ?? '');
+                        $isInstructorIorII = in_array($appPositionName, ['instructor i', 'instructor ii']);
+                        $goesToPerformance = $isInstructorIorII;
+                        $goesToExperience  = $panelPositionName === 'head' && $isInstructorIorII;
+                    @endphp
+
                     <form wire:submit.prevent="confirmSubmission">
                         <div wire:key="interview-page-{{ $currentPage }}">
                         @if ($currentPage == 1)
-                        {{--
-                            PAGE 1 — General Appearance, Manner of Speaking, Physical Conditioning, Alertness
-                            IMPORTANT: use wire:model.number on every radio so Livewire stores integers,
-                            not strings. This prevents the type-mismatch bug where going back to page 1
-                            shows wrong (or no) radio selected because int 4 !== string "4".
-                        --}}
                         <div class="space-y-8">
                             <!-- I. General Appearance -->
                             <div class="border-b pb-6">
@@ -108,7 +107,6 @@
                                     <div class="flex gap-8">
                                         @for ($i = 5; $i >= 1; $i--)
                                         <label class="flex items-center justify-center w-12">
-                                            {{-- wire:model.number ensures the value is cast to int on bind --}}
                                             <input type="radio" wire:model.number="general_appearance" value="{{ $i }}"
                                                 class="w-6 h-6 cursor-pointer">
                                         </label>
@@ -223,10 +221,6 @@
                         </div>
 
                         @elseif ($currentPage == 2)
-                        {{--
-                            PAGE 2 — Self Confidence, Ability to Present Ideas, Maturity of Judgement
-                            Same wire:model.number fix applied here.
-                        --}}
                         <div class="space-y-8">
                             <!-- V. Self Confidence -->
                             <div class="border-b pb-6">
@@ -328,15 +322,14 @@
                                     class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
                                     ← Return
                                 </button>
-                                @php
-                                    $applicantPosition = $evaluation->jobApplication->position->name ?? null;
-                                @endphp
                                 <button type="submit"
                                     class="bg-[#0A6025] hover:bg-[#0B712C] text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
-                                    @if($applicantPosition === 'Instructor I')
-                                        Next →
+                                    @if ($goesToExperience)
+                                        Next → {{-- head + Instructor I/II: goes to Experience --}}
+                                    @elseif ($goesToPerformance)
+                                        Next → {{-- non-head + Instructor I/II: goes to Performance --}}
                                     @else
-                                        Submit ✓
+                                        Submit ✓ {{-- any + other position: done --}}
                                     @endif
                                 </button>
                             </div>

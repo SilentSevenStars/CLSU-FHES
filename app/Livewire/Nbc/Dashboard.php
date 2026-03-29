@@ -7,6 +7,7 @@ use Livewire\WithPagination;
 use App\Models\Evaluation;
 use App\Models\NbcCommittee;
 use App\Models\NbcAssignment;
+use App\Services\AccountActivityService;
 use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends Component
@@ -17,7 +18,7 @@ class Dashboard extends Component
     public $perPage = 10;
 
     protected $queryString = [
-        'search' => ['except' => ''],
+        'search'  => ['except' => ''],
         'perPage' => ['except' => 10],
     ];
 
@@ -48,14 +49,12 @@ class Dashboard extends Component
             return collect()->paginate($this->perPage);
         }
 
-        // Fetch all evaluations where deadline has not passed, with all needed relations
         $query = Evaluation::with([
             'jobApplication.applicant.user',
             'jobApplication.position',
         ])
         ->whereDate('interview_date', '>=', today());
 
-        // Sort: pending first, complete last
         $query->orderByRaw('
             CASE
                 WHEN EXISTS (
@@ -72,22 +71,18 @@ class Dashboard extends Component
             END
         ', [Auth::id()]);
 
-        // Get all results first so Eloquent casts can decrypt the fields
         $all = $query->get();
 
-        // PHP-side search: name (encrypted via cast), email (encrypted via cast), position (plaintext)
         if ($this->search) {
             $search = strtolower($this->search);
             $all = $all->filter(function ($evaluation) use ($search) {
-                $applicant = $evaluation->jobApplication?->applicant;
-                $user      = $applicant?->user;
-
-                // full_name may be a computed attribute — also check individual parts
-                $firstName = strtolower($applicant?->first_name ?? '');
+                $applicant  = $evaluation->jobApplication?->applicant;
+                $user       = $applicant?->user;
+                $firstName  = strtolower($applicant?->first_name ?? '');
                 $middleName = strtolower($applicant?->middle_name ?? '');
-                $lastName  = strtolower($applicant?->last_name ?? '');
-                $email     = strtolower($user?->email ?? '');
-                $position  = strtolower($evaluation->jobApplication?->position?->name ?? '');
+                $lastName   = strtolower($applicant?->last_name ?? '');
+                $email      = strtolower($user?->email ?? '');
+                $position   = strtolower($evaluation->jobApplication?->position?->name ?? '');
 
                 return str_contains($firstName, $search)
                     || str_contains($middleName, $search)
@@ -97,7 +92,6 @@ class Dashboard extends Component
             })->values();
         }
 
-        // Manual pagination on the filtered collection
         $perPage     = (int) $this->perPage;
         $currentPage = $this->getPage();
         $total       = $all->count();
@@ -143,9 +137,6 @@ class Dashboard extends Component
             ->count();
     }
 
-    /**
-     * Print the NBC evaluation report for all active evaluations (deadline not yet passed).
-     */
     public function printReport()
     {
         $nbcCommittee = NbcCommittee::where('user_id', Auth::id())->first();
@@ -228,6 +219,13 @@ class Dashboard extends Component
             'pendingCount'    => $pendingCount,
             'generatedDate'   => now()->format('F d, Y'),
         ])->render();
+
+        // Log after the report is successfully generated
+        AccountActivityService::log(
+            Auth::user(),
+            "Printed the NBC evaluation schedule report for {$today} "
+                . "({$totalApplicants} applicant(s): {$completedCount} complete, {$pendingCount} pending)."
+        );
 
         $this->dispatch('openPrintTab', html: $html);
     }

@@ -9,8 +9,12 @@ use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Mail\OtpMail;
 use App\Models\OtpVerification;
 use App\Models\User;
+use App\Services\AccountLogService;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
@@ -36,9 +40,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
 
-        // -------------------------------------------------------------------------
-        // Custom login: handles encrypted email + role/archive checks
-        // -------------------------------------------------------------------------
+
         Fortify::authenticateUsing(function (Request $request) {
             $users = User::all();
             $user  = null;
@@ -74,9 +76,7 @@ class FortifyServiceProvider extends ServiceProvider
             return null;
         });
 
-        // -------------------------------------------------------------------------
-        // Rate limiting
-        // -------------------------------------------------------------------------
+
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(
                 Str::lower($request->input(Fortify::username())) . '|' . $request->ip()
@@ -88,9 +88,25 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });
 
-        // -------------------------------------------------------------------------
-        // Login Response: redirect by role
-        // -------------------------------------------------------------------------
+
+        Event::listen(Login::class, function (Login $event) {
+            /** @var User $user */
+            $user = $event->user;
+            // Eager-load relationships needed by AccountLogService
+            $user->loadMissing(['roles', 'applicant']);
+            AccountLogService::log($user, 'logged in');
+        });
+
+        Event::listen(Logout::class, function (Logout $event) {
+            if ($event->user instanceof User) {
+                /** @var User $user */
+                $user = $event->user;
+                $user->loadMissing(['roles', 'applicant']);
+                AccountLogService::log($user, 'logged out');
+            }
+        });
+
+
         $this->app->singleton(LoginResponse::class, function () {
             return new class implements LoginResponse {
                 public function toResponse($request)
@@ -110,10 +126,7 @@ class FortifyServiceProvider extends ServiceProvider
             };
         });
 
-        // -------------------------------------------------------------------------
-        // Register Response: send OTP right after account creation,
-        // then redirect to the Livewire OTP verification page.
-        // -------------------------------------------------------------------------
+
         $this->app->singleton(RegisterResponse::class, function () {
             return new class implements RegisterResponse {
                 public function toResponse($request)
@@ -132,7 +145,6 @@ class FortifyServiceProvider extends ServiceProvider
                         'expires_at' => now()->addMinutes(10),
                     ]);
 
-                    // Both $user->email and $user->name are auto-decrypted by the Encrypted cast
                     Mail::to($user->email)->send(
                         new OtpMail($otp, $user->name ?? 'User')
                     );

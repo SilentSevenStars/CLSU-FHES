@@ -130,6 +130,8 @@
                   <li><a href="{{ route('admin.role-permission') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">Roles and Permission</a></li>
                   @endcan
                   <li><a href="{{ route('admin.user.archive.view') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">Archive User Management</a></li>
+                  <li><a href="{{ route('admin.account-log') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">Account Log</a></li>
+                  <li><a href="{{ route('admin.account-activity') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">Account Activity</a></li>
                </ul>
             </li>
             @endcanany

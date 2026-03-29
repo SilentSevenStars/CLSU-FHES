@@ -35,8 +35,7 @@
                     <div class="flex items-center gap-2 text-blue-600 font-semibold">
                         <span>View Here</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
-                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                     </div>
                 </div>
@@ -58,7 +57,6 @@
                 </div>
 
                 <div class="p-8">
-
                     <form wire:submit.prevent="confirmSubmission">
                         <div class="space-y-6">
                             <!-- Table Header -->
@@ -75,8 +73,7 @@
                             <!-- 1. Educational Qualification -->
                             <div class="grid grid-cols-12 gap-4 items-center py-4 border-b">
                                 <div class="col-span-7">
-                                    <span class="font-semibold">1. Educational Qualification (based on NCC
-                                        Criteria)</span>
+                                    <span class="font-semibold">1. Educational Qualification (based on NCC Criteria)</span>
                                 </div>
                                 <div class="col-span-2 text-center">
                                     <span class="text-lg font-semibold">85</span>
@@ -94,8 +91,7 @@
                             <!-- 2. Academic/Administrative Experience -->
                             <div class="grid grid-cols-12 gap-4 items-center py-4 border-b">
                                 <div class="col-span-7">
-                                    <span class="font-semibold">2. Academic/ Administrative and
-                                        Industrial/Agricultural/Teaching</span>
+                                    <span class="font-semibold">2. Academic/ Administrative and Industrial/Agricultural/Teaching</span>
                                     <div class="text-sm text-gray-600 mt-2">
                                         <div class="mb-2">
                                             <span class="font-medium">a. Applicant for College Level</span>
@@ -177,8 +173,7 @@
                             <!-- 5. Professional Activities -->
                             <div class="grid grid-cols-12 gap-4 items-start py-4 border-b">
                                 <div class="col-span-7">
-                                    <span class="font-semibold">5. Participation in Professional activities such as
-                                        seminar workshops and trainings</span>
+                                    <span class="font-semibold">5. Participation in Professional activities such as seminar workshops and trainings</span>
                                     <div class="text-sm text-gray-600 mt-1">
                                         • 1 point for every 8 hours attendance
                                     </div>
@@ -259,9 +254,8 @@
                                 </div>
                             </div>
 
-                            <!-- Section Total Score Display -->
-                            <div
-                                class="grid grid-cols-12 gap-4 items-center py-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg px-4 border-l-4 border-gray-400">
+                            <!-- Section Total Score -->
+                            <div class="grid grid-cols-12 gap-4 items-center py-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg px-4 border-l-4 border-gray-400">
                                 <div class="col-span-7">
                                     <span class="font-bold text-lg text-gray-800">Section Total Score</span>
                                 </div>
@@ -269,15 +263,13 @@
                                     <span class="text-xl font-bold text-gray-700">175</span>
                                 </div>
                                 <div class="col-span-3 text-center">
-                                    <span class="text-xl font-bold text-gray-800">{{ number_format($totalScore, 2)
-                                        }}</span>
+                                    <span class="text-xl font-bold text-gray-800">{{ number_format($totalScore, 2) }}</span>
                                 </div>
                             </div>
 
-                            <!-- Overall Total Score Display -->
+                            <!-- Overall Total Score -->
                             @if($totalScore > 0)
-                            <div
-                                class="grid grid-cols-12 gap-4 items-center py-6 bg-gradient-to-r from-[#0A6025]/10 to-green-50 rounded-lg px-4 border-l-4 border-[#0A6025] mt-4">
+                            <div class="grid grid-cols-12 gap-4 items-center py-6 bg-gradient-to-r from-[#0A6025]/10 to-green-50 rounded-lg px-4 border-l-4 border-[#0A6025] mt-4">
                                 <div class="col-span-7">
                                     <span class="font-bold text-2xl text-[#0A6025]">Overall Total Score</span>
                                 </div>
@@ -285,8 +277,7 @@
                                     <span class="text-2xl font-bold text-[#0A6025]">175</span>
                                 </div>
                                 <div class="col-span-3 text-center">
-                                    <span class="text-3xl font-bold text-[#0A6025]">{{ number_format($totalScore, 2)
-                                        }}</span>
+                                    <span class="text-3xl font-bold text-[#0A6025]">{{ number_format($totalScore, 2) }}</span>
                                 </div>
                             </div>
                             @endif
@@ -294,13 +285,15 @@
 
                         <!-- Navigation Buttons -->
                         <div class="flex justify-center gap-4 mt-8">
-                            <a href="{{ route('panel.dashboard') }}"
+                            {{-- Return goes back to Interview page 2 --}}
+                            <a href="{{ route('panel.interview', $evaluationId) }}"
                                 class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
                                 ← Return
                             </a>
+                            {{-- Next proceeds to Performance --}}
                             <button type="submit"
                                 class="bg-[#0A6025] hover:bg-[#0B712C] text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
-                                Submit ✓
+                                Next →
                             </button>
                         </div>
                     </form>
@@ -321,12 +314,10 @@
                 <h3 class="text-2xl font-bold text-gray-900">Applicant Details</h3>
                 <button wire:click="toggleApplicantModal" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
-
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -354,34 +345,28 @@
                         <p class="mt-1 text-base text-gray-900">{{ $position->college->name ?? 'N/A' }}</p>
                     </div>
                 </div>
-
                 @if($applicant->region || $applicant->city)
                 <div class="pt-4 border-t">
                     <p class="text-sm font-medium text-gray-500 mb-2">Address</p>
                     <p class="text-base text-gray-900">
-                        {{ collect([$applicant->street, $applicant->barangay, $applicant->city, $applicant->province,
-                        $applicant->region_display])->filter()->join(', ') }}
+                        {{ collect([$applicant->street, $applicant->barangay, $applicant->city, $applicant->province, $applicant->region_display])->filter()->join(', ') }}
                     </p>
                 </div>
                 @endif
-
                 @if($jobApplication->requirements_file)
                 <div class="pt-4 border-t">
                     <p class="text-sm font-medium text-gray-500 mb-2">Requirements File</p>
                     <button type="button" wire:click="$dispatch('open-pdf-viewer')"
                         class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-150">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                         View Requirements File
                     </button>
                 </div>
                 @endif
             </div>
-
             <div class="flex justify-end mt-6 pt-4 border-t">
                 <button wire:click="toggleApplicantModal"
                     class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-150">
@@ -393,108 +378,61 @@
     @endif
 
     <!-- PDF VIEWER MODAL -->
-    <div x-data="{ 
-        open: false,
-        loading: false,
-        pdfUrl: null,
+    <div x-data="{
+        open: false, loading: false, pdfUrl: null,
         async openPdfViewer() {
-            this.loading = true;
-            this.open = true;
+            this.loading = true; this.open = true;
             try {
                 const dataUrl = await @this.call('getFileDataUrl');
-                if (dataUrl) {
-                    this.pdfUrl = dataUrl;
-                }
+                if (dataUrl) { this.pdfUrl = dataUrl; }
             } catch (error) {
-                console.error('Error loading PDF:', error);
-                alert('Error loading PDF file');
-                this.open = false;
-            } finally {
-                this.loading = false;
-            }
+                alert('Error loading PDF file'); this.open = false;
+            } finally { this.loading = false; }
         }
-    }" x-on:open-pdf-viewer.window="openPdfViewer()" x-show="open" x-cloak class="fixed inset-0 z-50 overflow-hidden"
-        style="display: none;">
-        <!-- Backdrop -->
+    }" x-on:open-pdf-viewer.window="openPdfViewer()" x-show="open" x-cloak
+        class="fixed inset-0 z-50 overflow-hidden" style="display: none;">
         <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
-
-        <!-- Modal Content -->
         <div class="relative w-full h-full flex items-center justify-center">
             <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
-                <!-- Header -->
                 <div class="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
                     <h3 class="text-lg font-semibold text-gray-900">Application Requirements</h3>
-                    <button @click="open = false; pdfUrl = null;"
-                        class="text-gray-400 hover:text-gray-600 transition p-2">
+                    <button @click="open = false; pdfUrl = null;" class="text-gray-400 hover:text-gray-600 transition p-2">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
-
-                <!-- PDF Viewer -->
                 <div class="flex-1 overflow-hidden bg-gray-100">
                     <div x-show="loading" class="flex items-center justify-center h-full">
-                        <div class="text-center">
-                            <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto mb-4" fill="none"
-                                viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                    stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
-                            </svg>
-                            <p class="text-gray-600">Loading PDF...</p>
-                        </div>
+                        <svg class="animate-spin h-12 w-12 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8l-4 4 4 4V8a8 8 0 11-8 8z"></path>
+                        </svg>
                     </div>
-                    <iframe x-show="!loading && pdfUrl" :src="pdfUrl" class="w-full h-full" frameborder="0">
-                    </iframe>
+                    <iframe x-show="!loading && pdfUrl" :src="pdfUrl" class="w-full h-full" frameborder="0"></iframe>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Error Handler -->
-    <div x-data x-on:show-error.window="
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: $event.detail.message,
-            confirmButtonColor: '#d33'
-        });
-    "></div>
+    <div x-data x-on:show-error.window="Swal.fire({ icon: 'error', title: 'Error', text: $event.detail.message, confirmButtonColor: '#d33' });"></div>
 
     <!-- SweetAlert2 Integration -->
     <script>
         document.addEventListener('livewire:init', () => {
             Livewire.on('showSwalConfirm', () => {
                 Swal.fire({
-                    title: 'Submit Experience Evaluation?',
-                    text: 'Please confirm that all scores are correct before submitting.',
+                    title: 'Proceed to Performance Evaluation?',
+                    text: 'Please confirm that all scores are correct before proceeding.',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#0A6025',
                     cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, Submit'
+                    confirmButtonText: 'Yes, Proceed'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         @this.saveExperience();
-                    }
-                });
-            });
-
-            Livewire.on('evaluationSaved', () => {
-                Swal.fire({
-                    title: 'Success!',
-                    text: 'Experience evaluation saved successfully.',
-                    icon: 'success',
-                    confirmButtonText: 'OK',
-                    confirmButtonColor: '#0A6025',
-                    allowOutsideClick: false,
-                    allowEscapeKey: false
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = '{{ route('panel.dashboard') }}';
                     }
                 });
             });
@@ -510,9 +448,5 @@
             });
         });
     </script>
-    <style>
-        [x-cloak] {
-            display: none !important;
-        }
-    </style>
+    <style>[x-cloak] { display: none !important; }</style>
 </div>

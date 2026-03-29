@@ -5,6 +5,7 @@ namespace App\Livewire\Panel;
 use App\Models\Evaluation;
 use App\Models\Interview as ModelsInterview;
 use App\Models\PanelAssignment;
+use App\Services\AccountActivityService;
 use App\Services\FileEncryptionService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -17,62 +18,41 @@ class Interview extends Component
     public $position;
     public $jobApplication;
 
-    public $general_appearance    = 0;
-    public $manner_of_speaking    = 0;
-    public $physical_conditions   = 0;
-    public $alertness             = 0;
-    public $self_confidence       = 0;
+    public $general_appearance       = 0;
+    public $manner_of_speaking       = 0;
+    public $physical_conditions      = 0;
+    public $alertness                = 0;
+    public $self_confidence          = 0;
     public $ability_to_present_ideas = 0;
-    public $maturity_of_judgement = 0;
+    public $maturity_of_judgement    = 0;
 
-    public $currentPage  = 1;
-    public $totalScore   = 0;
+    public $currentPage        = 1;
+    public $totalScore         = 0;
     public $showApplicantModal = false;
 
-    /**
-     * Called automatically by Livewire before currentPage is updated.
-     * This ensures we persist any unsaved data from the current page
-     * before navigating to a different page.
-     */
     public function updatingCurrentPage($value)
     {
-        // Only persist data from the CURRENT page, not all pages
-        // This prevents page 2 values from overwriting page 1 values when going back
         if ($this->currentPage == 1) {
-            // On page 1: persist only page 1 fields
             $this->persistPage1Scores();
         } elseif ($this->currentPage == 2) {
-            // On page 2: persist only page 2 fields
             $this->persistPage2Scores();
         }
     }
 
-    /**
-     * Persist only Page 1 scores (General Appearance, Manner of Speaking, Physical Conditions, Alertness)
-     */
     protected function persistPage1Scores(): void
     {
         $user  = Auth::user();
         $panel = $user->panel;
 
-        if (!$panel) {
-            return;
-        }
+        if (!$panel) return;
 
         $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
             ->where('evaluation_id', $this->evaluationId)
             ->first();
 
-        if (!$panelAssignment) {
-            return;
-        }
+        if (!$panelAssignment) return;
 
-        // If no interview record yet exists, create one with the page‑1 fields so
-        // that subsequent page switches can persist safely. This mirrors the
-        // logic in persistInterviewScores but scoped to the first page.
         if (!$panelAssignment->interview_id) {
-            // create record with all non-nullable fields populated;
-            // missing scores default to zero so the insert never fails.
             $interview = ModelsInterview::create([
                 'general_appearance'       => $this->general_appearance,
                 'manner_of_speaking'       => $this->manner_of_speaking,
@@ -89,40 +69,27 @@ class Interview extends Component
         }
 
         ModelsInterview::where('id', $panelAssignment->interview_id)->update([
-            'general_appearance' => $this->general_appearance,
-            'manner_of_speaking' => $this->manner_of_speaking,
+            'general_appearance'  => $this->general_appearance,
+            'manner_of_speaking'  => $this->manner_of_speaking,
             'physical_conditions' => $this->physical_conditions,
-            'alertness' => $this->alertness,
+            'alertness'           => $this->alertness,
         ]);
     }
 
-    /**
-     * Persist only Page 2 scores (Self Confidence, Ability to Present Ideas, Maturity of Judgement)
-     */
     protected function persistPage2Scores(): void
     {
         $user  = Auth::user();
         $panel = $user->panel;
 
-        if (!$panel) {
-            return;
-        }
+        if (!$panel) return;
 
         $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
             ->where('evaluation_id', $this->evaluationId)
             ->first();
 
-        if (!$panelAssignment) {
-            return;
-        }
+        if (!$panelAssignment) return;
 
-        // If an interview record exists update only page‑2 fields. Otherwise
-        // create a new interview entry to hold the incoming scores (page‑1
-        // values may still be zero but the component state keeps them until
-        // saved elsewhere).
         if (!$panelAssignment->interview_id) {
-            // make sure page‑1 fields are also set even though they haven't
-            // been rated yet (zero indicates unanswered).
             $interview = ModelsInterview::create([
                 'general_appearance'       => 0,
                 'manner_of_speaking'       => 0,
@@ -139,9 +106,9 @@ class Interview extends Component
         }
 
         ModelsInterview::where('id', $panelAssignment->interview_id)->update([
-            'self_confidence' => $this->self_confidence,
+            'self_confidence'          => $this->self_confidence,
             'ability_to_present_ideas' => $this->ability_to_present_ideas,
-            'maturity_of_judgement' => $this->maturity_of_judgement,
+            'maturity_of_judgement'    => $this->maturity_of_judgement,
         ]);
     }
 
@@ -158,7 +125,6 @@ class Interview extends Component
         $this->applicant      = $this->jobApplication->applicant;
         $this->position       = $this->jobApplication->position;
 
-        // Restore page from session (set when returning from Performance), then from param
         if (session()->has('returnPage')) {
             $this->currentPage = (int) session()->pull('returnPage');
         } elseif ($page !== null) {
@@ -169,7 +135,6 @@ class Interview extends Component
         $panel = $user->panel;
 
         if ($panel) {
-            // Use firstOrCreate so we NEVER reset status/data on re-mount
             $panelAssignment = PanelAssignment::firstOrCreate(
                 [
                     'panel_id'      => $panel->id,
@@ -180,10 +145,6 @@ class Interview extends Component
                 ]
             );
 
-            // Load existing interview scores back into component properties.
-            // Always cast to int — the DB may return strings, and Livewire radio
-            // binding uses strict comparison, so mismatched types cause wrong
-            // radio buttons to appear selected (or none at all).
             if ($panelAssignment->interview_id) {
                 $interview = ModelsInterview::find($panelAssignment->interview_id);
                 if ($interview) {
@@ -225,49 +186,15 @@ class Interview extends Component
         }
     }
 
-    /**
-     * Persist all interview scores to the DB (used when leaving the component entirely)
-     */
-    protected function persistInterviewScores(): void
+    public function calculateTotal()
     {
-        $user  = Auth::user();
-        $panel = $user->panel;
-
-        if (!$panel) {
-            return;
-        }
-
-        $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
-            ->where('evaluation_id', $this->evaluationId)
-            ->first();
-
-        if (!$panelAssignment) {
-            return;
-        }
-
-        $data = [
-            'general_appearance'       => $this->general_appearance,
-            'manner_of_speaking'       => $this->manner_of_speaking,
-            'physical_conditions'      => $this->physical_conditions,
-            'alertness'                => $this->alertness,
-            'self_confidence'          => $this->self_confidence,
-            'ability_to_present_ideas' => $this->ability_to_present_ideas,
-            'maturity_of_judgement'    => $this->maturity_of_judgement,
-            'total_score'              => $this->general_appearance
-                                        + $this->manner_of_speaking
-                                        + $this->physical_conditions
-                                        + $this->alertness
-                                        + $this->self_confidence
-                                        + $this->ability_to_present_ideas
-                                        + $this->maturity_of_judgement,
-        ];
-
-        if ($panelAssignment->interview_id) {
-            ModelsInterview::where('id', $panelAssignment->interview_id)->update($data);
-        } else {
-            $interview = ModelsInterview::create($data);
-            $panelAssignment->update(['interview_id' => $interview->id]);
-        }
+        $this->totalScore = $this->general_appearance
+            + $this->manner_of_speaking
+            + $this->physical_conditions
+            + $this->alertness
+            + $this->self_confidence
+            + $this->ability_to_present_ideas
+            + $this->maturity_of_judgement;
     }
 
     public function nextPage()
@@ -285,7 +212,6 @@ class Interview extends Component
                 'alertness.required'           => 'Please rate Alertness',
             ]);
 
-            // Persist page-1 scores to DB before advancing
             $this->persistPage1Scores();
         }
 
@@ -295,20 +221,8 @@ class Interview extends Component
     public function previousPage()
     {
         if ($this->currentPage > 1) {
-            // updatingCurrentPage already persists the correct page data
             $this->currentPage--;
         }
-    }
-
-    public function calculateTotal()
-    {
-        $this->totalScore = $this->general_appearance
-            + $this->manner_of_speaking
-            + $this->physical_conditions
-            + $this->alertness
-            + $this->self_confidence
-            + $this->ability_to_present_ideas
-            + $this->maturity_of_judgement;
     }
 
     public function confirmSubmission()
@@ -327,11 +241,16 @@ class Interview extends Component
             'maturity_of_judgement.required'    => 'Please rate Maturity of Judgement',
         ]);
 
-        $applicantPosition = $this->evaluation->jobApplication->position->name ?? null;
+        $applicantPosition = strtolower($this->evaluation->jobApplication->position->name ?? '');
+        $panelPosition     = strtolower(Auth::user()->panel?->panel_position ?? '');
+        $isInstructorIorII = in_array($applicantPosition, ['instructor i', 'instructor ii']);
 
-        if ($applicantPosition === 'Instructor I') {
+        // head + Instructor I/II → redirect directly to Experience (no confirm dialog)
+        if ($panelPosition === 'head' && $isInstructorIorII) {
             $this->saveInterview();
         } else {
+            // non-head + Instructor I/II → confirm then go to Performance
+            // any + other position → confirm then mark complete
             $this->dispatch('show-swal-confirm');
         }
     }
@@ -342,6 +261,9 @@ class Interview extends Component
 
         $user  = Auth::user();
         $panel = $user->panel;
+
+        $panelAssignment = null;
+        $interview       = null;
 
         if ($panel) {
             $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
@@ -370,17 +292,52 @@ class Interview extends Component
             }
         }
 
-        $applicantPosition = $this->evaluation->jobApplication->position->name ?? null;
+        $applicantPosition = strtolower($this->evaluation->jobApplication->position->name ?? '');
+        $panelPosition     = strtolower($panel?->panel_position ?? '');
+        $isInstructorIorII = in_array($applicantPosition, ['instructor i', 'instructor ii']);
 
-        if ($applicantPosition === 'Instructor I') {
+        $applicantName = trim(
+            $this->applicant->first_name . ' '
+            . ($this->applicant->middle_name ? $this->applicant->middle_name . ' ' : '')
+            . $this->applicant->last_name
+        );
+
+        if ($panelPosition === 'head' && $isInstructorIorII) {
+            // head + Instructor I/II → Interview → Experience → Performance
+            AccountActivityService::log(
+                Auth::user(),
+                "Completed interview evaluation for applicant \"{$applicantName}\" "
+                    . "(Evaluation ID: {$this->evaluationId})."
+            );
+
+            return redirect()->route('panel.experience', [
+                'evaluationId' => $this->evaluationId,
+            ]);
+
+        } elseif ($isInstructorIorII) {
+            // non-head + Instructor I/II → Interview → Performance
+            AccountActivityService::log(
+                Auth::user(),
+                "Completed interview evaluation for applicant \"{$applicantName}\" "
+                    . "(Evaluation ID: {$this->evaluationId})."
+            );
+
             return redirect()->route('panel.performance', [
                 'evaluationId' => $this->evaluationId,
                 'interviewId'  => $interview->id,
             ]);
+
         } else {
+            // any + other position → Interview only, mark complete
             if ($panel && $panelAssignment) {
                 $panelAssignment->update(['status' => 'complete']);
             }
+
+            AccountActivityService::log(
+                Auth::user(),
+                "Completed interview evaluation for applicant \"{$applicantName}\" "
+                    . "(Evaluation ID: {$this->evaluationId})."
+            );
 
             $this->dispatch('interview-saved');
         }
@@ -391,4 +348,3 @@ class Interview extends Component
         return view('livewire.panel.interview');
     }
 }
-

@@ -5,7 +5,9 @@ namespace App\Livewire\Admin\Position;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\Position;
+use App\Services\AccountActivityService;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -20,6 +22,10 @@ class PositionIndex extends Component
     public string $filterDepartment = '';
     public int $perPage = 5;
 
+    // Show modal
+    public $showModal   = false;
+    public $viewPosition = null;
+
     protected $paginationTheme = 'tailwind';
 
     #[On('refreshPositions')]
@@ -28,10 +34,8 @@ class PositionIndex extends Component
         $this->resetPage();
     }
 
-    public function updatingSearch()
-    {
-        $this->resetPage();
-    }
+    public function updatingSearch()           { $this->resetPage(); }
+    public function updatingPerPage()          { $this->resetPage(); }
 
     public function updatingFilterCollege()
     {
@@ -39,24 +43,49 @@ class PositionIndex extends Component
         $this->resetPage();
     }
 
-    public function updatingFilterDepartment()
+    public function updatingFilterDepartment() { $this->resetPage(); }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Show modal
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function showPosition($id)
     {
-        $this->resetPage();
+        $this->viewPosition = Position::with(['college', 'department'])->findOrFail($id);
+        $this->showModal    = true;
     }
 
-    public function updatingPerPage()
+    public function closeModal()
     {
-        $this->resetPage();
+        $this->showModal    = false;
+        $this->viewPosition = null;
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Delete
+    // ─────────────────────────────────────────────────────────────────────────
 
     #[On('destroy')]
     public function destroy($id)
     {
         DB::beginTransaction();
         try {
-            $position = Position::findOrFail($id);
+            $position = Position::with(['college', 'department'])->findOrFail($id);
+
+            // Capture details before deletion
+            $positionName   = $position->name;
+            $collegeName    = $position->college->name  ?? 'Various Colleges';
+            $departmentName = $position->department->name ?? 'Various Departments';
+
             $position->delete();
             DB::commit();
+
+            // ── Activity log ─────────────────────────────────────────────────
+            AccountActivityService::log(
+                Auth::user(),
+                "Deleted position \"{$positionName}\" — College: {$collegeName}, Department: {$departmentName}, Position ID: {$id}."
+            );
+            // ─────────────────────────────────────────────────────────────────
 
             $this->dispatch('refreshPositions');
             session()->flash('success', 'Position has been deleted successfully');
@@ -80,6 +109,10 @@ class PositionIndex extends Component
             confirmButtonText: "Yes, delete it!"
         );
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Query
+    // ─────────────────────────────────────────────────────────────────────────
 
     public function getFilteredPositionsProperty()
     {
@@ -119,9 +152,10 @@ class PositionIndex extends Component
     public function render()
     {
         $colleges = College::orderBy('name')->get();
+
         return view('livewire.admin.position.position-index', [
-            'positions' => $this->filteredPositions,
-            'colleges'  => $colleges,
+            'positions'         => $this->filteredPositions,
+            'colleges'          => $colleges,
             'filterDepartments' => $this->filterCollege
                 ? Department::where('college_id', $this->filterCollege)->orderBy('name')->get()
                 : [],

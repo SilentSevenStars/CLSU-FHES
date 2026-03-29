@@ -77,7 +77,6 @@ class Dashboard extends Component
         $isUniversityLevel = in_array($panelPos, self::UNIVERSITY_POSITIONS);
 
         if ($isUniversityLevel) {
-            // Chair FSB / FAI President / CLUTCHES President / Director HR:
             // No college or department filter — they see ALL applications.
 
         } elseif ($panelPos === 'dean') {
@@ -85,8 +84,6 @@ class Dashboard extends Component
                 // Dean with no college assigned → sees ALL applications
 
             } else {
-                // Dean with a college → filter by that college,
-                // but also include positions where college_id is null (university-wide positions)
                 $query->whereHas('position', function ($q) use ($panel) {
                     $q->where(function ($inner) use ($panel) {
                         $inner->where('college_id', $panel->college_id)
@@ -97,11 +94,9 @@ class Dashboard extends Component
 
         } elseif (in_array($panelPos, ['head', 'senior', 'señior'])) {
             if (is_null($panel->college_id)) {
-                // No college assigned → sees ALL applications (across all colleges/departments)
+                // No college assigned → sees ALL applications
 
             } elseif (is_null($panel->department_id)) {
-                // College assigned but no department → sees all applications within that college,
-                // plus positions where college_id is null (university-wide positions)
                 $query->whereHas('position', function ($q) use ($panel) {
                     $q->where(function ($inner) use ($panel) {
                         $inner->where('college_id', $panel->college_id)
@@ -110,21 +105,14 @@ class Dashboard extends Component
                 });
 
             } else {
-                // Both college and department assigned → filter by both,
-                // but also show:
-                //   - positions in the same college where department_id is null
-                //   - positions where college_id is null (university-wide positions)
                 $query->whereHas('position', function ($q) use ($panel) {
                     $q->where(function ($inner) use ($panel) {
-                        // Exact college + department match
                         $inner->where('college_id', $panel->college_id)
                               ->where('department_id', $panel->department_id);
                     })->orWhere(function ($inner) use ($panel) {
-                        // Same college but no department assigned on the position
                         $inner->where('college_id', $panel->college_id)
                               ->whereNull('department_id');
                     })->orWhere(function ($inner) {
-                        // Position has no college assigned (university-wide)
                         $inner->whereNull('college_id');
                     });
                 });
@@ -139,9 +127,7 @@ class Dashboard extends Component
             'evaluation',
         ])->get();
 
-        // PHP-side search: Eloquent casts auto-decrypt name/email
-        // We cannot use MySQL AES_DECRYPT because Laravel's Crypt::encrypt()
-        // uses OpenSSL AES-256-CBC with a serialized JSON payload — incompatible with MySQL.
+        // PHP-side search
         if ($this->search) {
             $search = strtolower($this->search);
             $applications = $applications->filter(function ($app) use ($search) {

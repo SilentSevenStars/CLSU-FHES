@@ -5,8 +5,10 @@ namespace App\Livewire\Admin;
 use App\Models\JobApplication;
 use App\Models\Notification;
 use App\Mail\NotificationMail;
+use App\Services\AccountActivityService;
 use App\Services\FileEncryptionService;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -19,6 +21,7 @@ class ApplicantEdit extends Component
     public $interview_date;
     public $interview_room;
     public $admin_message;
+
     public $originalStatus;
     public $originalInterviewDate;
     public $originalInterviewRoom;
@@ -34,7 +37,7 @@ class ApplicantEdit extends Component
         }
 
         $this->originalStatus = $this->application->status;
-        $this->status = $this->application->status;
+        $this->status         = $this->application->status;
 
         if ($this->status === 'approve' && $this->application->evaluation) {
             $this->interview_date = $this->application->evaluation->interview_date
@@ -50,17 +53,15 @@ class ApplicantEdit extends Component
         $this->originalInterviewRoom = $this->interview_room;
 
         Log::info('ApplicantEdit mounted', [
-            'application_id' => $this->application->id,
-            'current_status' => $this->application->status,
+            'application_id'  => $this->application->id,
+            'current_status'  => $this->application->status,
             'original_status' => $this->originalStatus,
-            'interview_date' => $this->interview_date,
-            'interview_room' => $this->interview_room,
+            'interview_date'  => $this->interview_date,
+            'interview_room'  => $this->interview_room,
         ]);
     }
 
-    /**
-     * Generate base64 encoded PDF for viewing in modal
-     */
+
     public function getFileDataUrl()
     {
         $encryptionService = new FileEncryptionService();
@@ -73,7 +74,7 @@ class ApplicantEdit extends Component
 
         try {
             $decryptedContents = $encryptionService->decryptFile($this->application->requirements_file);
-            $base64 = base64_encode($decryptedContents);
+            $base64            = base64_encode($decryptedContents);
             return 'data:application/pdf;base64,' . $base64;
         } catch (\Exception $e) {
             $this->dispatch('show-error', message: 'Error loading file: ' . $e->getMessage());
@@ -84,38 +85,48 @@ class ApplicantEdit extends Component
     public function updateReview()
     {
         Log::info('updateReview called', [
-            'new_status' => $this->status,
-            'original_status' => $this->originalStatus,
-            'new_interview_date' => $this->interview_date,
-            'original_interview_date' => $this->originalInterviewDate,
-            'new_interview_room' => $this->interview_room,
-            'original_interview_room' => $this->originalInterviewRoom,
+            'new_status'               => $this->status,
+            'original_status'          => $this->originalStatus,
+            'new_interview_date'       => $this->interview_date,
+            'original_interview_date'  => $this->originalInterviewDate,
+            'new_interview_room'       => $this->interview_room,
+            'original_interview_room'  => $this->originalInterviewRoom,
         ]);
 
         $this->validate([
-            'status' => 'required|in:approve,decline',
+            'status'         => 'required|in:approve,decline',
             'interview_date' => $this->status === 'approve' ? 'required|date' : 'nullable',
             'interview_room' => $this->status === 'approve' ? 'required|string|max:255' : 'nullable',
-            'admin_message' => 'nullable|string',
+            'admin_message'  => 'nullable|string',
         ]);
 
         DB::beginTransaction();
 
         try {
-            $statusChanged = $this->originalStatus !== $this->status;
+            $applicant = $this->application->applicant;
+            $position  = $this->application->position;
+
+            $applicantName = trim(
+                ($applicant->first_name  ?? '') . ' ' .
+                ($applicant->middle_name ?? '') . ' ' .
+                ($applicant->last_name   ?? '')
+            );
+
+            $statusChanged       = $this->originalStatus !== $this->status;
             $interviewDateChanged = ($this->status === 'approve') &&
-                                   ($this->originalInterviewDate !== $this->interview_date);
+                                    ($this->originalInterviewDate !== $this->interview_date);
             $interviewRoomChanged = ($this->status === 'approve') &&
-                                   (trim($this->originalInterviewRoom ?? '') !== trim($this->interview_room ?? ''));
+                                    (trim($this->originalInterviewRoom ?? '') !== trim($this->interview_room ?? ''));
+            $hasAdminMessage     = !empty(strip_tags($this->admin_message ?? ''));
 
             Log::info('Change detection', [
-                'statusChanged' => $statusChanged,
+                'statusChanged'       => $statusChanged,
                 'interviewDateChanged' => $interviewDateChanged,
                 'interviewRoomChanged' => $interviewRoomChanged,
             ]);
 
             $this->application->update([
-                'status' => $this->status,
+                'status'      => $this->status,
                 'reviewed_at' => now(),
             ]);
 
@@ -125,8 +136,8 @@ class ApplicantEdit extends Component
                     [
                         'interview_date' => $this->interview_date,
                         'interview_room' => $this->interview_room,
-                        'total_score' => $this->application->evaluation->total_score ?? 0,
-                        'rank' => $this->application->evaluation->rank ?? null,
+                        'total_score'    => $this->application->evaluation->total_score ?? 0,
+                        'rank'           => $this->application->evaluation->rank ?? null,
                     ]
                 );
 
@@ -136,7 +147,7 @@ class ApplicantEdit extends Component
                 } elseif (!$statusChanged && ($interviewDateChanged || $interviewRoomChanged)) {
                     Log::info('Sending interview update email');
                     $this->sendInterviewUpdateEmail($interviewDateChanged, $interviewRoomChanged);
-                } elseif (!$statusChanged && !$interviewDateChanged && !$interviewRoomChanged && !empty(strip_tags($this->admin_message ?? ''))) {
+                } elseif (!$statusChanged && !$interviewDateChanged && !$interviewRoomChanged && $hasAdminMessage) {
                     Log::info('Sending interview update email due to admin message only');
                     $this->sendInterviewUpdateEmail(false, false);
                 }
@@ -147,13 +158,42 @@ class ApplicantEdit extends Component
                     Log::info('Deleting evaluation and sending decline email');
                     $this->application->evaluation()?->delete();
                     $this->sendDeclineEmail();
-                } elseif (!$statusChanged && !empty(strip_tags($this->admin_message ?? ''))) {
+                } elseif (!$statusChanged && $hasAdminMessage) {
                     Log::info('Sending decline update email due to admin message only');
                     $this->sendDeclineEmail();
                 }
             }
 
-            $this->originalStatus = $this->status;
+            $changes = [];
+
+            if ($statusChanged) {
+                $oldLabel = ucfirst($this->originalStatus) . 'd';
+                $newLabel = ucfirst($this->status) . 'd';
+                $changes[] = "status: {$oldLabel} → {$newLabel}";
+            }
+
+            if ($interviewDateChanged) {
+                $changes[] = "interview date: {$this->originalInterviewDate} → {$this->interview_date}";
+            }
+
+            if ($interviewRoomChanged) {
+                $changes[] = "interview room: \"{$this->originalInterviewRoom}\" → \"{$this->interview_room}\"";
+            }
+
+            if ($hasAdminMessage) {
+                $changes[] = "admin message was included";
+            }
+
+            if (!empty($changes)) {
+                AccountActivityService::log(
+                    Auth::user(),
+                    "Updated job application of {$applicantName} (Application ID: {$this->application->id}) "
+                        . "for position \"{$position->name}\" — "
+                        . implode('; ', $changes) . '.'
+                );
+            }
+
+            $this->originalStatus        = $this->status;
             $this->originalInterviewDate = $this->interview_date;
             $this->originalInterviewRoom = $this->interview_room;
             $this->application->refresh();
@@ -162,7 +202,7 @@ class ApplicantEdit extends Component
 
             if ($statusChanged) {
                 session()->flash('success', 'Application status updated successfully. Email notification has been sent.');
-            } elseif ($interviewDateChanged || $interviewRoomChanged || !empty(strip_tags($this->admin_message ?? ''))) {
+            } elseif ($interviewDateChanged || $interviewRoomChanged || $hasAdminMessage) {
                 session()->flash('success', 'Interview details updated successfully. Email notification has been sent.');
             } else {
                 session()->flash('success', 'Application details updated successfully.');
@@ -194,14 +234,13 @@ class ApplicantEdit extends Component
     {
         try {
             $applicant = $this->application->applicant;
-            $position = $this->application->position;
+            $position  = $this->application->position;
 
             if (!$applicant || !$applicant->user) {
                 Log::error("Applicant or user not found for application #{$this->application->id}");
                 return;
             }
 
-            $changesText = '';
             if ($dateChanged && $roomChanged) {
                 $changesText = 'interview date and location';
             } elseif ($dateChanged) {
@@ -214,7 +253,7 @@ class ApplicantEdit extends Component
 
             Log::info('Preparing interview update email', [
                 'applicant_email' => $applicant->user->email,
-                'changes' => $changesText
+                'changes'         => $changesText
             ]);
 
             $adminMessageBlock = $this->buildAdminMessageBlock();
@@ -248,11 +287,11 @@ class ApplicantEdit extends Component
 
             $notification = Notification::create([
                 'applicant_id' => $applicant->id,
-                'subject' => "Interview Details Updated - {$position->name}",
-                'message' => $messageContent,
-                'attachments' => null,
-                'is_read' => false,
-                'email_sent' => false,
+                'subject'      => "Interview Details Updated - {$position->name}",
+                'message'      => $messageContent,
+                'attachments'  => null,
+                'is_read'      => false,
+                'email_sent'   => false,
             ]);
 
             Log::info("Notification created", ['notification_id' => $notification->id]);
@@ -261,7 +300,7 @@ class ApplicantEdit extends Component
                 ->send(new NotificationMail($notification));
 
             $notification->update([
-                'email_sent' => true,
+                'email_sent'    => true,
                 'email_sent_at' => now(),
             ]);
 
@@ -276,7 +315,7 @@ class ApplicantEdit extends Component
     {
         try {
             $applicant = $this->application->applicant;
-            $position = $this->application->position;
+            $position  = $this->application->position;
 
             if (!$applicant || !$applicant->user) {
                 Log::error("Applicant or user not found for application #{$this->application->id}");
@@ -285,8 +324,8 @@ class ApplicantEdit extends Component
 
             Log::info('Preparing approval email', [
                 'applicant_email' => $applicant->user->email,
-                'interview_date' => $this->interview_date,
-                'interview_room' => $this->interview_room
+                'interview_date'  => $this->interview_date,
+                'interview_room'  => $this->interview_room
             ]);
 
             $adminMessageBlock = $this->buildAdminMessageBlock();
@@ -320,11 +359,11 @@ class ApplicantEdit extends Component
 
             $notification = Notification::create([
                 'applicant_id' => $applicant->id,
-                'subject' => "Application Status Updated to Approved - {$position->name}",
-                'message' => $messageContent,
-                'attachments' => null,
-                'is_read' => false,
-                'email_sent' => false,
+                'subject'      => "Application Status Updated to Approved - {$position->name}",
+                'message'      => $messageContent,
+                'attachments'  => null,
+                'is_read'      => false,
+                'email_sent'   => false,
             ]);
 
             Log::info("Notification created", ['notification_id' => $notification->id]);
@@ -333,7 +372,7 @@ class ApplicantEdit extends Component
                 ->send(new NotificationMail($notification));
 
             $notification->update([
-                'email_sent' => true,
+                'email_sent'    => true,
                 'email_sent_at' => now(),
             ]);
 
@@ -348,7 +387,7 @@ class ApplicantEdit extends Component
     {
         try {
             $applicant = $this->application->applicant;
-            $position = $this->application->position;
+            $position  = $this->application->position;
 
             if (!$applicant || !$applicant->user) {
                 Log::error("Applicant or user not found for application #{$this->application->id}");
@@ -374,18 +413,18 @@ class ApplicantEdit extends Component
 
             $notification = Notification::create([
                 'applicant_id' => $applicant->id,
-                'subject' => "Application Status Updated to Declined - {$position->name}",
-                'message' => $messageContent,
-                'attachments' => null,
-                'is_read' => false,
-                'email_sent' => false,
+                'subject'      => "Application Status Updated to Declined - {$position->name}",
+                'message'      => $messageContent,
+                'attachments'  => null,
+                'is_read'      => false,
+                'email_sent'   => false,
             ]);
 
             Mail::to($applicant->user->email)
                 ->send(new NotificationMail($notification));
 
             $notification->update([
-                'email_sent' => true,
+                'email_sent'    => true,
                 'email_sent_at' => now(),
             ]);
 

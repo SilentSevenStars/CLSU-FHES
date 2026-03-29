@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'archive',
     ];
 
     protected function casts(): array
@@ -35,28 +36,18 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    /**
-     * Get the panel associated with this user.
-     */
     public function panel()
     {
         return $this->hasOne(Panel::class);
     }
 
-    /**
-     * Get the applicant associated with this user.
-     */
     public function applicant()
     {
         return $this->hasOne(Applicant::class);
     }
 
-    /**
-     * Get the NBC committee associated with this user.
-     */
     public function nbcCommittee()
     {
         return $this->hasOne(NbcCommittee::class);
     }
 }
-

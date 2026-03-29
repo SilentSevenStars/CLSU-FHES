@@ -3,6 +3,8 @@
 namespace App\Livewire\Admin;
 
 use App\Models\PositionRank;
+use App\Services\AccountActivityService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -16,6 +18,8 @@ class PositionRankManager extends Component
     public $editMode = false;
     public $positionRankId;
     public $name = '';
+
+    public string $oldName = '';
 
     protected $paginationTheme = 'tailwind';
 
@@ -40,14 +44,14 @@ class PositionRankManager extends Component
             ->paginate($this->perPage);
 
         return view('livewire.admin.position-rank-manager', [
-            'positionRanks' => $positionRanks
+            'positionRanks' => $positionRanks,
         ]);
     }
 
     public function create()
     {
         $this->resetInputFields();
-        $this->editMode = false;
+        $this->editMode  = false;
         $this->showModal = true;
     }
 
@@ -60,6 +64,11 @@ class PositionRankManager extends Component
                 'name' => $this->name,
             ]);
 
+            AccountActivityService::log(
+                Auth::user(),
+                "Created a new position rank \"{$this->name}\"."
+            );
+
             $this->showModal = false;
             $this->resetInputFields();
             $this->dispatch('alert', type: 'success', title: 'Success!', text: 'Position rank created successfully!');
@@ -71,9 +80,13 @@ class PositionRankManager extends Component
     public function edit($id)
     {
         $positionRank = PositionRank::findOrFail($id);
+
         $this->positionRankId = $id;
-        $this->name = $positionRank->name;
-        $this->editMode = true;
+        $this->name           = $positionRank->name;
+
+        $this->oldName = $positionRank->name;
+
+        $this->editMode  = true;
         $this->showModal = true;
     }
 
@@ -89,6 +102,14 @@ class PositionRankManager extends Component
                 'name' => $this->name,
             ]);
 
+            if ($this->oldName !== $this->name) {
+                AccountActivityService::log(
+                    Auth::user(),
+                    "Updated position rank (ID: {$this->positionRankId}) — "
+                        . "name: \"{$this->oldName}\" → \"{$this->name}\"."
+                );
+            }
+
             $this->showModal = false;
             $this->resetInputFields();
             $this->dispatch('alert', type: 'success', title: 'Success!', text: 'Position rank updated successfully!');
@@ -100,7 +121,7 @@ class PositionRankManager extends Component
     public function confirmDelete($id)
     {
         $this->positionRankId = $id;
-        $this->dispatch('confirmation', 
+        $this->dispatch('confirmation',
             id: $id,
             title: 'Are you sure?',
             text: "You won't be able to revert this!",
@@ -115,7 +136,17 @@ class PositionRankManager extends Component
     public function delete()
     {
         try {
-            PositionRank::findOrFail($this->positionRankId)->delete();
+            $positionRank = PositionRank::findOrFail($this->positionRankId);
+
+            $deletedName = $positionRank->name;
+
+            $positionRank->delete();
+
+            AccountActivityService::log(
+                Auth::user(),
+                "Deleted position rank \"{$deletedName}\" (ID: {$this->positionRankId})."
+            );
+
             $this->dispatch('alert', type: 'success', title: 'Deleted!', text: 'Position rank deleted successfully!');
         } catch (\Exception $e) {
             $this->dispatch('alert', type: 'error', title: 'Error!', text: 'Failed to delete position rank');
@@ -130,8 +161,9 @@ class PositionRankManager extends Component
 
     private function resetInputFields()
     {
-        $this->name = '';
+        $this->name           = '';
         $this->positionRankId = null;
+        $this->oldName        = '';
         $this->resetErrorBag();
     }
 }

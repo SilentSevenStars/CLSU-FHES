@@ -22,8 +22,8 @@
 
             <!-- Success Message -->
             @if (session()->has('message'))
-                <div x-data="{ show: true }" 
-                     x-show="show" 
+                <div x-data="{ show: true }"
+                     x-show="show"
                      x-init="setTimeout(() => show = false, 5000)"
                      class="mb-6 bg-green-50 border-l-4 border-green-500 p-6 rounded-lg shadow-lg animate-fadeIn">
                     <div class="flex items-center justify-between">
@@ -58,9 +58,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Total Scheduled</p>
-                                <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                    {{ $totalCount }}
-                                </h3>
+                                <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ $totalCount }}</h3>
                             </div>
                             <div class="bg-[#0A6025] rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,9 +74,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Completed</p>
-                                <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                    {{ $completedCount }}
-                                </h3>
+                                <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ $completedCount }}</h3>
                             </div>
                             <div class="bg-green-500 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,9 +89,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-semibold uppercase tracking-wide">Pending</p>
-                                <h3 class="text-3xl font-bold text-gray-800 mt-2 transition-all duration-300">
-                                    {{ $pendingCount }}
-                                </h3>
+                                <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ $pendingCount }}</h3>
                             </div>
                             <div class="bg-yellow-500 rounded-2xl p-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
                                 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,10 +147,12 @@
                             <tbody class="divide-y divide-gray-200 bg-white">
                                 @forelse ($applications as $app)
                                     @php
-                                        $evaluation = $app->evaluation;
-                                        $assignment = $assignments[$evaluation->id] ?? null;
-                                        $isComplete = $assignment && $assignment->status === 'complete';
-                                        $panelPos = strtolower($panel->panel_position);
+                                        $evaluation        = $app->evaluation;
+                                        $assignment        = $assignments[$evaluation->id] ?? null;
+                                        $isComplete        = $assignment && $assignment->status === 'complete';
+                                        $panelPos          = strtolower($panel->panel_position);
+                                        $appPositionName   = strtolower($app->position?->name ?? '');
+                                        $isInstructorIorII = in_array($appPositionName, ['instructor i', 'instructor ii']);
                                     @endphp
 
                                     <tr class="hover:bg-gray-50 transition-colors duration-150">
@@ -206,8 +202,18 @@
                                         <!-- Action -->
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             @if (! $isComplete)
-                                                @if ($panelPos === 'head')
-                                                    <a href="{{ route('panel.experience', $evaluation->id) }}"
+                                                @if ($panelPos === 'head' && $isInstructorIorII)
+                                                    {{-- head + Instructor I/II: Interview → Experience → Performance --}}
+                                                    <a href="{{ route('panel.interview', $evaluation->id) }}"
+                                                       class="inline-flex items-center px-4 py-2 bg-[#0A6025] hover:bg-[#0B712C] text-white font-semibold rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
+                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        Evaluate
+                                                    </a>
+                                                @elseif (! $panelPos === 'head' && $isInstructorIorII)
+                                                    {{-- non-head + Instructor I/II: Interview → Performance --}}
+                                                    <a href="{{ route('panel.interview', $evaluation->id) }}"
                                                        class="inline-flex items-center px-4 py-2 bg-[#0A6025] hover:bg-[#0B712C] text-white font-semibold rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
                                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -215,6 +221,7 @@
                                                         Evaluate
                                                     </a>
                                                 @else
+                                                    {{-- any + other position: Interview only --}}
                                                     <a href="{{ route('panel.interview', $evaluation->id) }}"
                                                        class="inline-flex items-center px-4 py-2 bg-[#0A6025] hover:bg-[#0B712C] text-white font-semibold rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md">
                                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

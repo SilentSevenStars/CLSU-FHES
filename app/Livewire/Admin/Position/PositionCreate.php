@@ -4,12 +4,14 @@ namespace App\Livewire\Admin\Position;
 
 use App\Models\College;
 use App\Models\Department;
+use App\Models\EducationalBackground;
 use App\Models\Position;
 use App\Models\PositionRank;
+use App\Services\AccountActivityService;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
-use App\Models\EducationalBackground;
 
 class PositionCreate extends Component
 {
@@ -53,8 +55,8 @@ class PositionCreate extends Component
 
     public function mount()
     {
-        $this->colleges = College::orderBy('name')->get();
-        $this->positionRanks = PositionRank::orderBy('id')->get();
+        $this->colleges       = College::orderBy('name')->get();
+        $this->positionRanks  = PositionRank::orderBy('id')->get();
         $this->educationOptions = EducationalBackground::orderBy('name')->pluck('name')->toArray();
     }
 
@@ -75,11 +77,9 @@ class PositionCreate extends Component
     public function updatedCollegeId($value)
     {
         $this->department_id = null;
-        if ($value) {
-            $this->departments = Department::where('college_id', $value)->orderBy('name')->get();
-        } else {
-            $this->departments = [];
-        }
+        $this->departments   = $value
+            ? Department::where('college_id', $value)->orderBy('name')->get()
+            : [];
     }
 
     public function store()
@@ -101,7 +101,7 @@ class PositionCreate extends Component
         try {
             $position = new Position();
             $position->name           = $this->name;
-            $position->college_id     = $this->college_id ?: null;
+            $position->college_id     = $this->college_id    ?: null;
             $position->department_id  = $this->department_id ?: null;
             $position->start_date     = $this->start_date;
             $position->end_date       = $this->end_date;
@@ -113,6 +113,17 @@ class PositionCreate extends Component
             $position->save();
 
             DB::commit();
+
+            // ── Activity log ─────────────────────────────────────────────────
+            $collegeName    = $position->college->name   ?? 'Various Colleges';
+            $departmentName = $position->department->name ?? 'Various Departments';
+
+            AccountActivityService::log(
+                Auth::user(),
+                "Created a new position \"{$this->name}\" — College: {$collegeName}, Department: {$departmentName}, Specialization: {$this->specialization}, Education: {$this->education}, Experience: {$this->experience} year(s), Training: {$this->training} hour(s), Start: {$this->start_date}, End: {$this->end_date}."
+            );
+            // ─────────────────────────────────────────────────────────────────
+
             session()->flash('success', 'Position has been created successfully');
             return redirect()->route('admin.position');
         } catch (Exception $e) {

@@ -200,15 +200,22 @@
                                                     {{ $position->college->name ?? 'Various Colleges' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">
-                                                    {{ $position->department->name ?? '' }}
+                                                    {{ $position->department->name ?? 'Various Departments' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->start_date }}</td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-black">{{ $position->end_date }}</td>
-                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                <td class="px-6 py-4 whitespace-nowrap flex items-center gap-1">
+                                                    {{-- View --}}
+                                                    <button wire:click="showPosition({{ $position->id }})"
+                                                        class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
+                                                        View
+                                                    </button>
+                                                    {{-- Edit --}}
                                                     <a href="{{ route('admin.position.edit', $position->id) }}"
                                                         class="text-white bg-yellow-500 hover:bg-yellow-600 rounded-lg px-3 py-1 text-sm font-medium inline-block">
                                                         Edit
                                                     </a>
+                                                    {{-- Delete --}}
                                                     <button wire:click="deleteConfirmed({{ $position->id }})"
                                                         class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">
                                                         Delete
@@ -242,4 +249,140 @@
             </div>
         </div>
     </div>
+
+    <!-- ── Position Details Modal ──────────────────────────────────────────── -->
+    @if($showModal && $viewPosition)
+    <div class="fixed inset-0 z-50 flex items-center justify-center"
+         x-data
+         x-on:keydown.escape.window="$wire.closeModal()">
+
+        {{-- Backdrop --}}
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+             wire:click="closeModal"></div>
+
+        {{-- Panel --}}
+        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden animate-fadeIn">
+
+            {{-- Modal Header --}}
+            <div class="bg-[#0a6025] px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="bg-white/20 rounded-lg p-2">
+                        <i class="fa-solid fa-briefcase text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Position Details</h3>
+                        <p class="text-green-200 text-sm">Full information for this position</p>
+                    </div>
+                </div>
+                <button wire:click="closeModal"
+                    class="text-white/70 hover:text-white transition-colors rounded-lg p-1 hover:bg-white/10">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Modal Body --}}
+            <div class="px-6 py-6 space-y-4 max-h-[70vh] overflow-y-auto">
+
+                {{-- Row helper: two-column grid --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    {{-- Position Name --}}
+                    <div class="sm:col-span-2 bg-green-50 border border-green-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-green-700 mb-1">Position Name</p>
+                        <p class="text-gray-900 font-semibold text-lg">{{ $viewPosition->name }}</p>
+                    </div>
+
+                    {{-- College --}}
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">College</p>
+                        <p class="text-gray-800 font-medium">{{ $viewPosition->college->name ?? 'Various Colleges' }}</p>
+                    </div>
+
+                    {{-- Department --}}
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Department</p>
+                        <p class="text-gray-800 font-medium">{{ $viewPosition->department->name ?? 'Various Departments' }}</p>
+                    </div>
+
+                    {{-- Specialization --}}
+                    <div class="sm:col-span-2 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Specialization</p>
+                        <p class="text-gray-800 font-medium">{{ $viewPosition->specialization }}</p>
+                    </div>
+
+                    {{-- Education --}}
+                    <div class="sm:col-span-2 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Education</p>
+                        <p class="text-gray-800 font-medium">{{ $viewPosition->education }}</p>
+                    </div>
+
+                    {{-- Eligibility --}}
+                    <div class="sm:col-span-2 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Eligibility</p>
+                        <p class="text-gray-800 font-medium">{{ $viewPosition->eligibility }}</p>
+                    </div>
+
+                    {{-- Experience --}}
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Experience Required</p>
+                        <p class="text-gray-800 font-medium">
+                            {{ $viewPosition->experience }}
+                            {{ Str::plural('year', $viewPosition->experience) }}
+                        </p>
+                    </div>
+
+                    {{-- Training --}}
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Training Required</p>
+                        <p class="text-gray-800 font-medium">
+                            {{ $viewPosition->training }}
+                            {{ Str::plural('hour', $viewPosition->training) }}
+                        </p>
+                    </div>
+
+                    {{-- Start Date --}}
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Start Date</p>
+                        <p class="text-gray-800 font-medium">
+                            {{ $viewPosition->start_date
+                                ? \Carbon\Carbon::parse($viewPosition->start_date)->format('F j, Y')
+                                : '—' }}
+                        </p>
+                    </div>
+
+                    {{-- End Date --}}
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">End Date</p>
+                        <p class="text-gray-800 font-medium">
+                            {{ $viewPosition->end_date
+                                ? \Carbon\Carbon::parse($viewPosition->end_date)->format('F j, Y')
+                                : '—' }}
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                <a href="{{ route('admin.position.edit', $viewPosition->id) }}"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    Edit
+                </a>
+                <button wire:click="closeModal"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+    <!-- ───────────────────────────────────────────────────────────────────── -->
 </div>

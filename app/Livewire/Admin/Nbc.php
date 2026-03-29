@@ -7,6 +7,8 @@ use App\Models\Evaluation;
 use App\Models\Applicant;
 use App\Models\NbcAssignment;
 use App\Models\NbcCommittee;
+use App\Services\AccountActivityService;
+use Illuminate\Support\Facades\Auth;
 
 class Nbc extends Component
 {
@@ -30,18 +32,17 @@ class Nbc extends Component
      */
     public function openSearchModal()
     {
-        $this->showSearchModal = true;
-        $this->tempSearchTerm = '';
-        $this->tempSelectedPosition = null;
+        $this->showSearchModal        = true;
+        $this->tempSearchTerm         = '';
+        $this->tempSelectedPosition   = null;
         $this->tempSelectedInterviewDate = null;
-        $this->showDropdown = false;
-        $this->selectedApplicantId = null;
-        $this->positions = [];
-        $this->interviewDates = [];
+        $this->showDropdown           = false;
+        $this->selectedApplicantId    = null;
+        $this->positions              = [];
+        $this->interviewDates         = [];
 
         $this->searchResults = Applicant::with('user')
             ->whereHas('jobApplications', function ($q) {
-                // FIX: include 'hired' alongside 'approve'
                 $q->whereIn('status', ['approve', 'hired']);
             })
             ->orderBy('last_name')
@@ -60,18 +61,17 @@ class Nbc extends Component
 
     public function updatedTempSearchTerm()
     {
-        $this->showDropdown = true;
-        $this->selectedApplicantId = null;
-        $this->positions = [];
-        $this->interviewDates = [];
-        $this->tempSelectedPosition = null;
+        $this->showDropdown          = true;
+        $this->selectedApplicantId   = null;
+        $this->positions             = [];
+        $this->interviewDates        = [];
+        $this->tempSelectedPosition  = null;
         $this->tempSelectedInterviewDate = null;
 
         $search = strtolower(trim($this->tempSearchTerm));
 
         $query = Applicant::with('user')
             ->whereHas('jobApplications', function ($q) {
-                // FIX: include 'hired' alongside 'approve'
                 $q->whereIn('status', ['approve', 'hired']);
             });
 
@@ -100,17 +100,17 @@ class Nbc extends Component
     public function selectApplicant($applicantId, $applicantName)
     {
         $this->selectedApplicantId = $applicantId;
-        $this->tempSearchTerm = $applicantName;
-        $this->showDropdown = false;
+        $this->tempSearchTerm      = $applicantName;
+        $this->showDropdown        = false;
 
         $this->loadPositionsForSelectedApplicant();
     }
 
     public function loadPositionsForSelectedApplicant()
     {
-        $this->positions = [];
-        $this->interviewDates = [];
-        $this->tempSelectedPosition = null;
+        $this->positions             = [];
+        $this->interviewDates        = [];
+        $this->tempSelectedPosition  = null;
         $this->tempSelectedInterviewDate = null;
 
         if (!$this->selectedApplicantId) {
@@ -125,7 +125,6 @@ class Nbc extends Component
 
         $this->positions = $applicant->jobApplications()
             ->with('position')
-            // FIX: include 'hired' alongside 'approve'
             ->whereIn('status', ['approve', 'hired'])
             ->get()
             ->pluck('position.name')
@@ -138,7 +137,7 @@ class Nbc extends Component
 
     public function updatedTempSelectedPosition()
     {
-        $this->interviewDates = [];
+        $this->interviewDates            = [];
         $this->tempSelectedInterviewDate = null;
 
         if (!$this->selectedApplicantId || !$this->tempSelectedPosition) {
@@ -153,7 +152,6 @@ class Nbc extends Component
 
         $this->interviewDates = $applicant->jobApplications()
             ->with(['position', 'evaluation'])
-            // FIX: include 'hired' alongside 'approve'
             ->whereIn('status', ['approve', 'hired'])
             ->whereHas('position', fn($q) => $q->where('name', $this->tempSelectedPosition))
             ->whereHas('evaluation', fn($q) => $q->whereHas('nbcAssignments', fn($a) => $a->where('status', 'complete')))
@@ -190,24 +188,33 @@ class Nbc extends Component
             return;
         }
 
+        // ── Activity log — search ─────────────────────────────────────────────
+        AccountActivityService::log(
+            Auth::user(),
+            "Searched NBC evaluation — Applicant: \"{$this->searchTerm}\", "
+                . "Position: \"{$this->selectedPosition}\", "
+                . "Interview Date: " . date('M d, Y', strtotime($this->selectedInterviewDate)) . "."
+        );
+        // ─────────────────────────────────────────────────────────────────────
+
         $this->closeSearchModal();
     }
 
     public function clearSearch()
     {
-        $this->searchTerm            = '';
-        $this->selectedPosition      = null;
-        $this->selectedInterviewDate = null;
-        $this->positions             = [];
-        $this->interviewDates        = [];
-        $this->nbcData               = [];
-        $this->applicantId           = null;
-        $this->tempSearchTerm        = '';
-        $this->tempSelectedPosition  = null;
+        $this->searchTerm                = '';
+        $this->selectedPosition          = null;
+        $this->selectedInterviewDate     = null;
+        $this->positions                 = [];
+        $this->interviewDates            = [];
+        $this->nbcData                   = [];
+        $this->applicantId               = null;
+        $this->tempSearchTerm            = '';
+        $this->tempSelectedPosition      = null;
         $this->tempSelectedInterviewDate = null;
-        $this->searchResults         = [];
-        $this->showDropdown          = false;
-        $this->selectedApplicantId   = null;
+        $this->searchResults             = [];
+        $this->showDropdown              = false;
+        $this->selectedApplicantId       = null;
     }
 
     /**
@@ -272,7 +279,6 @@ class Nbc extends Component
             return;
         }
 
-        // FIX: include 'hired' alongside 'approve' when finding the evaluation
         $evaluation = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
                 $q->where('applicant_id', $applicant->id)
                   ->whereIn('status', ['approve', 'hired'])
@@ -297,7 +303,6 @@ class Nbc extends Component
         // All evaluation IDs for this applicant (approve OR hired)
         $allEvaluationIds = Evaluation::whereHas('jobApplication', function ($q) use ($applicant) {
                 $q->where('applicant_id', $applicant->id)
-                  // FIX: include 'hired' alongside 'approve'
                   ->whereIn('status', ['approve', 'hired']);
             })
             ->pluck('id');
@@ -342,7 +347,6 @@ class Nbc extends Component
         $additionalProfessional = $currentScores['professional'] - ($previousScores['professional'] ?? 0);
         $additionalTotal        = $currentScores['total']        - ($previousScores['total']        ?? 0);
 
-        // FIX: include 'hired' alongside 'approve' when fetching position info
         $positionApplication = $applicant->jobApplications()
             ->whereHas('position', fn($q) => $q->where('name', $this->selectedPosition))
             ->whereIn('status', ['approve', 'hired'])
@@ -407,10 +411,7 @@ class Nbc extends Component
 
     /**
      * Print — renders the NBC report blade to HTML and opens it in a new tab.
-     *
-     * Maps nbcData into the row shape the original blade expects:
-     *   number, name, position, email, status,
-     *   edu_score, exp_score, pro_score, total_score, evaluation_date
+     * Activity is logged only when this action is triggered.
      */
     public function print()
     {
@@ -422,13 +423,25 @@ class Nbc extends Component
         $committee = $this->getNbcCommitteeForPrint();
 
         $html = view('print.nbc-report', [
-            'data'         => $this->nbcData[0],
+            'data'          => $this->nbcData[0],
             'generatedDate' => now()->format('F d, Y'),
-            'evaluators'   => $committee['evaluators'],
-            'chairperson'  => $committee['chairperson'],
+            'evaluators'    => $committee['evaluators'],
+            'chairperson'   => $committee['chairperson'],
         ])->render();
 
         $this->dispatch('openPrintTab', html: $html);
+
+        // ── Activity log — print ──────────────────────────────────────────────
+        $row = $this->nbcData[0];
+
+        AccountActivityService::log(
+            Auth::user(),
+            "Printed NBC report — Applicant: \"{$row['name']}\", "
+                . "Position: \"{$row['position']}\", "
+                . "Interview Date: " . date('M d, Y', strtotime($row['interview_date'])) . ", "
+                . "Grand Total: {$row['grand_total']}."
+        );
+        // ─────────────────────────────────────────────────────────────────────
     }
 
     public function render()

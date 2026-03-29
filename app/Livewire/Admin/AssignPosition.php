@@ -6,7 +6,9 @@ use App\Models\Applicant;
 use App\Models\Evaluation;
 use App\Models\Notification;
 use App\Mail\NotificationMail;
+use App\Services\AccountActivityService;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -171,8 +173,8 @@ class AssignPosition extends Component
     public function confirmAssignment()
     {
         Log::info('confirmAssignment called', [
-            'selectedApplicant' => $this->selectedApplicant ? $this->selectedApplicant->id : null,
-            'selectedEvaluation' => $this->selectedEvaluation ? $this->selectedEvaluation->id : null
+            'selectedApplicant'  => $this->selectedApplicant  ? $this->selectedApplicant->id  : null,
+            'selectedEvaluation' => $this->selectedEvaluation ? $this->selectedEvaluation->id : null,
         ]);
 
         if (!$this->selectedApplicant || !$this->selectedEvaluation) {
@@ -191,7 +193,7 @@ class AssignPosition extends Component
 
         Log::info('Status check', [
             'has_panel_complete' => $hasPanelComplete,
-            'has_nbc_complete' => $hasNbcComplete
+            'has_nbc_complete'   => $hasNbcComplete,
         ]);
 
         if (!$hasPanelComplete && !$hasNbcComplete) {
@@ -204,26 +206,26 @@ class AssignPosition extends Component
         DB::beginTransaction();
 
         try {
-            $newPosition = $this->selectedEvaluation->jobApplication->position->name;
-            $oldPosition = $this->selectedApplicant->position ?? 'None';
+            $newPosition   = $this->selectedEvaluation->jobApplication->position->name;
+            $oldPosition   = $this->selectedApplicant->position ?? 'None';
             $positionModel = $this->selectedEvaluation->jobApplication->position;
 
             Log::info('Starting position assignment', [
-                'applicant_id' => $this->selectedApplicant->id,
-                'old_position' => $oldPosition,
-                'new_position' => $newPosition,
-                'job_application_id' => $this->selectedEvaluation->jobApplication->id
+                'applicant_id'       => $this->selectedApplicant->id,
+                'old_position'       => $oldPosition,
+                'new_position'       => $newPosition,
+                'job_application_id' => $this->selectedEvaluation->jobApplication->id,
             ]);
 
             $this->selectedApplicant->update([
                 'position' => $newPosition,
-                'hired' => true,
+                'hired'    => true,
             ]);
 
             Log::info('Applicant updated successfully');
 
             $this->selectedEvaluation->jobApplication->update([
-                'status' => 'hired',
+                'status'  => 'hired',
                 'archive' => true,
             ]);
 
@@ -234,6 +236,17 @@ class AssignPosition extends Component
             DB::commit();
 
             Log::info('Transaction committed successfully');
+
+            // ── Activity log ──────────────────────────────────────────────────
+            $collegeName    = $positionModel->college->name    ?? 'Various Colleges';
+            $departmentName = $positionModel->department->name ?? 'Various Departments';
+
+            AccountActivityService::log(
+                Auth::user(),
+                "Assigned/promoted \"{$this->selectedApplicant->user->name}\" to position \"{$newPosition}\" "
+                    . "(previously: \"{$oldPosition}\") — College: {$collegeName}, Department: {$departmentName}."
+            );
+            // ─────────────────────────────────────────────────────────────────
 
             $this->showAlert('success', "Successfully assigned {$this->selectedApplicant->user->name} to position: {$newPosition}");
 
@@ -291,8 +304,8 @@ class AssignPosition extends Component
         try {
             Log::info('Archiving job application', [
                 'job_application_id' => $this->selectedJobApplication->id,
-                'applicant_name' => $this->selectedJobApplication->applicant->user->name,
-                'position' => $this->selectedJobApplication->position->name
+                'applicant_name'     => $this->selectedJobApplication->applicant->user->name,
+                'position'           => $this->selectedJobApplication->position->name,
             ]);
 
             $this->selectedJobApplication->update([
@@ -301,9 +314,22 @@ class AssignPosition extends Component
 
             Log::info('Job application archived successfully');
 
+            // ── Activity log ──────────────────────────────────────────────────
+            $applicantName  = $this->selectedJobApplication->applicant->user->name;
+            $positionName   = $this->selectedJobApplication->position->name;
+            $collegeName    = $this->selectedJobApplication->position->college->name    ?? 'Various Colleges';
+            $departmentName = $this->selectedJobApplication->position->department->name ?? 'Various Departments';
+
+            AccountActivityService::log(
+                Auth::user(),
+                "Archived job application for \"{$applicantName}\" — Position: \"{$positionName}\", "
+                    . "College: {$collegeName}, Department: {$departmentName}."
+            );
+            // ─────────────────────────────────────────────────────────────────
+
             $this->sendArchiveEmail($this->selectedJobApplication, $this->archive_message);
 
-            $this->showAlert('success', "Successfully archived job application for {$this->selectedJobApplication->applicant->user->name}");
+            $this->showAlert('success', "Successfully archived job application for {$applicantName}");
 
             $this->closeArchiveModal();
             $this->resetPage();
@@ -318,7 +344,8 @@ class AssignPosition extends Component
 
     public function unarchive($jobApplicationId)
     {
-        $jobApplication = \App\Models\JobApplication::findOrFail($jobApplicationId);
+        $jobApplication = \App\Models\JobApplication::with(['applicant.user', 'position.college', 'position.department'])
+            ->findOrFail($jobApplicationId);
 
         if ($jobApplication->status === 'hired') {
             $this->showAlert('error', 'Cannot restore this application. It was used to hire/promote this applicant and must be kept for records.');
@@ -328,8 +355,8 @@ class AssignPosition extends Component
         try {
             Log::info('Unarchiving job application', [
                 'job_application_id' => $jobApplication->id,
-                'applicant_name' => $jobApplication->applicant->user->name,
-                'position' => $jobApplication->position->name
+                'applicant_name'     => $jobApplication->applicant->user->name,
+                'position'           => $jobApplication->position->name,
             ]);
 
             $jobApplication->update([
@@ -338,7 +365,20 @@ class AssignPosition extends Component
 
             Log::info('Job application unarchived successfully');
 
-            $this->showAlert('success', "Successfully unarchived job application for {$jobApplication->applicant->user->name}");
+            // ── Activity log ──────────────────────────────────────────────────
+            $applicantName  = $jobApplication->applicant->user->name;
+            $positionName   = $jobApplication->position->name;
+            $collegeName    = $jobApplication->position->college->name    ?? 'Various Colleges';
+            $departmentName = $jobApplication->position->department->name ?? 'Various Departments';
+
+            AccountActivityService::log(
+                Auth::user(),
+                "Unarchived job application for \"{$applicantName}\" — Position: \"{$positionName}\", "
+                    . "College: {$collegeName}, Department: {$departmentName}."
+            );
+            // ─────────────────────────────────────────────────────────────────
+
+            $this->showAlert('success', "Successfully unarchived job application for {$applicantName}");
 
             $this->resetPage();
         } catch (Exception $e) {
@@ -567,7 +607,7 @@ class AssignPosition extends Component
 
     protected function showAlert($type, $message)
     {
-        $this->alertType = $type;
+        $this->alertType    = $type;
         $this->alertMessage = $message;
         $this->showAlertModal = true;
     }
@@ -592,11 +632,11 @@ class AssignPosition extends Component
                         'position.college',
                         'position.department',
                         'evaluation.panelAssignments',
-                        'evaluation.nbcAssignments'
+                        'evaluation.nbcAssignments',
                     ])
                     ->where('archive', $this->showArchived ? true : false)
                     ->where('status', '!=', 'hired');
-                }
+                },
             ])
             ->whereHas('jobApplications', function ($q) {
                 $q->where('archive', $this->showArchived ? true : false)
