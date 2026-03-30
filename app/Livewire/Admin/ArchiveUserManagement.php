@@ -8,7 +8,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\JobApplication;
 
-class ArchiveApplicantManagement extends Component
+class ArchiveUserManagement extends Component
 {
     use WithPagination;
 
