@@ -76,11 +76,23 @@
                     </div>
 
                     @php
-                        $appPositionName   = strtolower($evaluation->jobApplication->position->name ?? '');
-                        $panelPositionName = strtolower($panel->panel_position ?? '');
-                        $isInstructorIorII = in_array($appPositionName, ['instructor i', 'instructor ii']);
-                        $goesToPerformance = $isInstructorIorII;
-                        $goesToExperience  = $panelPositionName === 'head' && $isInstructorIorII;
+                        $appPositionName         = strtolower($evaluation->jobApplication->position->name ?? '');
+                        $panelPositionName       = strtolower($panel->panel_position ?? '');
+                        $collegeName             = $evaluation->jobApplication->position->college?->name ?? '';
+                        $experienceOnlyColleges  = [
+                            'College of Veterinary Science and Medicine',
+                            'College of Business and Accountancy',
+                            'College of Engineering',
+                        ];
+                        $experienceOnlyPositions = ['instructor iii', 'assistant professor i'];
+                        $isInstructorIorII       = in_array($appPositionName, ['instructor i', 'instructor ii']);
+                        $isExperienceOnlyHead    = $panelPositionName === 'head'
+                            && in_array($appPositionName, $experienceOnlyPositions)
+                            && in_array($collegeName, $experienceOnlyColleges);
+                        // goesToPerformance: true only for non-head Instructor I/II, or head Instructor I/II (via Experience)
+                        $goesToPerformance = $isInstructorIorII && !$isExperienceOnlyHead;
+                        // goesToExperience: head + Instructor I/II OR head + experience-only positions/colleges
+                        $goesToExperience  = ($panelPositionName === 'head' && $isInstructorIorII) || $isExperienceOnlyHead;
                     @endphp
 
                     <form wire:submit.prevent="confirmSubmission">
@@ -325,7 +337,7 @@
                                 <button type="submit"
                                     class="bg-[#0A6025] hover:bg-[#0B712C] text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
                                     @if ($goesToExperience)
-                                        Next → {{-- head + Instructor I/II: goes to Experience --}}
+                                        Next → {{-- head + Instructor I/II or head + Instr III/Asst Prof I in specific colleges: goes to Experience --}}
                                     @elseif ($goesToPerformance)
                                         Next → {{-- non-head + Instructor I/II: goes to Performance --}}
                                     @else

@@ -48,14 +48,17 @@
                 <div class="flex items-center gap-0">
                     @php
                     $steps = [
-                    1 => ['label' => 'Personal Info', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7
+                    1 => ['label' => 'Privacy', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955
+                    11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622
+                    0-1.042-.133-2.052-.382-3.016z'],
+                    2 => ['label' => 'Personal Info', 'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7
                     7 0 00-7-7z'],
-                    2 => ['label' => 'Address', 'icon' => 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827
+                    3 => ['label' => 'Address', 'icon' => 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827
                     0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z'],
-                    3 => ['label' => 'Employment', 'icon' => 'M21 13.255A23.931 23.931 0 0112 15c-3.183
+                    4 => ['label' => 'Employment', 'icon' => 'M21 13.255A23.931 23.931 0 0112 15c-3.183
                     0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0
                     00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
-                    4 => ['label' => 'Documents', 'icon' => 'M7 21h10a2 2 0 002-2V9.414a1 1 0
+                    5 => ['label' => 'Documents', 'icon' => 'M7 21h10a2 2 0 002-2V9.414a1 1 0
                     00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z'],
                     ];
                     @endphp
@@ -71,7 +74,7 @@
 
                                 <div
                                     class="w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300
-                {{ $stepNum < $currentStep ? 'bg-[#0A6025] border-[#0A6025]' : ($stepNum === $currentStep ? 'bg-white border-[#0A6025]' : 'bg-white border-gray-300') }}">
+                                {{ $stepNum < $currentStep ? 'bg-[#0A6025] border-[#0A6025]' : ($stepNum === $currentStep ? 'bg-white border-[#0A6025]' : 'bg-white border-gray-300') }}">
                                     @if($stepNum < $currentStep) <svg class="w-5 h-5 text-white" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -97,7 +100,7 @@
 
                             <!-- Connector line -->
                             @if($stepNum < $totalSteps) <div class="flex-1 h-0.5 mx-2 mt-[-16px] sm:mt-[-10px] transition-all duration-500
-                {{ $stepNum < $currentStep ? 'bg-[#0A6025]' : 'bg-gray-200' }}">
+                            {{ $stepNum < $currentStep ? 'bg-[#0A6025]' : 'bg-gray-200' }}">
                     </div>
                     @endif
                 </div>
@@ -112,8 +115,112 @@
                 x-on:step-changed.window="window.scrollTo({ top: 0, behavior: 'smooth' });" class="p-8 space-y-6">
                 @csrf
 
-                {{-- ═══════════════ STEP 1: PERSONAL INFORMATION ═══════════════ --}}
+                {{-- ═══════════════ STEP 1: DATA PRIVACY AGREEMENT ═══════════════ --}}
                 @if($currentStep === 1)
+                <div class="animate-fadeIn space-y-6">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg p-2">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-gray-800">Data Privacy Agreement</h3>
+                            <p class="text-sm text-gray-500 mt-0.5">You must read and accept the terms below before
+                                proceeding</p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="bg-gray-50 border border-gray-200 rounded-xl p-6 max-h-72 overflow-y-auto text-sm text-gray-700 space-y-4 leading-relaxed">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-purple-600 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            <span class="font-bold text-gray-900 text-base">Republic Act No. 10173 — Data Privacy Act of
+                                2012</span>
+                        </div>
+                        <p>In compliance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong> and
+                            its Implementing Rules and Regulations, this institution is committed to protecting and
+                            respecting your privacy.</p>
+                        <p><strong>Purpose of Data Collection</strong></p>
+                        <p>The personal information you provide in this application form — including but not limited to
+                            your full name, contact details, address, educational background, work experience, and
+                            supporting documents — will be collected and processed solely for the purpose of evaluating
+                            your eligibility and qualifications for the position you are applying for.</p>
+                        <p><strong>Data Use and Disclosure</strong></p>
+                        <p>Your personal data will only be accessed by authorized personnel of this institution involved
+                            in the hiring and selection process. We will not share, sell, or disclose your personal
+                            information to third parties without your consent, except as required by law or authorized
+                            government agencies.</p>
+                        <p><strong>Data Retention</strong></p>
+                        <p>Your application data will be retained for a period necessary to fulfill the purposes stated
+                            above and in accordance with applicable laws and institutional policies. After such period,
+                            your data will be securely disposed of.</p>
+                        <p><strong>Your Rights as a Data Subject</strong></p>
+                        <p>Under the Data Privacy Act of 2012, you have the following rights:</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Right to be informed of how your data is being processed</li>
+                            <li>Right to access your personal data held by this institution</li>
+                            <li>Right to correct any inaccurate or outdated information</li>
+                            <li>Right to object to the processing of your personal data</li>
+                            <li>Right to erasure or blocking of your personal data</li>
+                            <li>Right to file a complaint with the National Privacy Commission</li>
+                        </ul>
+                        <p><strong>Security Measures</strong></p>
+                        <p>This institution implements appropriate technical and organizational security measures to
+                            protect your personal data against unauthorized access, disclosure, alteration, or
+                            destruction. Uploaded documents are encrypted and stored securely.</p>
+                        <p><strong>Contact Information</strong></p>
+                        <p>If you have questions or concerns regarding the processing of your personal data, you may
+                            contact our Data Protection Officer through the institution's official communication
+                            channels.</p>
+                        <p class="text-xs text-gray-500 pt-2 border-t border-gray-200">
+                            By checking the box below, you acknowledge that you have read and understood this Data
+                            Privacy Notice and you freely give your consent to the collection and processing of your
+                            personal data for the purposes stated herein.
+                        </p>
+                    </div>
+
+                    <div
+                        class="@error('agree_to_terms') bg-red-50 border border-red-200 @else bg-white border border-gray-200 @enderror rounded-xl p-4 transition-colors duration-200">
+                        <label class="flex items-start gap-3 cursor-pointer group">
+                            <div class="relative flex-shrink-0 mt-0.5">
+                                <input type="checkbox" wire:model.live="agree_to_terms"
+                                    class="w-5 h-5 rounded border-gray-300 text-[#0A6025] focus:ring-[#0A6025] cursor-pointer">
+                            </div>
+                            <div class="flex-1">
+                                <p
+                                    class="text-sm font-semibold text-gray-800 group-hover:text-[#0A6025] transition-colors">
+                                    I have read and agree to the Data Privacy Act terms and conditions
+                                    <span class="text-red-500">*</span>
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    I consent to the collection, use, and processing of my personal data as described in
+                                    the Data Privacy Notice above, in accordance with Republic Act No. 10173.
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+
+                    @error('agree_to_terms')
+                    <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                        <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-red-600 text-sm">{{ $message }}</span>
+                    </div>
+                    @enderror
+                </div>
+                @endif
+
+                {{-- ═══════════════ STEP 2: PERSONAL INFORMATION ═══════════════ --}}
+                @if($currentStep === 2)
                 <div class="animate-fadeIn">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="bg-gradient-to-br from-yellow-500 to-[#0A6025] rounded-lg p-2">
@@ -200,8 +307,8 @@
                 </div>
                 @endif
 
-                {{-- ═══════════════ STEP 2: ADDRESS INFORMATION ═══════════════ --}}
-                @if($currentStep === 2)
+                {{-- ═══════════════ STEP 3: ADDRESS INFORMATION ═══════════════ --}}
+                @if($currentStep === 3)
                 <div class="animate-fadeIn">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg p-2">
@@ -297,8 +404,8 @@
                 </div>
                 @endif
 
-                {{-- ═══════════════ STEP 3: EMPLOYMENT INFORMATION ═══════════════ --}}
-                @if($currentStep === 3)
+                {{-- ═══════════════ STEP 4: EMPLOYMENT INFORMATION ═══════════════ --}}
+                @if($currentStep === 4)
                 <div class="animate-fadeIn">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg p-2">
@@ -401,8 +508,8 @@
                 </div>
                 @endif
 
-                {{-- ═══════════════ STEP 4: DOCUMENTS & PRIVACY ═══════════════ --}}
-                @if($currentStep === 4)
+                {{-- ═══════════════ STEP 5: DOCUMENTS ═══════════════ --}}
+                @if($currentStep === 5)
                 <div class="animate-fadeIn space-y-8">
 
                     <!-- Required Documents -->
@@ -469,29 +576,29 @@
 
                         <!-- Upload Area -->
                         <div x-data="{
-                                    isDragging: false,
-                                    isUploading: false,
-                                    handleDragOver(e) { e.preventDefault(); this.isDragging = true; },
-                                    handleDragLeave(e) { e.preventDefault(); this.isDragging = false; },
-                                    handleDrop(e) {
-                                        e.preventDefault();
-                                        this.isDragging = false;
-                                        const files = e.dataTransfer.files;
-                                        if (files.length > 0) {
-                                            const file = files[0];
-                                            if (file.type === 'application/pdf') {
-                                                this.isUploading = true;
-                                                const input = this.$refs.fileInput;
-                                                const dataTransfer = new DataTransfer();
-                                                dataTransfer.items.add(file);
-                                                input.files = dataTransfer.files;
-                                                input.dispatchEvent(new Event('change', { bubbles: true }));
-                                            } else {
-                                                Swal.fire({ icon: 'error', title: 'Invalid File Type', text: 'Please upload a PDF file only.', confirmButtonColor: '#0A6025' });
+                                        isDragging: false,
+                                        isUploading: false,
+                                        handleDragOver(e) { e.preventDefault(); this.isDragging = true; },
+                                        handleDragLeave(e) { e.preventDefault(); this.isDragging = false; },
+                                        handleDrop(e) {
+                                            e.preventDefault();
+                                            this.isDragging = false;
+                                            const files = e.dataTransfer.files;
+                                            if (files.length > 0) {
+                                                const file = files[0];
+                                                if (file.type === 'application/pdf') {
+                                                    this.isUploading = true;
+                                                    const input = this.$refs.fileInput;
+                                                    const dataTransfer = new DataTransfer();
+                                                    dataTransfer.items.add(file);
+                                                    input.files = dataTransfer.files;
+                                                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                                                } else {
+                                                    Swal.fire({ icon: 'error', title: 'Invalid File Type', text: 'Please upload a PDF file only.', confirmButtonColor: '#0A6025' });
+                                                }
                                             }
                                         }
-                                    }
-                                }"
+                                    }"
                             x-init="$watch('$wire.requirements_file', value => { if (value) { isUploading = false; } })">
                             <label @dragover="handleDragOver" @dragleave="handleDragLeave" @drop="handleDrop"
                                 :class="{ 'border-[#0A6025] bg-green-50 scale-[1.01]': isDragging }"
@@ -578,109 +685,6 @@
                         </div>
                         @enderror
                     </div>
-
-                    <!-- Data Privacy -->
-                    <div>
-                        <div class="flex items-center gap-3 mb-5">
-                            <div class="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg p-2">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="text-2xl font-bold text-gray-800">Data Privacy Agreement</h3>
-                                <p class="text-sm text-gray-500 mt-0.5">Please read and accept the terms below</p>
-                            </div>
-                        </div>
-
-                        <div
-                            class="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-5 max-h-64 overflow-y-auto text-sm text-gray-700 space-y-4 leading-relaxed">
-                            <div class="flex items-center gap-2 mb-2">
-                                <svg class="w-5 h-5 text-purple-600 flex-shrink-0" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                </svg>
-                                <span class="font-bold text-gray-900 text-base">Republic Act No. 10173 — Data Privacy
-                                    Act of 2012</span>
-                            </div>
-                            <p>In compliance with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>
-                                and its Implementing Rules and Regulations, this institution is committed to protecting
-                                and respecting your privacy.</p>
-                            <p><strong>Purpose of Data Collection</strong></p>
-                            <p>The personal information you provide in this application form — including but not limited
-                                to your full name, contact details, address, educational background, work experience,
-                                and supporting documents — will be collected and processed solely for the purpose of
-                                evaluating your eligibility and qualifications for the position you are applying for.
-                            </p>
-                            <p><strong>Data Use and Disclosure</strong></p>
-                            <p>Your personal data will only be accessed by authorized personnel of this institution
-                                involved in the hiring and selection process. We will not share, sell, or disclose your
-                                personal information to third parties without your consent, except as required by law or
-                                authorized government agencies.</p>
-                            <p><strong>Data Retention</strong></p>
-                            <p>Your application data will be retained for a period necessary to fulfill the purposes
-                                stated above and in accordance with applicable laws and institutional policies. After
-                                such period, your data will be securely disposed of.</p>
-                            <p><strong>Your Rights as a Data Subject</strong></p>
-                            <p>Under the Data Privacy Act of 2012, you have the following rights:</p>
-                            <ul class="list-disc pl-5 space-y-1">
-                                <li>Right to be informed of how your data is being processed</li>
-                                <li>Right to access your personal data held by this institution</li>
-                                <li>Right to correct any inaccurate or outdated information</li>
-                                <li>Right to object to the processing of your personal data</li>
-                                <li>Right to erasure or blocking of your personal data</li>
-                                <li>Right to file a complaint with the National Privacy Commission</li>
-                            </ul>
-                            <p><strong>Security Measures</strong></p>
-                            <p>This institution implements appropriate technical and organizational security measures to
-                                protect your personal data against unauthorized access, disclosure, alteration, or
-                                destruction. Uploaded documents are encrypted and stored securely.</p>
-                            <p><strong>Contact Information</strong></p>
-                            <p>If you have questions or concerns regarding the processing of your personal data, you may
-                                contact our Data Protection Officer through the institution's official communication
-                                channels.</p>
-                            <p class="text-xs text-gray-500 pt-2 border-t border-gray-200">
-                                By checking the box below, you acknowledge that you have read and understood this Data
-                                Privacy Notice and you freely give your consent to the collection and processing of your
-                                personal data for the purposes stated herein.
-                            </p>
-                        </div>
-
-                        <div
-                            class="@error('agree_to_terms') bg-red-50 border border-red-200 @else bg-white border border-gray-200 @enderror rounded-xl p-4 transition-colors duration-200">
-                            <label class="flex items-start gap-3 cursor-pointer group">
-                                <div class="relative flex-shrink-0 mt-0.5">
-                                    <input type="checkbox" wire:model.live="agree_to_terms"
-                                        class="w-5 h-5 rounded border-gray-300 text-[#0A6025] focus:ring-[#0A6025] cursor-pointer">
-                                </div>
-                                <div class="flex-1">
-                                    <p
-                                        class="text-sm font-semibold text-gray-800 group-hover:text-[#0A6025] transition-colors">
-                                        I have read and agree to the Data Privacy Act terms and conditions
-                                        <span class="text-red-500">*</span>
-                                    </p>
-                                    <p class="text-xs text-gray-500 mt-1">
-                                        I consent to the collection, use, and processing of my personal data as
-                                        described in the Data Privacy Notice above, in accordance with Republic Act No.
-                                        10173.
-                                    </p>
-                                </div>
-                            </label>
-                        </div>
-
-                        @error('agree_to_terms')
-                        <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-                            <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                            <span class="text-red-600 text-sm">{{ $message }}</span>
-                        </div>
-                        @enderror
-                    </div>
                 </div>
                 @endif
 
@@ -713,7 +717,11 @@
                             class="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 hover:opacity-90"
                             style="background: linear-gradient(to right, #eab308, #15803d);">
                             <span wire:loading.remove wire:target="nextStep">
+                                @if($currentStep === 1)
+                                I Agree &amp; Continue
+                                @else
                                 Next
+                                @endif
                                 <svg class="w-4 h-4 inline ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 5l7 7-7 7" />
@@ -732,7 +740,6 @@
                             @else
                             <button type="submit" wire:loading.attr="disabled"
                                 wire:loading.class="opacity-50 cursor-not-allowed"
-                                :class="$wire.agree_to_terms ? 'opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'"
                                 style="background: linear-gradient(to right, #eab308, #15803d);"
                                 class="px-6 py-3 hover:opacity-90 text-white font-semibold rounded-lg shadow-lg transition-all duration-300">
                                 <span wire:loading.remove>Submit Application</span>
@@ -746,7 +753,6 @@
         </div>
     </div>
 </div>
-
 <!-- SWEETALERT2 INTEGRATION -->
 <div x-data x-on:show-swal-confirm.window="
             Swal.fire({

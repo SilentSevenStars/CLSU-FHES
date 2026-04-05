@@ -20,7 +20,7 @@ class JobApplication extends Component
 
     // ── Pagination ────────────────────────────────────────────────────────────
     public int $currentStep = 1;
-    public int $totalSteps  = 4;
+    public int $totalSteps  = 5;
 
     // ── Personal Information ──────────────────────────────────────────────────
     public string $first_name  = "";
@@ -63,16 +63,31 @@ class JobApplication extends Component
     public $cities    = [];
     public $barangays = [];
 
+    /**
+     * Statuses that are considered "terminal" — an application in one of these
+     * states should NOT block the applicant from applying again.
+     * NOTE: the DB enum value is 'decline' (not 'declined').
+     */
+    private const INACTIVE_STATUSES = ['hired', 'decline'];
+
     // ── Per-step validation rules ─────────────────────────────────────────────
+    // Step 1: Data Privacy Agreement
+    // Step 2: Personal Information
+    // Step 3: Address
+    // Step 4: Employment
+    // Step 5: Documents
     protected array $stepRules = [
         1 => [
+            'agree_to_terms' => 'accepted',
+        ],
+        2 => [
             'first_name'   => 'required|string|max:255',
             'middle_name'  => 'nullable|string|max:255',
             'last_name'    => 'required|string|max:255',
             'suffix'       => 'nullable|string|max:5',
             'phone_number' => 'required|regex:/^09[0-9]{9}$/|size:11',
         ],
-        2 => [
+        3 => [
             'region'      => 'required|string|max:255',
             'province'    => 'required|string|max:255',
             'city'        => 'required|string|max:255',
@@ -80,7 +95,7 @@ class JobApplication extends Component
             'street'      => 'required|string|max:255',
             'postal_code' => 'required|string|max:10',
         ],
-        3 => [
+        4 => [
             'present_position'  => 'required|string|max:255',
             'education'         => 'required|string|max:255',
             'experience'        => 'required|integer|min:0',
@@ -88,9 +103,8 @@ class JobApplication extends Component
             'eligibility'       => 'required|string|max:255',
             'other_involvement' => 'required|string|max:255',
         ],
-        4 => [
+        5 => [
             'requirements_file' => 'required|mimes:pdf|max:102400',
-            'agree_to_terms'    => 'accepted',
         ],
     ];
 
@@ -120,7 +134,7 @@ class JobApplication extends Component
         'phone_number.regex'      => 'Phone number must start with 09 and contain exactly 11 digits.',
         'phone_number.size'       => 'Phone number must be exactly 11 digits.',
         'requirements_file.max'   => 'The file size must not exceed 100MB.',
-        'agree_to_terms.accepted' => 'You must agree to the Data Privacy Act terms before submitting.',
+        'agree_to_terms.accepted' => 'You must agree to the Data Privacy Act terms before proceeding.',
     ];
 
     public function mount($position_id)
@@ -148,10 +162,13 @@ class JobApplication extends Component
         $applicant = Applicant::where('user_id', Auth::id())->first();
 
         if ($applicant) {
+            // Block if the applicant already has an ACTIVE (non-terminal) application
+            // for this specific position.
+            // 'decline' and 'hired' are terminal — they do NOT block re-application.
             $existingApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
                 ->where('position_id', $position_id)
                 ->where('archive', false)
-                ->where('status', '!=', 'hired')
+                ->whereNotIn('status', self::INACTIVE_STATUSES)
                 ->first();
 
             if ($existingApplication) {
@@ -159,9 +176,10 @@ class JobApplication extends Component
                 return redirect()->route('apply-job');
             }
 
+            // Block if the applicant has ANY other active application (one at a time rule).
             $anyActiveApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
                 ->where('archive', false)
-                ->where('status', '!=', 'hired')
+                ->whereNotIn('status', self::INACTIVE_STATUSES)
                 ->exists();
 
             if ($anyActiveApplication) {
@@ -237,7 +255,8 @@ class JobApplication extends Component
 
     protected function validateStep(int $step): void
     {
-        if ($step === 3 && $this->eligibilityIsFixed) {
+        // Step 4 is now Employment (was step 3)
+        if ($step === 4 && $this->eligibilityIsFixed) {
             $this->eligibility = 'None Required';
         }
 
@@ -416,10 +435,12 @@ class JobApplication extends Component
 
         $applicant = Applicant::where('user_id', Auth::id())->first();
         if ($applicant) {
+            // Re-check at save time — declined and hired applications do NOT count as active.
             $anyActiveApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
                 ->where('archive', false)
-                ->where('status', '!=', 'hired')
+                ->whereNotIn('status', self::INACTIVE_STATUSES)
                 ->exists();
+
             if ($anyActiveApplication) {
                 session()->flash('error', 'You already have an active application.');
                 return redirect()->route('apply-job');

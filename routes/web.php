@@ -18,6 +18,7 @@ use App\Livewire\Admin\Nbc;
 use App\Livewire\Admin\NbcCommitteeManager;
 use App\Livewire\Admin\NotificationManager as AdminNotificationManager;
 use App\Livewire\Admin\PanelManager;
+use App\Livewire\Admin\Performance as AdminPerformance;
 use App\Livewire\Admin\Position\PositionCreate;
 use App\Livewire\Admin\Position\PositionEdit;
 use App\Livewire\Admin\Position\PositionIndex;
@@ -219,6 +220,7 @@ Route::middleware([
 
         Route::get('/account-log', AccountLogs::class)->name('account-log');
         Route::get('/account-activity', AccountActivities::class)->name('account-activity');
+        Route::get('/performance', AdminPerformance::class)->name('performance');
     });
 });
 

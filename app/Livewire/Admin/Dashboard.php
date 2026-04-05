@@ -47,7 +47,7 @@ class Dashboard extends Component
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
             ->get()
-            ->groupBy(fn($app) => $app->position->college->name ?? 'Unknown')
+            ->groupBy(fn($app) => $app->position->college->name ?? 'Various Colleges')
             ->map->count();
 
         $this->collegeLabels = $collegeData->keys()->values();

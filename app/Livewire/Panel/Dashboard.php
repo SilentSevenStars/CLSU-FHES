@@ -141,8 +141,8 @@ class Dashboard extends Component
             });
         }
 
-        // Get assignments for this panel
-        $assignments = PanelAssignment::where('panel_id', $panel->id)
+        // Get assignments for this panel — now keyed by user_id
+        $assignments = PanelAssignment::where('user_id', $user->id)
             ->get()
             ->keyBy('evaluation_id');
 

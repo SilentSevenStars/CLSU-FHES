@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class PanelAssignment extends Model
 {
     protected $fillable = [
-        'panel_id',
+        'user_id',
         'interview_id',
         'experience_id',
         'performance_id',
@@ -15,9 +15,13 @@ class PanelAssignment extends Model
         'evaluation_id'
     ];
 
-    public function panel()
+    // public function panel()
+    // {
+    //     return $this->belongsTo(Panel::class);
+    // }
+    public function user()
     {
-        return $this->belongsTo(Panel::class);
+        return $this->belongsTo(User::class);
     }
 
     public function evaluation()

@@ -63,36 +63,33 @@ class Performance extends Component
         $this->applicant      = $this->jobApplication->applicant;
         $this->position       = $this->jobApplication->position;
 
-        $user  = Auth::user();
-        $panel = $user->panel;
+        $user = Auth::user();
 
-        if ($panel) {
-            $panelAssignment = PanelAssignment::firstOrCreate(
-                [
-                    'panel_id'      => $panel->id,
-                    'evaluation_id' => $evaluationId,
-                ],
-                [
-                    'status' => 'not yet',
-                ]
-            );
+        $panelAssignment = PanelAssignment::firstOrCreate(
+            [
+                'user_id'       => $user->id,
+                'evaluation_id' => $evaluationId,
+            ],
+            [
+                'status' => 'not yet',
+            ]
+        );
 
-            if ($panelAssignment->performance_id) {
-                $performance = ModelsPerformance::find($panelAssignment->performance_id);
-                if ($performance) {
-                    $skill = Skill::find($performance->skill_id);
-                    if ($skill) {
-                        $this->question1 = $skill->question1;
-                        $this->question2 = $skill->question2;
-                        $this->question3 = $skill->question3;
-                        $this->question4 = $skill->question4;
-                        $this->question5 = $skill->question5;
-                    }
+        if ($panelAssignment->performance_id) {
+            $performance = ModelsPerformance::find($panelAssignment->performance_id);
+            if ($performance) {
+                $skill = Skill::find($performance->skill_id);
+                if ($skill) {
+                    $this->question1 = $skill->question1;
+                    $this->question2 = $skill->question2;
+                    $this->question3 = $skill->question3;
+                    $this->question4 = $skill->question4;
+                    $this->question5 = $skill->question5;
+                }
 
-                    $personalCompetence = PersonalCompetence::find($performance->personal_competence_id);
-                    if ($personalCompetence) {
-                        $this->personalQuestion1 = $personalCompetence->question1;
-                    }
+                $personalCompetence = PersonalCompetence::find($performance->personal_competence_id);
+                if ($personalCompetence) {
+                    $this->personalQuestion1 = $personalCompetence->question1;
                 }
             }
         }
@@ -145,11 +142,9 @@ class Performance extends Component
             return;
         }
 
-        $user  = Auth::user();
-        $panel = $user->panel;
-        if (!$panel) return;
+        $user = Auth::user();
 
-        $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
+        $panelAssignment = PanelAssignment::where('user_id', $user->id)
             ->where('evaluation_id', $this->evaluationId)
             ->first();
         if (!$panelAssignment) return;
@@ -181,11 +176,9 @@ class Performance extends Component
     {
         if (!$this->personalQuestion1) return;
 
-        $user  = Auth::user();
-        $panel = $user->panel;
-        if (!$panel) return;
+        $user = Auth::user();
 
-        $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
+        $panelAssignment = PanelAssignment::where('user_id', $user->id)
             ->where('evaluation_id', $this->evaluationId)
             ->first();
         if (!$panelAssignment || !$panelAssignment->performance_id) return;
@@ -226,11 +219,6 @@ class Performance extends Component
         }
     }
 
-    /**
-     * Return button from page 1:
-     * - head panel → goes back to Experience
-     * - all other panels → goes back to Interview (page 2)
-     */
     public function returnToPrevious()
     {
         $this->persistPage1Scores();
@@ -266,59 +254,56 @@ class Performance extends Component
 
     public function savePerformance()
     {
-        $user  = Auth::user();
-        $panel = $user->panel;
+        $user = Auth::user();
 
-        if ($panel) {
-            $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
-                ->where('evaluation_id', $this->evaluationId)
-                ->first();
+        $panelAssignment = PanelAssignment::where('user_id', $user->id)
+            ->where('evaluation_id', $this->evaluationId)
+            ->first();
 
-            if ($panelAssignment && $panelAssignment->performance_id) {
-                $performance = ModelsPerformance::find($panelAssignment->performance_id);
+        if ($panelAssignment && $panelAssignment->performance_id) {
+            $performance = ModelsPerformance::find($panelAssignment->performance_id);
 
-                Skill::where('id', $performance->skill_id)->update([
-                    'question1' => $this->question1,
-                    'question2' => $this->question2,
-                    'question3' => $this->question3,
-                    'question4' => $this->question4,
-                    'question5' => $this->question5,
-                ]);
+            Skill::where('id', $performance->skill_id)->update([
+                'question1' => $this->question1,
+                'question2' => $this->question2,
+                'question3' => $this->question3,
+                'question4' => $this->question4,
+                'question5' => $this->question5,
+            ]);
 
-                PersonalCompetence::where('id', $performance->personal_competence_id)->update([
-                    'question1' => $this->personalQuestion1,
-                ]);
+            PersonalCompetence::where('id', $performance->personal_competence_id)->update([
+                'question1' => $this->personalQuestion1,
+            ]);
 
-                $performance->update([
-                    'total_score' => $this->calculateSkillTotal() + $this->calculatePersonalTotal(),
-                ]);
-            } else {
-                $skill = Skill::create([
-                    'question1' => $this->question1,
-                    'question2' => $this->question2,
-                    'question3' => $this->question3,
-                    'question4' => $this->question4,
-                    'question5' => $this->question5,
-                ]);
+            $performance->update([
+                'total_score' => $this->calculateSkillTotal() + $this->calculatePersonalTotal(),
+            ]);
+        } else {
+            $skill = Skill::create([
+                'question1' => $this->question1,
+                'question2' => $this->question2,
+                'question3' => $this->question3,
+                'question4' => $this->question4,
+                'question5' => $this->question5,
+            ]);
 
-                $personalCompetence = PersonalCompetence::create([
-                    'question1' => $this->personalQuestion1,
-                ]);
+            $personalCompetence = PersonalCompetence::create([
+                'question1' => $this->personalQuestion1,
+            ]);
 
-                $performance = ModelsPerformance::create([
-                    'skill_id'               => $skill->id,
-                    'personal_competence_id' => $personalCompetence->id,
-                    'total_score'            => $this->calculateSkillTotal() + $this->calculatePersonalTotal(),
-                ]);
-
-                if ($panelAssignment) {
-                    $panelAssignment->update(['performance_id' => $performance->id]);
-                }
-            }
+            $performance = ModelsPerformance::create([
+                'skill_id'               => $skill->id,
+                'personal_competence_id' => $personalCompetence->id,
+                'total_score'            => $this->calculateSkillTotal() + $this->calculatePersonalTotal(),
+            ]);
 
             if ($panelAssignment) {
-                $panelAssignment->update(['status' => 'complete']);
+                $panelAssignment->update(['performance_id' => $performance->id]);
             }
+        }
+
+        if ($panelAssignment) {
+            $panelAssignment->update(['status' => 'complete']);
         }
 
         $applicantName = trim(

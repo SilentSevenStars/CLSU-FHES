@@ -21,8 +21,8 @@ class Screening extends Component
     public $vacancies = null;
 
     /**
-     * Instructor I & II  →  panel-based scoring
-     * (experience + performance scores from panel_assignments)
+     * Instructor I & II → panel-based scoring
+     * (interview + experience + performance scores from panel_assignments)
      */
     private $panelBasedPositions = [
         'Instructor I',
@@ -30,7 +30,11 @@ class Screening extends Component
     ];
 
     /**
-     * Instructor III and above  →  NBC-based scoring
+     * Instructor III and above → NBC-based scoring BY DEFAULT.
+     *
+     * Exception: Instructor III and Assistant Professor I whose position college
+     * is one of PANEL_EXPERIENCE_COLLEGES use panel-based scoring instead
+     * (interview + experience from panel_assignments + performance).
      */
     private $nbcBasedPositions = [
         'Instructor III',
@@ -47,7 +51,25 @@ class Screening extends Component
         'Professor II',
     ];
 
-    // Removed: No NBC fallback for Instructor I/II - use panel scoring only
+    /**
+     * For Instructor III and Assistant Professor I only:
+     * if the position's college is one of these, use panel-based scoring
+     * (experience from panel_assignments->experience->total_score)
+     * instead of the default NBC scoring.
+     */
+    private const PANEL_EXPERIENCE_COLLEGES = [
+        'College of Engineering',
+        'College of Business and Accountancy',
+        'College of Veterinary Science and Medicine',
+    ];
+
+    /**
+     * Positions eligible for the panel-experience override.
+     */
+    private const PANEL_EXPERIENCE_OVERRIDE_POSITIONS = [
+        'Instructor III',
+        'Assistant Professor I',
+    ];
 
     private function getAllowedPositions(): array
     {
@@ -60,8 +82,21 @@ class Screening extends Component
     }
 
     /**
-     * Check if position uses NBC scoring (Instructor III+ only)
+     * Determine whether a specific evaluation should use panel-based scoring
+     * (instead of the default NBC scoring for its position).
+     *
+     * Returns true when ALL of:
+     *   - Position name is Instructor III or Assistant Professor I
+     *   - Position college is one of PANEL_EXPERIENCE_COLLEGES
      */
+    private function usesPanelExperienceOverride(Evaluation $evaluation): bool
+    {
+        $positionName = $evaluation->jobApplication->position->name ?? '';
+        $collegeName  = $evaluation->jobApplication->position->college->name ?? '';
+
+        return in_array($positionName, self::PANEL_EXPERIENCE_OVERRIDE_POSITIONS)
+            && in_array($collegeName, self::PANEL_EXPERIENCE_COLLEGES);
+    }
 
     public function mount()
     {
@@ -131,27 +166,28 @@ class Screening extends Component
     /**
      * Load screening data and compute weighted scores.
      *
-     * Instructor I & II  → panel-based scoring rules:
+     * Scoring rules:
      *
-     *   INCLUSION RULE:
-     *   - The applicant must have at least one panel assignment with status = 'complete'.
-     *   - Every complete assignment must have an interview score (interview_id not null).
-     *   - Every complete assignment must have a performance score (performance_id not null).
-     *   - Experience (experience_id) is done by only ONE panel, so it is optional per
-     *     assignment. The applicant is NOT excluded if experience is null — it simply
-     *     contributes 0 to the average. The applicant is only excluded if ALL complete
-     *     assignments have null experience AND null performance AND null interview.
+     * A) Instructor I & II  →  always panel-based:
+     *      performance        = avg(panel_assignment.performance.total_score) [complete assignments with performance]
+     *      credentials_exp    = avg(panel_assignment.experience.total_score)  [complete assignments with experience]
+     *      interview          = avg(panel_assignment.interview.total_score)   [complete assignments with interview]
      *
-     *   SCORE COMPUTATION:
-     *   - Interview score   → average of interview.total_score across all complete assignments
-     *   - Performance score → average of performance.total_score across all complete assignments
-     *                         that have a performance record
-     *   - Experience score  → average of experience.total_score across all complete assignments
-     *                         that have an experience record (may be just one panel)
+     * B) Instructor III / Assistant Professor I
+     *    + college IN (College of Engineering, College of Business and Accountancy,
+     *                  College of Veterinary Science and Medicine)
+     *    →  panel-based (same as A above)
      *
-     * Instructor III+  → NBC-based scoring (unchanged).
+     * C) All other NBC-based positions (Instructor III in other colleges,
+     *    Assistant Professor II+, Associate Professor, Professor)
+     *    →  NBC-based:
+     *      performance            = avg(panel_assignment.performance.total_score) [complete with performance]
+     *                               *** ALWAYS from panel_assignments for ALL positions ***
+     *      credentials_experience = avg(eduQual.subtotal) + avg(expSvc.subtotal) + avg(profDev.subtotal)
+     *      interview              = avg(panel_assignment.interview.total_score)   [complete with interview]
      *
-     * Archived job applications (archive = 1) are always excluded.
+     * An applicant is only shown if ALL THREE scores (performance, credentials_experience, interview)
+     * are non-null and greater than zero.
      */
     public function loadScreeningData()
     {
@@ -160,12 +196,11 @@ class Screening extends Component
             return;
         }
 
-        $useNbc = $this->isNbcBased($this->selectedPosition);
-
         // ── Base query ────────────────────────────────────────────────────────
         $evaluations = Evaluation::with([
             'jobApplication.applicant',
-            'jobApplication.position',
+            'jobApplication.position.college',
+            'jobApplication.position.department',
             // Panel-based relations
             'panelAssignments.interview',
             'panelAssignments.experience',
@@ -182,15 +217,6 @@ class Screening extends Component
             })
             ->get();
 
-//         dd($evaluations->map(fn($e) => [
-//     'id' => $e->id,
-//     'panel_count' => count($e->panelAssignments),
-// ]));
-
-        // Filter: Require at least one qualifying assignment (panel or NBC)
-        // TODO: Uncomment if strict filtering needed after testing
-
-
         // ── Apply search ──────────────────────────────────────────────────────
         if ($this->searchTerm) {
             $search = strtolower($this->searchTerm);
@@ -204,57 +230,90 @@ class Screening extends Component
         }
 
         // ── Compute scores ────────────────────────────────────────────────────
-        $this->screeningData = $evaluations->map(function ($evaluation) use ($useNbc) {
+        $this->screeningData = $evaluations->map(function ($evaluation) {
 
             $a = $evaluation->jobApplication->applicant;
             $p = $evaluation->jobApplication->position;
 
-            if ($useNbc) {
-                // NBC scoring — only COMPLETE assignments with all three sub-scores
-                $qualifyingAssignments = ($evaluation->nbcAssignments ?? collect())->filter(function ($na) {
-                    return Str::lower($na->status) === 'complete'
-                        && $na->educationalQualification !== null
-                        && $na->experienceService !== null
-                        && $na->professionalDevelopment !== null;
-                });
+            // Determine which scoring strategy applies to THIS evaluation.
+            $useNbc           = $this->isNbcBased($p->name ?? '');
+            $usePanelOverride = $useNbc && $this->usesPanelExperienceOverride($evaluation);
+            $usePanelScoring  = !$useNbc || $usePanelOverride;
 
-                $avgEduQual = $qualifyingAssignments->map(fn($na) => (float) $na->educationalQualification->subtotal)->avg() ?? 0;
-                $avgExpSvc  = $qualifyingAssignments->map(fn($na) => (float) $na->experienceService->subtotal)->avg() ?? 0;
-                $avgProfDev = $qualifyingAssignments->map(fn($na) => (float) $na->professionalDevelopment->subtotal)->avg() ?? 0;
+            // ── Performance: ALWAYS from panel_assignments->performance->total_score
+            //    for ALL positions (panel-based and NBC-based alike).
+            $completeWithPerformance = ($evaluation->panelAssignments ?? collect())->filter(
+                fn($pa) => Str::lower($pa->status) === 'complete' && $pa->performance !== null
+            );
 
-                $credentialsExperience = $avgEduQual + $avgExpSvc + $avgProfDev;
-                $performance           = $avgProfDev;
+            $performanceScores = $completeWithPerformance
+                ->pluck('performance.total_score')
+                ->filter(fn($v) => $v !== null);
 
-                $qualifyingPanelAssignments = ($evaluation->panelAssignments ?? collect())->filter(function ($pa) {
-                    return Str::lower($pa->status) === 'complete' && $pa->interview !== null;
-                });
-                $avgInterview = $qualifyingPanelAssignments->pluck('interview.total_score')->filter()->avg() ?? 0;
+            $performance = $performanceScores->isNotEmpty()
+                ? $performanceScores->avg()
+                : null;
+
+            // ── Interview: always from panel_assignments->interview->total_score
+            $completeWithInterview = ($evaluation->panelAssignments ?? collect())->filter(
+                fn($pa) => Str::lower($pa->status) === 'complete' && $pa->interview !== null
+            );
+
+            $interviewScores = $completeWithInterview
+                ->pluck('interview.total_score')
+                ->filter(fn($v) => $v !== null);
+
+            $avgInterview = $interviewScores->isNotEmpty()
+                ? $interviewScores->avg()
+                : null;
+
+            // ── Credentials & Experience ──────────────────────────────────────
+            if ($usePanelScoring) {
+                // Panel-based: experience from panel_assignments->experience->total_score
+                $completeWithExperience = ($evaluation->panelAssignments ?? collect())->filter(
+                    fn($pa) => Str::lower($pa->status) === 'complete' && $pa->experience !== null
+                );
+
+                $experienceScores = $completeWithExperience
+                    ->pluck('experience.total_score')
+                    ->filter(fn($v) => $v !== null);
+
+                $credentialsExperience = $experienceScores->isNotEmpty()
+                    ? $experienceScores->avg()
+                    : null;
 
             } else {
-                // Panel-based scoring: avg only qualifying assignments (with required scores)
-                $qualifyingInterviewPerf = ($evaluation->panelAssignments ?? collect())->filter(function ($pa) {
-                    return Str::lower($pa->status) === 'complete';
-                }); // Lenient: status complete only, avg available scores (0 if missing)
+                // NBC-based: credentials & experience from NBC assignments
+                $qualifyingNbcAssignments = ($evaluation->nbcAssignments ?? collect())->filter(
+                    fn($na) => Str::lower($na->status) === 'complete'
+                        && $na->educationalQualification !== null
+                        && $na->experienceService !== null
+                        && $na->professionalDevelopment !== null
+                );
 
-                $avgInterview = $qualifyingInterviewPerf
-                    ->pluck('interview.total_score')
-                    ->filter()
-                    ->avg() ?? 0;
+                if ($qualifyingNbcAssignments->isEmpty()) {
+                    $credentialsExperience = null;
+                } else {
+                    $avgEduQual = $qualifyingNbcAssignments
+                        ->map(fn($na) => (float) $na->educationalQualification->subtotal)
+                        ->avg();
 
-                $performance = $qualifyingInterviewPerf
-                    ->pluck('performance.total_score')
-                    ->filter()
-                    ->avg() ?? 0;
+                    $avgExpSvc = $qualifyingNbcAssignments
+                        ->map(fn($na) => (float) $na->experienceService->subtotal)
+                        ->avg();
 
-                // Experience → avg assignments with experience record (lenient)
-                $qualifyingExperience = ($evaluation->panelAssignments ?? collect())->filter(function ($pa) {
-                    return Str::lower($pa->status) === 'complete';
-                }); // 0 if no experience
+                    $avgProfDev = $qualifyingNbcAssignments
+                        ->map(fn($na) => (float) $na->professionalDevelopment->subtotal)
+                        ->avg();
 
-                $credentialsExperience = $qualifyingExperience
-                    ->pluck('experience.total_score')
-                    ->filter()
-                    ->avg() ?? 0;
+                    $credentialsExperience = $avgEduQual + $avgExpSvc + $avgProfDev;
+                }
+            }
+
+            // ── Only include this applicant if ALL three scores exist (not null).
+            //    A genuine score of 0 is valid and should still be shown.
+            if ($performance === null || $credentialsExperience === null || $avgInterview === null) {
+                return null; // will be filtered out below
             }
 
             $total = $performance + $credentialsExperience + $avgInterview;
@@ -271,6 +330,7 @@ class Screening extends Component
                 'total'                  => round($total, 2),
             ];
         })
+            ->filter() // remove null entries (incomplete applicants)
             ->sortByDesc('total')
             ->values();
 

@@ -57,6 +57,22 @@
                 </div>
 
                 <div class="p-8">
+
+                    @php
+                        $appPositionName         = strtolower($evaluation->jobApplication->position->name ?? '');
+                        $panelPositionName       = strtolower($panel->panel_position ?? '');
+                        $collegeName             = $evaluation->jobApplication->position->college?->name ?? '';
+                        $experienceOnlyColleges  = [
+                            'College of Veterinary Science and Medicine',
+                            'College of Business and Accountancy',
+                            'College of Engineering',
+                        ];
+                        $experienceOnlyPositions = ['instructor iii', 'assistant professor i'];
+                        $isExperienceOnlyHead    = $panelPositionName === 'head'
+                            && in_array($appPositionName, $experienceOnlyPositions)
+                            && in_array($collegeName, $experienceOnlyColleges);
+                    @endphp
+
                     <form wire:submit.prevent="confirmSubmission">
                         <div class="space-y-6">
                             <!-- Table Header -->
@@ -83,7 +99,7 @@
                                         step="0.01" placeholder="Input here"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] transition-all">
                                     @error('education_qualification')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -118,7 +134,7 @@
                                         placeholder="Input here"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] transition-all">
                                     @error('experience_type')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -139,7 +155,7 @@
                                         step="0.01" placeholder="Input here" value="3"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] transition-all">
                                     @error('licensure_examination')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -149,6 +165,7 @@
                                 <div class="col-span-7">
                                     <span class="font-semibold">4. Place in Board Examination</span>
                                     <div class="text-sm text-gray-600 mt-1">
+                                        • Not Applicable - 0 pts<br>
                                         • 1st Place - 10 pts<br>
                                         • 2nd Place - 8 pts<br>
                                         • 3rd to 20th Place - 5 pts
@@ -161,11 +178,15 @@
                                     <select wire:model.live="place_board_exam"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] appearance-none bg-white transition-all">
                                         @foreach($placeBoardExamOptions as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }}</option>
+                                            <option value="{{ $value }}">{{ $label }}</option>
                                         @endforeach
                                     </select>
+                                    {{-- Show score hint when Not Applicable is selected --}}
+                                    @if((string) $place_board_exam === '0')
+                                        <p class="text-xs text-gray-500 mt-1">Score: 0 pts (Not Applicable)</p>
+                                    @endif
                                     @error('place_board_exam')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -186,7 +207,7 @@
                                         step="1" placeholder="Input here"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] transition-all">
                                     @error('professional_activities')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -203,11 +224,11 @@
                                     <select wire:model.live="academic_performance"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] appearance-none bg-white transition-all">
                                         @foreach($academicPerformanceOptions as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }}</option>
+                                            <option value="{{ $value }}">{{ $label }}</option>
                                         @endforeach
                                     </select>
                                     @error('academic_performance')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -224,11 +245,11 @@
                                     <select wire:model.live="publication"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] appearance-none bg-white transition-all">
                                         @foreach($publicationOptions as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }}</option>
+                                            <option value="{{ $value }}">{{ $label }}</option>
                                         @endforeach
                                     </select>
                                     @error('publication')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -245,11 +266,11 @@
                                     <select wire:model.live="school_graduate"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-[#0A6025] appearance-none bg-white transition-all">
                                         @foreach($schoolGraduateOptions as $value => $label)
-                                        <option value="{{ $value }}">{{ $label }}</option>
+                                            <option value="{{ $value }}">{{ $label }}</option>
                                         @endforeach
                                     </select>
                                     @error('school_graduate')
-                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                        <span class="text-red-500 text-sm">{{ $message }}</span>
                                     @enderror
                                 </div>
                             </div>
@@ -285,15 +306,17 @@
 
                         <!-- Navigation Buttons -->
                         <div class="flex justify-center gap-4 mt-8">
-                            {{-- Return goes back to Interview page 2 --}}
                             <a href="{{ route('panel.interview', $evaluationId) }}"
                                 class="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
                                 ← Return
                             </a>
-                            {{-- Next proceeds to Performance --}}
                             <button type="submit"
                                 class="bg-[#0A6025] hover:bg-[#0B712C] text-white px-8 py-3 rounded-lg font-semibold transition duration-200 shadow-md hover:shadow-lg">
-                                Next →
+                                @if ($isExperienceOnlyHead)
+                                    Submit ✓
+                                @else
+                                    Next →
+                                @endif
                             </button>
                         </div>
                     </form>
@@ -421,18 +444,50 @@
     <!-- SweetAlert2 Integration -->
     <script>
         document.addEventListener('livewire:init', () => {
+
             Livewire.on('showSwalConfirm', () => {
+                @php
+                    $swoAppPosition   = strtolower($evaluation->jobApplication->position->name ?? '');
+                    $swoPanelPosition = strtolower($panel->panel_position ?? '');
+                    $swoCollege       = $evaluation->jobApplication->position->college?->name ?? '';
+                    $swoColleges      = [
+                        'College of Veterinary Science and Medicine',
+                        'College of Business and Accountancy',
+                        'College of Engineering',
+                    ];
+                    $swoPositions     = ['instructor iii', 'assistant professor i'];
+                    $swoIsExpOnly     = $swoPanelPosition === 'head'
+                        && in_array($swoAppPosition, $swoPositions)
+                        && in_array($swoCollege, $swoColleges);
+                @endphp
+
                 Swal.fire({
-                    title: 'Proceed to Performance Evaluation?',
-                    text: 'Please confirm that all scores are correct before proceeding.',
+                    title: @json($swoIsExpOnly ? 'Submit Experience Evaluation?' : 'Proceed to Performance Evaluation?'),
+                    text:  @json($swoIsExpOnly
+                        ? 'Please confirm that all scores are correct before submitting.'
+                        : 'Please confirm that all scores are correct before proceeding.'),
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#0A6025',
                     cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, Proceed'
+                    confirmButtonText: @json($swoIsExpOnly ? 'Yes, Submit' : 'Yes, Proceed')
                 }).then((result) => {
                     if (result.isConfirmed) {
                         @this.saveExperience();
+                    }
+                });
+            });
+
+            Livewire.on('experience-saved', () => {
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Experience evaluation saved successfully.',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#0A6025'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '{{ route('panel.dashboard') }}';
                     }
                 });
             });
@@ -446,6 +501,7 @@
                     confirmButtonColor: '#d33'
                 });
             });
+
         });
     </script>
     <style>[x-cloak] { display: none !important; }</style>

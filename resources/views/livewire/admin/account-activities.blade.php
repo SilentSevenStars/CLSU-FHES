@@ -280,6 +280,12 @@
                                                     } else {
                                                         $displayName = $user?->name ?? '—';
                                                     }
+
+                                                    // Truncate threshold (characters)
+                                                    $activity    = $record->activity ?? '';
+                                                    $threshold   = 80;
+                                                    $isLong      = mb_strlen($activity) > $threshold;
+                                                    $preview     = $isLong ? mb_substr($activity, 0, $threshold) . '…' : $activity;
                                                 @endphp
                                                 <tr class="bg-gray-50 hover:bg-gray-100 transition-colors">
 
@@ -293,7 +299,7 @@
                                                         {{ $displayName }}
                                                     </td>
 
-                                                    {{-- Email (decrypted via Encrypted cast) --}}
+                                                    {{-- Email --}}
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
                                                         {{ $user?->email ?? '—' }}
                                                     </td>
@@ -305,12 +311,36 @@
                                                         </span>
                                                     </td>
 
-                                                    {{-- Activity – wraps for long text, max-w keeps table sane --}}
+                                                    {{-- ── Activity with See more / See less ── --}}
                                                     <td class="px-6 py-4 text-sm text-gray-800 max-w-md">
-                                                        <div class="flex items-start gap-2">
-                                                            <i class="fa-solid fa-circle-dot text-[#1E7F3E] text-xs mt-1 shrink-0"></i>
-                                                            <span class="break-words leading-relaxed">{{ $record->activity }}</span>
-                                                        </div>
+                                                        @if($isLong)
+                                                            <div x-data="{ expanded: false }">
+                                                                <div class="flex items-start gap-2">
+                                                                    <i class="fa-solid fa-circle-dot text-[#1E7F3E] text-xs mt-1 shrink-0"></i>
+                                                                    <span class="break-words leading-relaxed">
+                                                                        {{-- Collapsed: show preview --}}
+                                                                        <span x-show="!expanded">{{ $preview }}</span>
+                                                                        {{-- Expanded: show full text --}}
+                                                                        <span x-show="expanded" x-cloak>{{ $activity }}</span>
+
+                                                                        {{-- Toggle button --}}
+                                                                        <button
+                                                                            @click="expanded = !expanded"
+                                                                            class="ml-1 text-[#1E7F3E] hover:text-[#156B2D] font-medium text-xs underline underline-offset-2 whitespace-nowrap focus:outline-none"
+                                                                        >
+                                                                            <span x-show="!expanded">See more <i class="fa-solid fa-chevron-down text-[10px]"></i></span>
+                                                                            <span x-show="expanded" x-cloak>See less <i class="fa-solid fa-chevron-up text-[10px]"></i></span>
+                                                                        </button>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        @else
+                                                            {{-- Short text: no toggle needed --}}
+                                                            <div class="flex items-start gap-2">
+                                                                <i class="fa-solid fa-circle-dot text-[#1E7F3E] text-xs mt-1 shrink-0"></i>
+                                                                <span class="break-words leading-relaxed">{{ $activity }}</span>
+                                                            </div>
+                                                        @endif
                                                     </td>
 
                                                     {{-- Date & Time --}}

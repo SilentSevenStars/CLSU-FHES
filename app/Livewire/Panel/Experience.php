@@ -22,7 +22,7 @@ class Experience extends Component
     public $education_qualification  = 0;
     public $experience_type          = 0;
     public $licensure_examination    = 0;
-    public $place_board_exam         = '';
+    public $place_board_exam         = 0;   // default 0 = Not Applicable
     public $professional_activities  = 0;
     public $academic_performance     = '';
     public $publication              = '';
@@ -32,10 +32,10 @@ class Experience extends Component
     public $showApplicantModal = false;
 
     public $placeBoardExamOptions = [
-        ''  => 'Not Applicable',
-        10  => '1st Place',
-        8   => '2nd Place',
-        5   => '3rd to 20th Place',
+        0  => 'Not Applicable',   // value 0 → score 0
+        10 => '1st Place',
+        8  => '2nd Place',
+        5  => '3rd to 20th Place',
     ];
 
     public $academicPerformanceOptions = [
@@ -62,32 +62,51 @@ class Experience extends Component
         5   => 'Level IV accredited program',
     ];
 
+    private const EXPERIENCE_ONLY_COLLEGES = [
+        'College of Veterinary Science and Medicine',
+        'College of Business and Accountancy',
+        'College of Engineering',
+    ];
+
+    private const EXPERIENCE_ONLY_POSITIONS = [
+        'instructor iii',
+        'assistant professor i',
+    ];
+
+    protected function isExperienceOnlyHead(): bool
+    {
+        $panelPosition     = strtolower(Auth::user()->panel?->panel_position ?? '');
+        $applicantPosition = strtolower($this->evaluation->jobApplication->position->name ?? '');
+        $collegeName       = $this->evaluation->jobApplication->position->college?->name ?? '';
+
+        return $panelPosition === 'head'
+            && in_array($applicantPosition, self::EXPERIENCE_ONLY_POSITIONS)
+            && in_array($collegeName, self::EXPERIENCE_ONLY_COLLEGES);
+    }
+
     public function mount($evaluationId)
     {
         $this->evaluationId = $evaluationId;
         $this->evaluation   = Evaluation::with([
             'jobApplication.applicant.user',
-            'jobApplication.position',
+            'jobApplication.position.college',
         ])->findOrFail($evaluationId);
 
         $this->jobApplication = $this->evaluation->jobApplication;
         $this->applicant      = $this->jobApplication->applicant;
         $this->position       = $this->jobApplication->position;
 
-        $user  = Auth::user();
-        $panel = $user->panel;
+        $user = Auth::user();
 
-        if ($panel) {
-            PanelAssignment::updateOrCreate(
-                [
-                    'panel_id'      => $panel->id,
-                    'evaluation_id' => $evaluationId,
-                ],
-                [
-                    'status' => 'not yet',
-                ]
-            );
-        }
+        PanelAssignment::updateOrCreate(
+            [
+                'user_id'       => $user->id,
+                'evaluation_id' => $evaluationId,
+            ],
+            [
+                'status' => 'not yet',
+            ]
+        );
     }
 
     public function toggleApplicantModal()
@@ -127,7 +146,7 @@ class Experience extends Component
             floatval($this->education_qualification) +
             floatval($this->experience_type) +
             floatval($this->licensure_examination) +
-            floatval($this->place_board_exam) +
+            floatval($this->place_board_exam) +   // 0 when Not Applicable
             floatval($this->professional_activities) +
             floatval($this->academic_performance) +
             floatval($this->publication) +
@@ -145,7 +164,7 @@ class Experience extends Component
             'education_qualification' => 'required|numeric|min:0|max:85',
             'experience_type'         => 'required|numeric|min:0|max:25',
             'licensure_examination'   => 'required|numeric|min:3|max:5',
-            'place_board_exam'        => 'required|numeric',
+            'place_board_exam'        => 'required|numeric|min:0|max:10',  // 0 = Not Applicable
             'professional_activities' => 'required|numeric|min:0|max:15',
             'academic_performance'    => 'required|numeric',
             'publication'             => 'required|numeric',
@@ -176,7 +195,7 @@ class Experience extends Component
                 'experience_type'               => $this->experience_type,
                 'licensure_examination'         => $this->licensure_examination,
                 'passing_licensure_examination' => 0,
-                'place_board_exam'              => $this->place_board_exam,
+                'place_board_exam'              => $this->place_board_exam,  // 0 saved when Not Applicable
                 'professional_activities'       => $this->professional_activities,
                 'academic_performance'          => $this->academic_performance,
                 'publication'                   => $this->publication,
@@ -184,14 +203,9 @@ class Experience extends Component
                 'total_score'                   => $this->totalScore,
             ]);
 
-            $user  = Auth::user();
-            $panel = $user->panel;
+            $user = Auth::user();
 
-            if (!$panel) {
-                throw new \Exception('Panel not found for current user');
-            }
-
-            $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
+            $panelAssignment = PanelAssignment::where('user_id', $user->id)
                 ->where('evaluation_id', $this->evaluationId)
                 ->first();
 
@@ -217,7 +231,12 @@ class Experience extends Component
                     . "(Evaluation ID: {$this->evaluationId})."
             );
 
-            // Always redirect to Performance after Experience (head + Instructor I/II flow)
+            if ($this->isExperienceOnlyHead()) {
+                $panelAssignment->update(['status' => 'complete']);
+                $this->dispatch('experience-saved');
+                return;
+            }
+
             return redirect()->route('panel.performance', [
                 'evaluationId' => $this->evaluationId,
                 'interviewId'  => $panelAssignment->interview_id,
@@ -232,6 +251,10 @@ class Experience extends Component
 
     public function render()
     {
-        return view('livewire.panel.experience');
+        $panel = Auth::user()->panel;
+
+        return view('livewire.panel.experience', [
+            'panel' => $panel,
+        ]);
     }
 }

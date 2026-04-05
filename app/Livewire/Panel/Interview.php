@@ -30,6 +30,28 @@ class Interview extends Component
     public $totalScore         = 0;
     public $showApplicantModal = false;
 
+    private const EXPERIENCE_ONLY_COLLEGES = [
+        'College of Veterinary Science and Medicine',
+        'College of Business and Accountancy',
+        'College of Engineering',
+    ];
+
+    private const EXPERIENCE_ONLY_POSITIONS = [
+        'instructor iii',
+        'assistant professor i',
+    ];
+
+    protected function isExperienceOnlyHead(): bool
+    {
+        $panelPosition     = strtolower(Auth::user()->panel?->panel_position ?? '');
+        $applicantPosition = strtolower($this->evaluation->jobApplication->position->name ?? '');
+        $collegeName       = $this->evaluation->jobApplication->position->college?->name ?? '';
+
+        return $panelPosition === 'head'
+            && in_array($applicantPosition, self::EXPERIENCE_ONLY_POSITIONS)
+            && in_array($collegeName, self::EXPERIENCE_ONLY_COLLEGES);
+    }
+
     public function updatingCurrentPage($value)
     {
         if ($this->currentPage == 1) {
@@ -41,12 +63,9 @@ class Interview extends Component
 
     protected function persistPage1Scores(): void
     {
-        $user  = Auth::user();
-        $panel = $user->panel;
+        $user = Auth::user();
 
-        if (!$panel) return;
-
-        $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
+        $panelAssignment = PanelAssignment::where('user_id', $user->id)
             ->where('evaluation_id', $this->evaluationId)
             ->first();
 
@@ -78,12 +97,9 @@ class Interview extends Component
 
     protected function persistPage2Scores(): void
     {
-        $user  = Auth::user();
-        $panel = $user->panel;
+        $user = Auth::user();
 
-        if (!$panel) return;
-
-        $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
+        $panelAssignment = PanelAssignment::where('user_id', $user->id)
             ->where('evaluation_id', $this->evaluationId)
             ->first();
 
@@ -118,7 +134,7 @@ class Interview extends Component
 
         $this->evaluation = Evaluation::with([
             'jobApplication.applicant.user',
-            'jobApplication.position',
+            'jobApplication.position.college',
         ])->findOrFail($evaluationId);
 
         $this->jobApplication = $this->evaluation->jobApplication;
@@ -131,31 +147,28 @@ class Interview extends Component
             $this->currentPage = (int) $page;
         }
 
-        $user  = Auth::user();
-        $panel = $user->panel;
+        $user = Auth::user();
 
-        if ($panel) {
-            $panelAssignment = PanelAssignment::firstOrCreate(
-                [
-                    'panel_id'      => $panel->id,
-                    'evaluation_id' => $evaluationId,
-                ],
-                [
-                    'status' => 'not yet',
-                ]
-            );
+        $panelAssignment = PanelAssignment::firstOrCreate(
+            [
+                'user_id'       => $user->id,
+                'evaluation_id' => $evaluationId,
+            ],
+            [
+                'status' => 'not yet',
+            ]
+        );
 
-            if ($panelAssignment->interview_id) {
-                $interview = ModelsInterview::find($panelAssignment->interview_id);
-                if ($interview) {
-                    $this->general_appearance       = (int) $interview->general_appearance;
-                    $this->manner_of_speaking       = (int) $interview->manner_of_speaking;
-                    $this->physical_conditions      = (int) $interview->physical_conditions;
-                    $this->alertness                = (int) $interview->alertness;
-                    $this->self_confidence          = (int) $interview->self_confidence;
-                    $this->ability_to_present_ideas = (int) $interview->ability_to_present_ideas;
-                    $this->maturity_of_judgement    = (int) $interview->maturity_of_judgement;
-                }
+        if ($panelAssignment->interview_id) {
+            $interview = ModelsInterview::find($panelAssignment->interview_id);
+            if ($interview) {
+                $this->general_appearance       = (int) $interview->general_appearance;
+                $this->manner_of_speaking       = (int) $interview->manner_of_speaking;
+                $this->physical_conditions      = (int) $interview->physical_conditions;
+                $this->alertness                = (int) $interview->alertness;
+                $this->self_confidence          = (int) $interview->self_confidence;
+                $this->ability_to_present_ideas = (int) $interview->ability_to_present_ideas;
+                $this->maturity_of_judgement    = (int) $interview->maturity_of_judgement;
             }
         }
     }
@@ -245,12 +258,9 @@ class Interview extends Component
         $panelPosition     = strtolower(Auth::user()->panel?->panel_position ?? '');
         $isInstructorIorII = in_array($applicantPosition, ['instructor i', 'instructor ii']);
 
-        // head + Instructor I/II → redirect directly to Experience (no confirm dialog)
-        if ($panelPosition === 'head' && $isInstructorIorII) {
+        if ($panelPosition === 'head' && ($isInstructorIorII || $this->isExperienceOnlyHead())) {
             $this->saveInterview();
         } else {
-            // non-head + Instructor I/II → confirm then go to Performance
-            // any + other position → confirm then mark complete
             $this->dispatch('show-swal-confirm');
         }
     }
@@ -259,41 +269,37 @@ class Interview extends Component
     {
         $this->calculateTotal();
 
-        $user  = Auth::user();
-        $panel = $user->panel;
-
+        $user            = Auth::user();
         $panelAssignment = null;
         $interview       = null;
 
-        if ($panel) {
-            $panelAssignment = PanelAssignment::where('panel_id', $panel->id)
-                ->where('evaluation_id', $this->evaluationId)
-                ->first();
+        $panelAssignment = PanelAssignment::where('user_id', $user->id)
+            ->where('evaluation_id', $this->evaluationId)
+            ->first();
 
-            $data = [
-                'general_appearance'       => $this->general_appearance,
-                'manner_of_speaking'       => $this->manner_of_speaking,
-                'physical_conditions'      => $this->physical_conditions,
-                'alertness'                => $this->alertness,
-                'self_confidence'          => $this->self_confidence,
-                'ability_to_present_ideas' => $this->ability_to_present_ideas,
-                'maturity_of_judgement'    => $this->maturity_of_judgement,
-                'total_score'              => $this->totalScore,
-            ];
+        $data = [
+            'general_appearance'       => $this->general_appearance,
+            'manner_of_speaking'       => $this->manner_of_speaking,
+            'physical_conditions'      => $this->physical_conditions,
+            'alertness'                => $this->alertness,
+            'self_confidence'          => $this->self_confidence,
+            'ability_to_present_ideas' => $this->ability_to_present_ideas,
+            'maturity_of_judgement'    => $this->maturity_of_judgement,
+            'total_score'              => $this->totalScore,
+        ];
 
-            if ($panelAssignment && $panelAssignment->interview_id) {
-                ModelsInterview::where('id', $panelAssignment->interview_id)->update($data);
-                $interview = ModelsInterview::find($panelAssignment->interview_id);
-            } else {
-                $interview = ModelsInterview::create($data);
-                if ($panelAssignment) {
-                    $panelAssignment->update(['interview_id' => $interview->id]);
-                }
+        if ($panelAssignment && $panelAssignment->interview_id) {
+            ModelsInterview::where('id', $panelAssignment->interview_id)->update($data);
+            $interview = ModelsInterview::find($panelAssignment->interview_id);
+        } else {
+            $interview = ModelsInterview::create($data);
+            if ($panelAssignment) {
+                $panelAssignment->update(['interview_id' => $interview->id]);
             }
         }
 
         $applicantPosition = strtolower($this->evaluation->jobApplication->position->name ?? '');
-        $panelPosition     = strtolower($panel?->panel_position ?? '');
+        $panelPosition     = strtolower(Auth::user()->panel?->panel_position ?? '');
         $isInstructorIorII = in_array($applicantPosition, ['instructor i', 'instructor ii']);
 
         $applicantName = trim(
@@ -302,8 +308,18 @@ class Interview extends Component
             . $this->applicant->last_name
         );
 
-        if ($panelPosition === 'head' && $isInstructorIorII) {
-            // head + Instructor I/II → Interview → Experience → Performance
+        if ($this->isExperienceOnlyHead()) {
+            AccountActivityService::log(
+                Auth::user(),
+                "Completed interview evaluation for applicant \"{$applicantName}\" "
+                    . "(Evaluation ID: {$this->evaluationId})."
+            );
+
+            return redirect()->route('panel.experience', [
+                'evaluationId' => $this->evaluationId,
+            ]);
+
+        } elseif ($panelPosition === 'head' && $isInstructorIorII) {
             AccountActivityService::log(
                 Auth::user(),
                 "Completed interview evaluation for applicant \"{$applicantName}\" "
@@ -315,7 +331,6 @@ class Interview extends Component
             ]);
 
         } elseif ($isInstructorIorII) {
-            // non-head + Instructor I/II → Interview → Performance
             AccountActivityService::log(
                 Auth::user(),
                 "Completed interview evaluation for applicant \"{$applicantName}\" "
@@ -328,8 +343,7 @@ class Interview extends Component
             ]);
 
         } else {
-            // any + other position → Interview only, mark complete
-            if ($panel && $panelAssignment) {
+            if ($panelAssignment) {
                 $panelAssignment->update(['status' => 'complete']);
             }
 
@@ -345,6 +359,10 @@ class Interview extends Component
 
     public function render()
     {
-        return view('livewire.panel.interview');
+        $panel = Auth::user()->panel;
+
+        return view('livewire.panel.interview', [
+            'panel' => $panel,
+        ]);
     }
 }

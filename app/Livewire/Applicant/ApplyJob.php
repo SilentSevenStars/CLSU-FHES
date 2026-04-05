@@ -53,10 +53,12 @@ class ApplyJob extends Component
     {
         $user = Auth::user();
         if ($user && $user->applicant) {
-            // Only show non-archived applications as "applied" - allows re-application after hired/archived
+            // Exclude archived, hired, and declined applications so applicants
+            // can freely re-apply after any of those outcomes.
+            // NOTE: the DB enum value is 'decline' (not 'declined').
             $this->applied = JobApplication::where('applicant_id', $user->applicant->id)
                 ->where('archive', false)
-                ->where('status', '!=', 'hired')
+                ->whereNotIn('status', ['hired', 'decline'])
                 ->pluck('position_id')
                 ->toArray();
         } else {
@@ -91,6 +93,8 @@ class ApplyJob extends Component
 
         $application = JobApplication::where('applicant_id', $user->applicant->id)
             ->where('position_id', $positionId)
+            ->whereNotIn('status', ['hired', 'decline'])
+            ->where('archive', false)
             ->first();
 
         if (!$application) {
@@ -116,6 +120,8 @@ class ApplyJob extends Component
 
         $application = JobApplication::where('applicant_id', $user->applicant->id)
             ->where('position_id', $positionId)
+            ->whereNotIn('status', ['hired', 'decline'])
+            ->where('archive', false)
             ->first();
 
         return $application ? $application->id : null;
@@ -125,7 +131,7 @@ class ApplyJob extends Component
     {
         $this->loadAppliedPositions();
 
-        // Has active = applicant has applied to at least one position
+        // Has active = applicant has at least one non-archived, non-hired, non-declined application
         $hasActiveApplication = !empty($this->applied);
 
         return view('livewire.applicant.apply-job', [

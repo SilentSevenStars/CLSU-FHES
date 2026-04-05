@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('performances', function (Blueprint $table) {
+        Schema::create('spms_entries', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('skill_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignId('personal_competence_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->integer('total_score');
             $table->timestamps();
         });
     }
@@ -25,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('performances');
+        Schema::dropIfExists('spms_entries');
     }
 };
