@@ -87,6 +87,7 @@
                <ul x-show="screeningOpen" x-transition class="ml-11 mt-1 space-y-1 text-sm">
                   <li><a href="{{ route('admin.screening') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">Screening</a></li>
                   <li><a href="{{ route('admin.representative') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">Representative</a></li>
+                  <li><a href="{{ route('admin.performance') }}" class="block p-2 rounded hover:bg-[#0A6025] text-white">Performance</a></li>
                </ul>
             </li>
 

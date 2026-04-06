@@ -18,18 +18,15 @@ class JobApplication extends Component
 {
     use WithFileUploads;
 
-    // ── Pagination ────────────────────────────────────────────────────────────
     public int $currentStep = 1;
     public int $totalSteps  = 5;
 
-    // ── Personal Information ──────────────────────────────────────────────────
     public string $first_name  = "";
     public string $middle_name = "";
     public string $last_name   = "";
     public string $suffix      = "";
     public string $phone_number = "";
 
-    // ── Address ───────────────────────────────────────────────────────────────
     public string $region      = "";
     public string $province    = "";
     public string $city        = "";
@@ -37,7 +34,6 @@ class JobApplication extends Component
     public string $street      = "";
     public string $postal_code = "";
 
-    // ── Employment ────────────────────────────────────────────────────────────
     public string $present_position  = "";
     public string $education         = "";
     public $educationOptions         = [];
@@ -48,34 +44,20 @@ class JobApplication extends Component
     public string $positionEligibility = "";
     public string $other_involvement  = "";
 
-    // ── Documents / Privacy ───────────────────────────────────────────────────
     public $requirements_file;
     public $position_id;
     public bool $agree_to_terms = false;
 
-    // ── Meta ──────────────────────────────────────────────────────────────────
     public $deadlineTimestamp;
     public $isSubmitting = false;
 
-    // ── Address lists ─────────────────────────────────────────────────────────
     public $regions   = [];
     public $provinces = [];
     public $cities    = [];
     public $barangays = [];
 
-    /**
-     * Statuses that are considered "terminal" — an application in one of these
-     * states should NOT block the applicant from applying again.
-     * NOTE: the DB enum value is 'decline' (not 'declined').
-     */
     private const INACTIVE_STATUSES = ['hired', 'decline'];
 
-    // ── Per-step validation rules ─────────────────────────────────────────────
-    // Step 1: Data Privacy Agreement
-    // Step 2: Personal Information
-    // Step 3: Address
-    // Step 4: Employment
-    // Step 5: Documents
     protected array $stepRules = [
         1 => [
             'agree_to_terms' => 'accepted',
