@@ -1,6 +1,7 @@
 <div>
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-7xl mx-auto">
+
             <!-- Header Section -->
             <div class="mb-8 animate-fadeIn">
                 <div class="flex items-center justify-between flex-wrap gap-4">
@@ -25,42 +26,17 @@
 
                 <!-- Table Header with Filters -->
                 <div class="bg-[#0a6025] p-6">
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex flex-col gap-4">
 
-                        <!-- Left: Title -->
-                        <div class="flex items-center gap-3">
-                            <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
-                                <i class="fa-solid fa-calendar-check text-white text-lg"></i>
+                        <!-- Title + Print Button -->
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-white/20 backdrop-blur-sm rounded-lg p-2">
+                                    <i class="fa-solid fa-calendar-check text-white text-lg"></i>
+                                </div>
+                                <h2 class="text-2xl font-bold text-white">Scheduled Applicant List</h2>
                             </div>
-                            <h2 class="text-2xl font-bold text-white">Scheduled Applicant List</h2>
-                        </div>
 
-                        <!-- Right: Filters + Print -->
-                        <div class="flex flex-wrap items-center gap-3">
-
-                            <!-- Filter by Position Name -->
-                            <select wire:model.live="selectedPositionName"
-                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
-                                <option value="">Filter by Position</option>
-                                @foreach($positionNames as $name)
-                                    <option value="{{ $name }}">{{ $name }}</option>
-                                @endforeach
-                            </select>
-
-                            <!-- Filter by Interview Date -->
-                            @if($selectedPositionName && $availableDates->isNotEmpty())
-                            <select wire:model.live="selectedDate"
-                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
-                                <option value="">All Interview Dates</option>
-                                @foreach($availableDates as $date)
-                                    <option value="{{ $date }}">
-                                        {{ \Carbon\Carbon::parse($date)->format('M j, Y') }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @endif
-
-                            <!-- Print Button -->
                             @if($selectedPositionName)
                             <button
                                 wire:click="print"
@@ -73,6 +49,54 @@
                                     <i class="fa-solid fa-spinner fa-spin mr-1"></i> Preparing...
                                 </span>
                             </button>
+                            @endif
+                        </div>
+
+                        <!-- Filters: Position → College → Department → Date -->
+                        <div class="flex flex-wrap items-center gap-3">
+
+                            <!-- 1. Position (always visible) -->
+                            <select wire:model.live="selectedPositionName"
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
+                                <option value="">Filter by Position</option>
+                                @foreach($positionNames as $name)
+                                    <option value="{{ $name }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
+
+                            <!-- 2. College (visible once a position is selected) -->
+                            @if($selectedPositionName)
+                            <select wire:model.live="selectedCollegeId"
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
+                                <option value="">All Colleges</option>
+                                @foreach($colleges as $college)
+                                    <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                @endforeach
+                            </select>
+                            @endif
+
+                            <!-- 3. Department (visible once a college is selected) -->
+                            @if($selectedPositionName && $selectedCollegeId)
+                            <select wire:model.live="selectedDepartmentId"
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
+                                <option value="">All Departments</option>
+                                @foreach($departments as $department)
+                                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                @endforeach
+                            </select>
+                            @endif
+
+                            <!-- 4. Interview Date (visible once a position is selected and dates exist) -->
+                            @if($selectedPositionName && $availableDates->isNotEmpty())
+                            <select wire:model.live="selectedDate"
+                                class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
+                                <option value="">All Interview Dates</option>
+                                @foreach($availableDates as $date)
+                                    <option value="{{ $date }}">
+                                        {{ \Carbon\Carbon::parse($date)->format('M j, Y') }}
+                                    </option>
+                                @endforeach
+                            </select>
                             @endif
 
                         </div>

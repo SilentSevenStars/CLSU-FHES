@@ -142,7 +142,7 @@
                                                     {{ $department->college->name ?? 'N/A' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-black">
-                                                    {{ $department->created_at->format('M d, Y h:i A') }}
+                                                    {{ $department->created_at ? $department->created_at->format('M d, Y h:i A') : 'N/A' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                                     <button wire:click="edit({{ $department->id }})"

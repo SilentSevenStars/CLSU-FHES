@@ -135,6 +135,11 @@
                             currentStatus: '{{ $status }}',
                             initQuill() {
                                 if (this.quill) return;
+                                if (typeof Quill === 'undefined') {
+                                    console.warn('Quill not loaded yet, retrying...');
+                                    setTimeout(() => this.initQuill(), 100);
+                                    return;
+                                }
                                 this.$nextTick(() => {
                                     const el = document.getElementById('quill-editor-edit');
                                     if (!el) return;

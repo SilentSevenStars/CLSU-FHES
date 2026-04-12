@@ -4,7 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{{ config('app.name', 'Laravel') }}</title>
-<link href="{{ asset('css/quill.snow.css') }}" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.min.js"></script>
 @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endif
@@ -30,7 +31,6 @@
 <main class="p-4 sm:ml-64 min-h-screen">
     {{ $slot }}
 </main>
-<script src="{{ asset('js/quill.min.js') }}"></script>
 {{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
 <script src="{{ asset('js/sweetalert.js') }}"></script>
 <script src="{{ asset('js/chart.js') }}"></script>

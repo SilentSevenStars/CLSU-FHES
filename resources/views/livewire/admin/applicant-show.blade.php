@@ -136,6 +136,11 @@
                             currentStatus: '{{ $status }}',
                             initQuill() {
                                 if (this.quill) return;
+                                if (typeof Quill === 'undefined') {
+                                    console.warn('Quill not loaded yet, retrying...');
+                                    setTimeout(() => this.initQuill(), 100);
+                                    return;
+                                }
                                 this.$nextTick(() => {
                                     const el = document.getElementById('quill-editor-show');
                                     if (!el) return;
@@ -167,6 +172,7 @@
                                 $wire.call('submitReview');
                             }
                         }"
+                        x-init="if(currentStatus === 'approve' || currentStatus === 'decline') { initQuill(); }"
                     >
                         <div class="space-y-5">
 

@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\College;
+use App\Models\Department;
 use App\Models\Evaluation;
 use App\Models\JobApplication;
 use App\Models\Position;
@@ -14,9 +16,29 @@ class ScheduledApplicant extends Component
     use WithPagination;
 
     public $selectedPositionName = '';
-    public $selectedDate = '';
+    public $selectedCollegeId    = '';
+    public $selectedDepartmentId = '';
+    public $selectedDate         = '';
 
+    // When position changes, reset college, department, and date
     public function updatingSelectedPositionName()
+    {
+        $this->selectedCollegeId    = '';
+        $this->selectedDepartmentId = '';
+        $this->selectedDate         = '';
+        $this->resetPage();
+    }
+
+    // When college changes, reset department and date
+    public function updatingSelectedCollegeId()
+    {
+        $this->selectedDepartmentId = '';
+        $this->selectedDate         = '';
+        $this->resetPage();
+    }
+
+    // When department changes, reset date only
+    public function updatingSelectedDepartmentId()
     {
         $this->selectedDate = '';
         $this->resetPage();
@@ -34,7 +56,7 @@ class ScheduledApplicant extends Component
             return;
         }
 
-        $positionIds = Position::where('name', $this->selectedPositionName)->pluck('id');
+        $positionIds = $this->getFilteredPositionIds();
 
         $query = JobApplication::with(['applicant.user', 'position', 'evaluation'])
             ->whereIn('position_id', $positionIds)
@@ -47,11 +69,10 @@ class ScheduledApplicant extends Component
         }
 
         $applicants = $query->get()->map(function ($app) {
-            $a = $app->applicant;  // Applicant model
-            $p = $app->position;   // Position model
-            $u = $a->user;         // User model
+            $a = $app->applicant;
+            $p = $app->position;
+            $u = $a->user;
 
-            // Build full address from applicant
             $addressParts = array_filter([
                 $a->street   ?? null,
                 $a->barangay ?? null,
@@ -60,7 +81,6 @@ class ScheduledApplicant extends Component
             ]);
             $address = implode(', ', $addressParts) ?: 'N/A';
 
-            // Build full name with middle initial
             $middleInitial = $a->middle_name
                 ? strtoupper(substr($a->middle_name, 0, 1)) . '.'
                 : '';
@@ -71,8 +91,6 @@ class ScheduledApplicant extends Component
                 ($a->suffix ? ', ' . $a->suffix : '')
             );
 
-            // experience & training from JobApplication
-            // if 0 or null => "None Required", otherwise show value with unit
             $experience = (!empty($app->experience) && $app->experience != 0)
                 ? $app->experience . ' year(s)'
                 : 'None Required';
@@ -113,19 +131,74 @@ class ScheduledApplicant extends Component
         $this->dispatch('openPrintTab', html: $html);
     }
 
+    /**
+     * Get position IDs filtered by position name, college, and department.
+     * College and department filter against job_applications -> applicant
+     * since positions may not have college_id/department_id set.
+     */
+    private function getFilteredPositionIds()
+    {
+        // Start with positions matching the selected name
+        $positionIds = Position::where('name', $this->selectedPositionName)->pluck('id');
+
+        // Further filter job applications by college and department on the applicant
+        if ($this->selectedCollegeId || $this->selectedDepartmentId) {
+            $query = JobApplication::whereIn('position_id', $positionIds)
+                ->whereHas('applicant', function ($q) {
+                    if ($this->selectedCollegeId) {
+                        $q->where('college_id', $this->selectedCollegeId);
+                    }
+                    if ($this->selectedDepartmentId) {
+                        $q->where('department_id', $this->selectedDepartmentId);
+                    }
+                });
+
+            // Return the position IDs that still have matching applications
+            return $query->pluck('position_id')->unique()->values();
+        }
+
+        return $positionIds;
+    }
+
     public function render()
     {
-        // Unique position names
+        // 1. All unique position names — always the first filter
         $positionNames = Position::orderBy('name')
             ->pluck('name')
             ->unique()
             ->values();
 
-        // Unique interview dates filtered by selected position
+        // 2. All colleges — shown after position is selected
+        $colleges = collect();
+        if ($this->selectedPositionName) {
+            $colleges = College::orderBy('name')->get();
+        }
+
+        // 3. Departments filtered by selected college — shown after college is selected
+        $departments = collect();
+        if ($this->selectedPositionName && $this->selectedCollegeId) {
+            $departments = Department::where('college_id', $this->selectedCollegeId)
+                ->orderBy('name')
+                ->get();
+        }
+
+        // 4. Available interview dates scoped to all active filters
         $availableDates = collect();
         if ($this->selectedPositionName) {
-            $positionIds = Position::where('name', $this->selectedPositionName)->pluck('id');
+            $positionIds = $this->getFilteredPositionIds();
             $jobAppIds   = JobApplication::whereIn('position_id', $positionIds)->pluck('id');
+
+            if ($this->selectedCollegeId || $this->selectedDepartmentId) {
+                $jobAppIds = JobApplication::whereIn('position_id', $positionIds)
+                    ->whereHas('applicant', function ($q) {
+                        if ($this->selectedCollegeId) {
+                            $q->where('college_id', $this->selectedCollegeId);
+                        }
+                        if ($this->selectedDepartmentId) {
+                            $q->where('department_id', $this->selectedDepartmentId);
+                        }
+                    })->pluck('id');
+            }
 
             $availableDates = Evaluation::whereIn('job_application_id', $jobAppIds)
                 ->orderBy('interview_date')
@@ -145,15 +218,28 @@ class ScheduledApplicant extends Component
                 'applications'   => $emptyPaginator,
                 'pendingCount'   => 0,
                 'positionNames'  => $positionNames,
+                'colleges'       => $colleges,
+                'departments'    => $departments,
                 'availableDates' => $availableDates,
             ]);
         }
 
-        $positionIds = Position::where('name', $this->selectedPositionName)->pluck('id');
+        $positionIds = $this->getFilteredPositionIds();
 
         $baseQuery = JobApplication::with(['applicant.user', 'position', 'evaluation'])
             ->whereIn('position_id', $positionIds)
             ->whereHas('evaluation');
+
+        if ($this->selectedCollegeId || $this->selectedDepartmentId) {
+            $baseQuery->whereHas('applicant', function ($q) {
+                if ($this->selectedCollegeId) {
+                    $q->where('college_id', $this->selectedCollegeId);
+                }
+                if ($this->selectedDepartmentId) {
+                    $q->where('department_id', $this->selectedDepartmentId);
+                }
+            });
+        }
 
         if ($this->selectedDate) {
             $baseQuery->whereHas('evaluation', function ($q) {
@@ -168,6 +254,8 @@ class ScheduledApplicant extends Component
             'applications'   => $applications,
             'pendingCount'   => $pendingCount,
             'positionNames'  => $positionNames,
+            'colleges'       => $colleges,
+            'departments'    => $departments,
             'availableDates' => $availableDates,
         ]);
     }

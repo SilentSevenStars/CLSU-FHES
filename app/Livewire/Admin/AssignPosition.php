@@ -55,22 +55,17 @@ class AssignPosition extends Component
     public $selectedJobApplication = null;
     public $showArchived = false;
 
-    // Message for archive notification
+    // Message for archive notification (optional)
     public $archive_message = '';
 
-    // Archive modal — read-only selects
-    public $archivePositionId   = null;
-    public $archiveCollegeId    = null;
-    public $archiveDepartmentId = null;
-
-    // File attachments for archive email
+    // File attachments for archive email (optional)
     public $archiveAttachments = [];
 
     protected $queryString = [
-        'search'        => ['except' => ''],
+        'search'         => ['except' => ''],
         'positionFilter' => ['except' => ''],
-        'perPage'       => ['except' => 10],
-        'showArchived'  => ['except' => false],
+        'perPage'        => ['except' => 10],
+        'showArchived'   => ['except' => false],
     ];
 
     // ─── Validation rules for file uploads ────────────────────────────────────
@@ -116,10 +111,10 @@ class AssignPosition extends Component
 
     public function openSearchModal()
     {
-        $this->showSearchModal   = true;
-        $this->tempSearch        = $this->search;
+        $this->showSearchModal    = true;
+        $this->tempSearch         = $this->search;
         $this->tempPositionFilter = $this->positionFilter;
-        $this->searchInput       = $this->search;
+        $this->searchInput        = $this->search;
     }
 
     public function closeSearchModal()
@@ -162,14 +157,6 @@ class AssignPosition extends Component
         return Department::where('college_id', $this->confirmCollegeId)->orderBy('name')->get();
     }
 
-    public function getDepartmentsForArchiveProperty()
-    {
-        if (!$this->archiveCollegeId) {
-            return collect();
-        }
-        return Department::where('college_id', $this->archiveCollegeId)->orderBy('name')->get();
-    }
-
     // ─── Confirm (Hire/Promote) modal ─────────────────────────────────────────
     public function openConfirmModal($applicantId, $evaluationId)
     {
@@ -192,7 +179,7 @@ class AssignPosition extends Component
 
         // Pre-fill selects from the job application's position
         $position = $this->selectedEvaluation->jobApplication->position;
-        $this->confirmPositionId   = $position->id    ?? null;
+        $this->confirmPositionId   = $position->id            ?? null;
         $this->confirmCollegeId    = $position->college_id    ?? null;
         $this->confirmDepartmentId = $position->department_id ?? null;
 
@@ -237,7 +224,6 @@ class AssignPosition extends Component
             return;
         }
 
-        // Validate file uploads
         if (!empty($this->attachments)) {
             $this->validate([
                 'attachments.*' => 'file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png,xlsx,xls,ppt,pptx,txt,zip',
@@ -261,7 +247,6 @@ class AssignPosition extends Component
                 'archive' => true,
             ]);
 
-            // Store uploaded files and collect paths + original names
             $storedFiles = $this->storeUploadedFiles($this->attachments, 'assign-position-attachments');
 
             $this->sendPromotionEmail($this->selectedApplicant, $oldPosition, $positionModel, $this->admin_message, $storedFiles);
@@ -291,7 +276,7 @@ class AssignPosition extends Component
     // ─── Archive modal ────────────────────────────────────────────────────────
     public function openArchiveModal($jobApplicationId)
     {
-        $jobApplication = \App\Models\JobApplication::with(['applicant.user', 'position.college', 'position.department'])
+        $jobApplication = \App\Models\JobApplication::with(['applicant.user', 'position'])
             ->findOrFail($jobApplicationId);
 
         if ($jobApplication->status === 'hired') {
@@ -300,24 +285,16 @@ class AssignPosition extends Component
         }
 
         $this->selectedJobApplication = $jobApplication;
-
-        $position = $jobApplication->position;
-        $this->archivePositionId   = $position->id            ?? null;
-        $this->archiveCollegeId    = $position->college_id    ?? null;
-        $this->archiveDepartmentId = $position->department_id ?? null;
-
-        $this->archive_message    = '';
-        $this->archiveAttachments = [];
-        $this->showArchiveModal   = true;
+        $this->archive_message        = '';
+        $this->archiveAttachments     = [];
+        $this->showArchiveModal       = true;
     }
 
     public function closeArchiveModal()
     {
         $this->showArchiveModal = false;
         $this->reset([
-            'selectedJobApplication', 'archive_message',
-            'archivePositionId', 'archiveCollegeId', 'archiveDepartmentId',
-            'archiveAttachments',
+            'selectedJobApplication', 'archive_message', 'archiveAttachments',
         ]);
     }
 
@@ -334,7 +311,6 @@ class AssignPosition extends Component
             return;
         }
 
-        // Validate file uploads
         if (!empty($this->archiveAttachments)) {
             $this->validate([
                 'archiveAttachments.*' => 'file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png,xlsx,xls,ppt,pptx,txt,zip',
@@ -355,9 +331,11 @@ class AssignPosition extends Component
                     . "College: {$collegeName}, Department: {$departmentName}."
             );
 
-            $storedFiles = $this->storeUploadedFiles($this->archiveAttachments, 'archive-attachments');
-
-            $this->sendArchiveEmail($this->selectedJobApplication, $this->archive_message, $storedFiles);
+            // Only send email if there's a message or attachments
+            if (!empty(strip_tags($this->archive_message ?? '')) || !empty($this->archiveAttachments)) {
+                $storedFiles = $this->storeUploadedFiles($this->archiveAttachments, 'archive-attachments');
+                $this->sendArchiveEmail($this->selectedJobApplication, $this->archive_message, $storedFiles);
+            }
 
             $this->showAlert('success', "Successfully archived job application for {$applicantName}");
             $this->closeArchiveModal();
@@ -402,10 +380,6 @@ class AssignPosition extends Component
     }
 
     // ─── File helper ──────────────────────────────────────────────────────────
-    /**
-     * Store uploaded Livewire temp files and return an array of
-     * ['path' => storage path, 'name' => original filename, 'size' => bytes].
-     */
     protected function storeUploadedFiles(array $files, string $folder): array
     {
         $stored = [];
@@ -470,7 +444,6 @@ class AssignPosition extends Component
                 </div>";
             }
 
-            // Build attachment block for email body
             $attachmentBlock = $this->buildAttachmentBlock($storedFiles);
 
             $messageContent = $this->buildEmailHtml(
@@ -499,10 +472,9 @@ class AssignPosition extends Component
             }
 
             Mail::to($applicant->user->email)->queue($mailable);
-
             $notification->update(['email_sent' => true, 'email_sent_at' => now()]);
 
-            Log::info("Promotion email queued to {$applicant->user->email} (async) ✅");
+            Log::info("Promotion email queued to {$applicant->user->email} ✅");
         } catch (Exception $e) {
             Log::error("Failed to send promotion email: " . $e->getMessage());
         }
@@ -524,41 +496,12 @@ class AssignPosition extends Component
                 $adminMessageBlock = "<div style='margin:16px 0;'>{$adminMessage}</div>";
             }
 
-            $placementRows = '';
-            if ($position->college) {
-                $placementRows .= "<tr>
-                    <td style='padding:6px 12px;color:#4b5563;width:140px;'><strong>College:</strong></td>
-                    <td style='padding:6px 12px;'>{$position->college->name}</td>
-                </tr>";
-            }
-            if ($position->department) {
-                $placementRows .= "<tr>
-                    <td style='padding:6px 12px;color:#4b5563;'><strong>Department:</strong></td>
-                    <td style='padding:6px 12px;'>{$position->department->name}</td>
-                </tr>";
-            }
-
-            $placementBlock = '';
-            if ($placementRows) {
-                $placementBlock = "
-                <div style='background:#fefce8;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #ca8a04;'>
-                    <p style='margin:0 0 12px;font-weight:700;color:#92400e;font-size:14px;text-transform:uppercase;letter-spacing:.5px;'>Application Details</p>
-                    <table style='width:100%;border-collapse:collapse;'>
-                        <tr>
-                            <td style='padding:6px 12px;color:#4b5563;width:140px;'><strong>Position:</strong></td>
-                            <td style='padding:6px 12px;'>{$position->name}</td>
-                        </tr>
-                        {$placementRows}
-                    </table>
-                </div>";
-            }
-
             $attachmentBlock = $this->buildAttachmentBlock($storedFiles);
 
             $messageContent = $this->buildEmailHtml(
                 "{$applicant->first_name} {$applicant->last_name}",
                 $adminMessageBlock,
-                $placementBlock,
+                '',
                 $attachmentBlock,
                 'archive'
             );
@@ -581,18 +524,14 @@ class AssignPosition extends Component
             }
 
             Mail::to($applicant->user->email)->queue($mailable);
-
             $notification->update(['email_sent' => true, 'email_sent_at' => now()]);
 
-            Log::info("Archive email queued to {$applicant->user->email} (async) ✅");
+            Log::info("Archive email queued to {$applicant->user->email} ✅");
         } catch (Exception $e) {
             Log::error("Failed to send archive email: " . $e->getMessage());
         }
     }
 
-    /**
-     * Build the HTML list of attached files shown inside the email body.
-     */
     protected function buildAttachmentBlock(array $storedFiles): string
     {
         if (empty($storedFiles)) {
@@ -630,26 +569,17 @@ class AssignPosition extends Component
         </div>";
     }
 
-    /**
-     * Build the full branded email HTML (wraps content in CLSU green header).
-     *
-     * @param string $type  'hired' | 'archive'
-     */
     protected function buildEmailHtml(string $recipientName, string $adminMessageBlock, string $placementBlock, string $attachmentBlock, string $type): string
     {
-        $accentColor  = $type === 'hired' ? '#1E7F3E' : '#ca8a04';
-        $headerBg     = '#1E7F3E'; // always CLSU green for branding
-        $badgeText    = $type === 'hired' ? '🎉 Congratulations!' : '📋 Application Update';
+        $accentColor = $type === 'hired' ? '#1E7F3E' : '#ca8a04';
+        $headerBg    = '#1E7F3E';
+        $badgeText   = $type === 'hired' ? '🎉 Congratulations!' : '📋 Application Update';
 
         return "
 <div style='font-family:Georgia,\"Times New Roman\",serif;max-width:680px;margin:0 auto;'>
-
-    <!-- Header -->
     <div style='background:{$headerBg};padding:0;border-radius:12px 12px 0 0;overflow:hidden;'>
-        <!-- Top stripe -->
         <div style='background:rgba(0,0,0,.15);height:6px;'></div>
         <div style='padding:32px 40px 28px;text-align:center;'>
-            <!-- Logo area -->
             <div style='display:inline-flex;align-items:center;gap:12px;margin-bottom:16px;'>
                 <div style='width:52px;height:52px;background:white;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;'>
                     <span style='font-size:24px;'>🌿</span>
@@ -663,40 +593,28 @@ class AssignPosition extends Component
         </div>
         <div style='background:rgba(0,0,0,.08);height:3px;'></div>
     </div>
-
-    <!-- Body -->
     <div style='background:#ffffff;padding:36px 40px;border:1px solid #e5e7eb;border-top:none;'>
-
         <p style='margin:0 0 20px;font-size:16px;color:#374151;'>
             Dear <strong>{$recipientName}</strong>,
         </p>
-
         <p style='margin:0 0 20px;font-size:15px;color:#6b7280;'>
             You have received a new notification from the CLSU Faculty Hiring Evaluation System.
         </p>
-
-        <!-- Admin message -->
         <div style='background:#f8fffe;border:1px solid #bbf7d0;border-radius:8px;padding:20px 24px;margin:20px 0;'>
             {$adminMessageBlock}
         </div>
-
         {$placementBlock}
         {$attachmentBlock}
-
-        <!-- CTA Button -->
         <div style='text-align:center;margin:28px 0;'>
             <a href='{{ url(\"/applicant/notifications\") }}'
                style='display:inline-block;padding:14px 32px;background:{$accentColor};color:white;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;letter-spacing:.3px;'>
                 View All Notifications →
             </a>
         </div>
-
         <p style='margin:24px 0 0;font-size:14px;color:#9ca3af;'>
             If you have any questions, please don't hesitate to contact the HR Department.
         </p>
     </div>
-
-    <!-- Footer -->
     <div style='background:#f3f4f6;padding:20px 40px;text-align:center;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;'>
         <p style='margin:0 0 6px;font-size:13px;color:#6b7280;'>
             <strong style='color:{$headerBg};'>CLSU HR Department</strong> — Central Luzon State University
@@ -704,7 +622,6 @@ class AssignPosition extends Component
         <p style='margin:0 0 6px;font-size:12px;color:#9ca3af;'>This is an automated message. Please do not reply to this email.</p>
         <p style='margin:0;font-size:12px;color:#9ca3af;'>© " . date('Y') . " Central Luzon State University. All rights reserved.</p>
     </div>
-
 </div>";
     }
 
@@ -718,8 +635,8 @@ class AssignPosition extends Component
     // ─── Alert helpers ────────────────────────────────────────────────────────
     protected function showAlert($type, $message)
     {
-        $this->alertType    = $type;
-        $this->alertMessage = $message;
+        $this->alertType      = $type;
+        $this->alertMessage   = $message;
         $this->showAlertModal = true;
     }
 
