@@ -31,6 +31,7 @@ use App\Livewire\Admin\ScheduledApplicant;
 use App\Livewire\Admin\Screening;
 use App\Livewire\Admin\UpdatePassword as AdminUpdatePassword;
 use App\Livewire\Admin\UserManagement;
+use App\Http\Controllers\NotificationAttachmentController;
 use App\Livewire\Applicant\ApplicantMessage;
 use App\Livewire\Applicant\ApplicantNotification;
 use App\Livewire\Applicant\ApplicantNotifications;
@@ -95,6 +96,8 @@ Route::middleware([
     Route::get('/job-application/{position_id}', JobApplication::class)->name('job-application');
     Route::get('/applicant/edit-job-application/{application_id}', EditJobApplication::class)->name('edit-job-application');
     Route::get('/notifications', ApplicantNotification::class)->name('notifications');
+    Route::get('/notifications/{notification}/attachments/{index}', [NotificationAttachmentController::class, 'download'])
+        ->name('notifications.attachment.download');
     Route::get('/message/{notificationId}', ApplicantMessage::class)->name('message');
     Route::get('/profile-view', ProfileView::class)->name('profile-view');
     Route::get('/profile', Profile::class)->name('profile');

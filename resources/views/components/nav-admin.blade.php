@@ -27,7 +27,7 @@
       <div class="flex-1">
          <div class="flex justify-center mb-6 mt-2">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-center">
-               <img src="{{ asset('image/clsu.png') }}" alt="CLSU Logo"
+               <img src="{{ asset('image/clsu-logo-green.png') }}" alt="CLSU Logo"
                   class="h-20 w-auto">
             </a>
          </div>

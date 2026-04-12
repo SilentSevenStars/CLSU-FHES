@@ -8,7 +8,6 @@
 <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('image/clsu-logo-green.png') }}">
 <link rel="shortcut icon" href="{{ asset('image/clsu-logo-green.png') }}">
 @endif
-<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
 @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endif
@@ -32,7 +31,6 @@
 <main class="p-4 sm:ml-64 min-h-screen">
     {{ $slot }}
 </main>
-<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
 {{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
 <script src="{{ asset('js/sweetalert.js') }}"></script>
 <script src="{{ asset('js/chart.js') }}"></script>

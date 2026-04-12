@@ -22,31 +22,29 @@
                         <p class="text-indigo-100">Application ID: #{{ str_pad($application->id, 6, '0', STR_PAD_LEFT) }}</p>
                     </div>
                     <span class="px-4 py-2 rounded-lg text-sm font-semibold shadow-lg
-                        {{ $application->status === 'approve' ? 'bg-green-500 text-white' : '' }}
-                        {{ $application->status === 'decline' ? 'bg-red-500 text-white' : '' }}
+                        {{ $application->status === 'approve' ? 'bg-green-500 text-white'  : '' }}
+                        {{ $application->status === 'decline' ? 'bg-red-500 text-white'    : '' }}
                         {{ $application->status === 'pending' ? 'bg-yellow-500 text-white' : '' }}
-                        {{ $application->status === 'hired' ? 'bg-blue-500 text-white' : '' }}">
+                        {{ $application->status === 'hired'   ? 'bg-blue-500 text-white'   : '' }}">
                         {{ $application->status === 'approve' ? 'Approved' : '' }}
                         {{ $application->status === 'decline' ? 'Declined' : '' }}
-                        {{ $application->status === 'pending' ? 'Pending' : '' }}
-                        {{ $application->status === 'hired' ? 'Hired' : '' }}
+                        {{ $application->status === 'pending' ? 'Pending'  : '' }}
+                        {{ $application->status === 'hired'   ? 'Hired'    : '' }}
                     </span>
                 </div>
             </div>
 
             <div class="p-6 space-y-6">
-                <!-- Applicant Information -->
+                <!-- Applicant + Documents grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Personal Information -->
+                    <!-- Personal / Employment Information -->
                     <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
                         <h3 class="text-lg font-bold text-gray-900 mb-4">Applicant Information</h3>
                         <h3 class="text-lg font-bold text-gray-900 mb-4">Position: {{ $application->position->title ?? 'N/A' }}</h3>
                         <div class="space-y-3">
                             <div class="flex justify-between py-2 border-b border-gray-200">
                                 <span class="text-gray-600">Full Name</span>
-                                <span class="font-medium text-gray-900">
-                                    {{ $application->applicant->first_name }} {{ $application->applicant->last_name }}
-                                </span>
+                                <span class="font-medium text-gray-900">{{ $application->applicant->first_name }} {{ $application->applicant->last_name }}</span>
                             </div>
                             <div class="flex justify-between py-2 border-b border-gray-200">
                                 <span class="text-gray-600">Email</span>
@@ -62,7 +60,6 @@
                             </div>
                         </div>
 
-                        <!-- Employment Information -->
                         <div class="bg-gray-50 rounded-lg p-5 border border-gray-200 mt-6">
                             <h3 class="text-lg font-bold text-gray-900 mb-4">Employment Details</h3>
                             <div class="space-y-3">
@@ -90,7 +87,7 @@
                         </div>
                     </div>
 
-                    <!-- Documents Section -->
+                    <!-- Documents -->
                     <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
                         <h3 class="text-lg font-bold text-gray-900 mb-5">Submitted Documents</h3>
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -118,7 +115,7 @@
                 </div>
 
                 @if($application->status === 'pending')
-                <!-- Review Form -->
+                <!-- ══ Review Form ═══════════════════════════════════════════ -->
                 <div class="bg-white border-2 border-indigo-200 rounded-lg p-6">
                     <h3 class="text-lg font-bold text-gray-900 mb-5">Review Application</h3>
 
@@ -133,18 +130,10 @@
                     </div>
                     @endif
 
-                    {{--
-                        Key technique: wire:ignore on the Quill container prevents Livewire from
-                        re-rendering (and destroying) the editor on every server round-trip.
-                        We only push the Quill content to Livewire at submit time via handleSubmit().
-                        The status select uses @change (Alpine) to toggle visibility without a
-                        full Livewire re-render.
-                    --}}
                     <div
                         x-data="{
                             quill: null,
                             currentStatus: '{{ $status }}',
-
                             initQuill() {
                                 if (this.quill) return;
                                 this.$nextTick(() => {
@@ -165,16 +154,11 @@
                                     });
                                 });
                             },
-
                             handleStatusChange(val) {
                                 this.currentStatus = val;
-                                // Also sync to Livewire for server-side validation awareness
                                 $wire.set('status', val, false);
-                                if (val === 'approve' || val === 'decline') {
-                                    this.initQuill();
-                                }
+                                if (val === 'approve' || val === 'decline') { this.initQuill(); }
                             },
-
                             handleSubmit() {
                                 if (this.quill) {
                                     const isEmpty = this.quill.getText().trim().length === 0;
@@ -185,6 +169,7 @@
                         }"
                     >
                         <div class="space-y-5">
+
                             <!-- Decision -->
                             <div>
                                 <label for="status" class="block text-sm font-semibold text-gray-700 mb-2">
@@ -200,7 +185,7 @@
                                 @error('status') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                             </div>
 
-                            <!-- Interview fields — toggled by Alpine, no Livewire re-render -->
+                            <!-- Interview fields — approve only -->
                             <div x-show="currentStatus === 'approve'" x-cloak>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -223,18 +208,106 @@
                                 </div>
                             </div>
 
-                            <!-- Quill rich text editor -->
-                            <div x-show="currentStatus === 'approve' || currentStatus === 'decline'" x-cloak>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    Additional Message
-                                    <span class="font-normal text-gray-500">(Optional)</span>
-                                </label>
-                                {{-- wire:ignore stops Livewire from ever touching this DOM subtree --}}
-                                <div wire:ignore>
-                                    <div id="quill-editor-show" style="min-height: 160px; background: white;"></div>
+                            <!-- Message + Attachments — approve or decline -->
+                            <div x-show="currentStatus === 'approve' || currentStatus === 'decline'" x-cloak class="space-y-5">
+
+                                <!-- Quill editor -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Additional Message
+                                        <span class="font-normal text-gray-500">(Optional)</span>
+                                    </label>
+                                    <div wire:ignore>
+                                        <div id="quill-editor-show" style="min-height: 160px; background: white;"></div>
+                                    </div>
+                                    @error('admin_message') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        This message will be included in the email notification sent to the applicant.
+                                    </p>
                                 </div>
-                                @error('admin_message') <span class="text-red-600 text-sm mt-1 block">{{ $message }}</span> @enderror
-                                <p class="mt-1 text-xs text-gray-500">This message will be included in the email notification sent to the applicant.</p>
+
+                                <!-- File Attachments -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-[#0D7A2F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                                            </path>
+                                        </svg>
+                                        Attachments
+                                        <span class="font-normal text-gray-400 text-xs">(optional — PDF, Word, Excel, images, etc. Max 10 MB each)</span>
+                                    </label>
+
+                                    <!-- Drop zone -->
+                                    <label for="show-file-upload"
+                                        class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-green-300 rounded-lg cursor-pointer bg-green-50 hover:bg-green-100 transition-colors duration-200">
+                                        <div class="flex flex-col items-center justify-center py-4">
+                                            <svg class="w-8 h-8 mb-2 text-[#0D7A2F]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                                </path>
+                                            </svg>
+                                            <p class="text-sm text-gray-600">
+                                                <span class="font-semibold text-[#0D7A2F]">Click to upload</span> or drag and drop
+                                            </p>
+                                            <p class="text-xs text-gray-400 mt-1">Multiple files allowed — attached to the notification email</p>
+                                        </div>
+                                        <input id="show-file-upload" type="file"
+                                            wire:model="attachments"
+                                            multiple class="hidden"
+                                            accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.ppt,.pptx,.txt,.zip">
+                                    </label>
+
+                                    <!-- Upload spinner -->
+                                    <div wire:loading wire:target="attachments" class="mt-2 flex items-center gap-2 text-sm text-green-700">
+                                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+                                        Uploading files...
+                                    </div>
+
+                                    @error('attachments.*')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+
+                                    <!-- File list -->
+                                    @if(!empty($attachments))
+                                    <ul class="mt-3 space-y-2">
+                                        @foreach($attachments as $index => $file)
+                                        <li wire:key="attachment-show-{{ $index }}" class="flex items-center justify-between bg-white border border-green-200 rounded-lg px-4 py-3 shadow-sm">
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                <div class="w-9 h-9 flex-shrink-0 bg-[#0D7A2F] rounded-lg flex items-center justify-center">
+                                                    <span class="text-white text-xs font-bold leading-none">
+                                                        {{ strtoupper(pathinfo($file->getClientOriginalName(), PATHINFO_EXTENSION)) }}
+                                                    </span>
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <p class="text-sm font-medium text-gray-800 truncate">{{ $file->getClientOriginalName() }}</p>
+                                                    <p class="text-xs text-gray-500">{{ number_format($file->getSize() / 1024, 1) }} KB</p>
+                                                </div>
+                                            </div>
+                                            <button type="button"
+                                                wire:click="removeAttachment({{ $index }})"
+                                                class="ml-4 flex-shrink-0 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Remove">
+                                                <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                        clip-rule="evenodd"></path>
+                                                </svg>
+                                            </button>
+                                        </li>
+                                        @endforeach
+                                    </ul>
+                                    <p class="mt-2 text-xs text-gray-500">
+                                        {{ count($attachments) }} file(s) selected — will be physically attached to the notification email.
+                                    </p>
+                                    @endif
+                                </div>
+
                             </div>
 
                             <!-- Actions -->
@@ -244,14 +317,26 @@
                                     Back to List
                                 </a>
                                 <button type="button" @click="handleSubmit()"
-                                    class="inline-flex items-center px-4 py-3 bg-[#0D7A2F] text-white rounded-lg hover:bg-[#0a6025] transition">
+                                    wire:loading.attr="disabled"
+                                    wire:target="submitReview,attachments"
+                                    class="inline-flex items-center px-4 py-3 bg-[#0D7A2F] text-white rounded-lg hover:bg-[#0a6025] transition disabled:opacity-50 disabled:cursor-not-allowed">
                                     <span wire:loading.remove wire:target="submitReview">Submit Review</span>
-                                    <span wire:loading wire:target="submitReview">Processing...</span>
+                                    <span wire:loading wire:target="submitReview" class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+                                        Processing...
+                                    </span>
                                 </button>
                             </div>
+
                         </div>
                     </div>
                 </div>
+
                 @else
                 <!-- Already reviewed -->
                 <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 border-2 border-gray-200">
@@ -263,9 +348,7 @@
                         <div class="space-y-2">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Date:</span>
-                                <span class="font-semibold text-gray-900">
-                                    {{ date('F j, Y', strtotime($application->evaluation->interview_date)) }}
-                                </span>
+                                <span class="font-semibold text-gray-900">{{ date('F j, Y', strtotime($application->evaluation->interview_date)) }}</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Location:</span>
@@ -292,7 +375,6 @@
                         class="inline-flex items-center px-5 py-2.5 border-2 border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition">
                         Back to List
                     </a>
-
                     @if(in_array($application->status, ['approve', 'decline']))
                     <a href="{{ route('admin.applicant.edit', $application->id) }}"
                         class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition">
@@ -306,35 +388,29 @@
                     @endif
                 </div>
                 @endif
+
             </div>
         </div>
     </div>
 
     <!-- PDF VIEWER MODAL -->
     <div x-data="{
-        open: false,
-        loading: false,
-        pdfUrl: null,
-        async openPdfViewer() {
-            this.loading = true;
-            this.open = true;
-            try {
-                const dataUrl = await @this.call('getFileDataUrl');
-                if (dataUrl) { this.pdfUrl = dataUrl; }
-            } catch (error) {
-                console.error('Error loading PDF:', error);
-                alert('Error loading PDF file');
-                this.open = false;
-            } finally {
-                this.loading = false;
+            open: false, loading: false, pdfUrl: null,
+            async openPdfViewer() {
+                this.loading = true; this.open = true;
+                try {
+                    const dataUrl = await @this.call('getFileDataUrl');
+                    if (dataUrl) { this.pdfUrl = dataUrl; }
+                } catch (error) {
+                    console.error('Error loading PDF:', error);
+                    alert('Error loading PDF file');
+                    this.open = false;
+                } finally { this.loading = false; }
             }
-        }
-    }"
-    x-on:open-pdf-viewer.window="openPdfViewer()"
-    x-show="open"
-    x-cloak
-    class="fixed inset-0 z-50 overflow-hidden"
-    style="display: none;">
+        }"
+        x-on:open-pdf-viewer.window="openPdfViewer()"
+        x-show="open" x-cloak
+        class="fixed inset-0 z-50 overflow-hidden" style="display: none;">
         <div class="absolute inset-0 bg-black bg-opacity-75" @click="open = false; pdfUrl = null;"></div>
         <div class="relative w-full h-full flex items-center justify-center">
             <div class="relative bg-white rounded-lg shadow-2xl w-full max-w-6xl h-screen flex flex-col">
@@ -366,17 +442,7 @@
 
     <style>
         [x-cloak] { display: none !important; }
-        .ql-container.ql-snow {
-            border-bottom-left-radius: 0.5rem;
-            border-bottom-right-radius: 0.5rem;
-            border-color: #d1d5db;
-            min-height: 160px;
-        }
-        .ql-toolbar.ql-snow {
-            border-top-left-radius: 0.5rem;
-            border-top-right-radius: 0.5rem;
-            border-color: #d1d5db;
-            background-color: #f9fafb;
-        }
+        .ql-container.ql-snow { border-bottom-left-radius: .5rem; border-bottom-right-radius: .5rem; border-color: #d1d5db; min-height: 160px; }
+        .ql-toolbar.ql-snow  { border-top-left-radius: .5rem; border-top-right-radius: .5rem; border-color: #d1d5db; background-color: #f9fafb; }
     </style>
 </div>

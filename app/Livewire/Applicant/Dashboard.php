@@ -40,7 +40,7 @@ class Dashboard extends Component
             $applications = $applicant->jobApplications()
                 ->with([
                     'position.department',
-                    'evaluation.panelAssignments.panel.user',
+                    'evaluation.panelAssignments.user',
                 ])
                 ->get()
                 ->map(function ($application) {

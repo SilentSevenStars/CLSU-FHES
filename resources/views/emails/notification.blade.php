@@ -1,93 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale:1.0">
     <title>{{ $subject }}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            background-color: #2563eb;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .content {
-            background-color: #f9fafb;
-            padding: 30px;
-            border: 1px solid #e5e7eb;
-        }
-
-        .message-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .footer {
-            background-color: #f3f4f6;
-            padding: 20px;
-            text-align: center;
-            font-size: 12px;
-            color: #6b7280;
-            border-radius: 0 0 8px 8px;
-            border: 1px solid #e5e7eb;
-            border-top: none;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #2563eb;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            margin: 20px 0;
-        }
-    </style>
 </head>
+<body style="margin:0;padding:20px 0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif;">
+    <div style="max-width:680px;margin:0 auto;background:#ffffff;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.08);overflow:hidden;">
 
-<body>
-    <div class="header">
-        <h1 style="margin: 0;">CLSU Faculty Hiring Evaluation System</h1>
-    </div>
+                <!-- ══ BODY ══════════════════════════════════════════════════ -->
+                <tr>
+                    <td style="background:#ffffff;padding:36px 40px;border:1px solid #d1fae5;border-top:none;">
 
-    <div class="content">
-        <p>Dear <strong>{{ $applicantName }}</strong>,</p>
+                        <!-- Greeting -->
+                        <p style="margin:0 0 18px;font-size:16px;color:#374151;font-family:Arial,sans-serif;">
+                            Dear <strong>{{ $applicantName }}</strong>,
+                        </p>
 
-        <p>You have received a new notification from the CLSU Faculty Hiring Evaluation System.</p>
+        {!! $notificationMessage !!}
 
-        <div class="message-content">
-            {!! $notificationMessage !!}
-            <!-- renamed here -->
-        </div>
 
-        <a href="{{ url('/applicant/notifications') }}" class="button">View All Notifications</a>
 
-        <p>If you have any questions, please don't hesitate to contact us.</p>
 
-        <p>Best regards,<br>
-            <strong>CLSU HR Department</strong>
-        </p>
-    </div>
-
-    <div class="footer">
-        <p>This is an automated message from CLSU Faculty Hiring Evaluation System.</p>
-        <p>Please do not reply to this email.</p>
-        <p>&copy; {{ date('Y') }} Central Luzon State University. All rights reserved.</p>
     </div>
 </body>
-
 </html>

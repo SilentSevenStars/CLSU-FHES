@@ -37,6 +37,35 @@ class Notification extends Model
     }
 
     /**
+     * Normalize attachment metadata for views and downloads.
+     */
+    public function attachmentItems(): array
+    {
+        if (empty($this->attachments)) {
+            return [];
+        }
+
+        // Laravel's 'array' cast automatically deserializes JSON
+        // $this->attachments should be an array of attachment objects
+        $items = [];
+
+        if (is_array($this->attachments)) {
+            foreach ($this->attachments as $attachment) {
+                if (is_array($attachment)) {
+                    $items[] = [
+                        'name' => $attachment['name'] ?? 'Unknown',
+                        'path' => $attachment['path'] ?? null,
+                        'size' => $attachment['size'] ?? 0,
+                    ];
+                }
+            }
+        }
+
+        return $items;
+    }
+
+
+    /**
      * Mark notification as read.
      */
     public function markAsRead(): void

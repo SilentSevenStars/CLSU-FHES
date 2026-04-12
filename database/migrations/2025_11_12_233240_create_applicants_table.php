@@ -27,6 +27,8 @@ return new class extends Migration
             $table->string('position')->nullable();
             $table->boolean('hired')->default(false);
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('college_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('department_id')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

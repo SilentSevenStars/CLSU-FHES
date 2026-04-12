@@ -24,6 +24,8 @@ class Applicant extends Model
         'position',
         'hired',
         'user_id',
+        'college_id',
+        'department_id',
     ];
 
     protected $casts = [
@@ -48,6 +50,16 @@ class Applicant extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function college(): BelongsTo
+    {
+        return $this->belongsTo(College::class);
+    }
+
+    public function departent(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 
     /**
