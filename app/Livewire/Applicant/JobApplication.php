@@ -78,12 +78,12 @@ class JobApplication extends Component
             'postal_code' => 'required|string|max:10',
         ],
         4 => [
-            'present_position'  => 'required|string|max:255',
+            'present_position'  => 'nullable|string|max:255',
             'education'         => 'required|string|max:255',
             'experience'        => 'required|integer|min:0',
             'training'          => 'required|integer|min:0',
             'eligibility'       => 'required|string|max:255',
-            'other_involvement' => 'required|string|max:255',
+            'other_involvement' => 'nullable|string|max:255',
         ],
         5 => [
             'requirements_file' => 'required|mimes:pdf|max:102400',
@@ -102,12 +102,12 @@ class JobApplication extends Component
         'barangay'          => 'required|string|max:255',
         'street'            => 'required|string|max:255',
         'postal_code'       => 'required|string|max:10',
-        'present_position'  => 'required|string|max:255',
+        'present_position'  => 'nullable|string|max:255',
         'education'         => 'required|string|max:255',
         'experience'        => 'required|integer|min:0',
         'training'          => 'required|integer|min:0',
         'eligibility'       => 'required|string|max:255',
-        'other_involvement' => 'required|string|max:255',
+        'other_involvement' => 'nullable|string|max:255',
         'requirements_file' => 'required|mimes:pdf|max:102400',
         'agree_to_terms'    => 'accepted',
     ];
@@ -144,9 +144,6 @@ class JobApplication extends Component
         $applicant = Applicant::where('user_id', Auth::id())->first();
 
         if ($applicant) {
-            // Block if the applicant already has an ACTIVE (non-terminal) application
-            // for this specific position.
-            // 'decline' and 'hired' are terminal — they do NOT block re-application.
             $existingApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
                 ->where('position_id', $position_id)
                 ->where('archive', false)
@@ -158,7 +155,6 @@ class JobApplication extends Component
                 return redirect()->route('apply-job');
             }
 
-            // Block if the applicant has ANY other active application (one at a time rule).
             $anyActiveApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
                 ->where('archive', false)
                 ->whereNotIn('status', self::INACTIVE_STATUSES)
@@ -228,7 +224,6 @@ class JobApplication extends Component
 
     public function goToStep(int $step)
     {
-        // Only allow going back to previously completed steps
         if ($step < $this->currentStep) {
             $this->currentStep = $step;
             $this->dispatch('step-changed');
@@ -237,7 +232,6 @@ class JobApplication extends Component
 
     protected function validateStep(int $step): void
     {
-        // Step 4 is now Employment (was step 3)
         if ($step === 4 && $this->eligibilityIsFixed) {
             $this->eligibility = 'None Required';
         }
@@ -417,7 +411,6 @@ class JobApplication extends Component
 
         $applicant = Applicant::where('user_id', Auth::id())->first();
         if ($applicant) {
-            // Re-check at save time — declined and hired applications do NOT count as active.
             $anyActiveApplication = ModelsJobApplication::where('applicant_id', $applicant->id)
                 ->where('archive', false)
                 ->whereNotIn('status', self::INACTIVE_STATUSES)
@@ -459,12 +452,12 @@ class JobApplication extends Component
         );
 
         $jobApplication = new ModelsJobApplication([
-            'present_position'  => $this->present_position,
+            'present_position'  => $this->present_position ?: null,
             'education'         => $this->education,
             'experience'        => $this->experience,
             'training'          => $this->training,
             'eligibility'       => $this->eligibility,
-            'other_involvement' => $this->other_involvement,
+            'other_involvement' => $this->other_involvement ?: null,
             'requirements_file' => $encryptedPath,
             'applicant_id'      => $applicant->id,
             'position_id'       => $this->position_id,

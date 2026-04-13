@@ -1,5 +1,3 @@
-@php use Illuminate\Support\Facades\Storage; @endphp
-
 <div>
     <div class="flex-1 bg-gradient-to-br from-slate-50 via-yellow-50 to-green-50 p-6 overflow-auto min-h-screen">
         <div class="max-w-4xl mx-auto">
@@ -18,7 +16,7 @@
                         total %= 3600;
                         let minutes = Math.floor(total / 60);
                         let seconds = total % 60;
-                        return `${String(days).padStart(2,'00')}d : ${String(hours).padStart(2,'0')}h : ${String(minutes).padStart(2,'0')}m : ${String(seconds).padStart(2,'0')}s`;
+                        return `${String(days).padStart(2,'0')}d : ${String(hours).padStart(2,'0')}h : ${String(minutes).padStart(2,'0')}m : ${String(seconds).padStart(2,'0')}s`;
                     },
                     init() {
                         this.remaining = this.deadline - this.now;
@@ -46,6 +44,7 @@
                     <span class="text-sm font-medium text-gray-500">Step {{ $currentStep }} of {{ $totalSteps }}</span>
                 </div>
 
+                <!-- Steps -->
                 <div class="flex items-center gap-0">
                     @php
                     $steps = [
@@ -66,7 +65,6 @@
 
                     @foreach($steps as $stepNum => $stepData)
                     <div class="flex items-center {{ $stepNum < $totalSteps ? 'flex-1' : '' }}">
-
                         @if($stepNum < $currentStep) <button type="button" wire:click="goToStep({{ $stepNum }})"
                             class="flex flex-col items-center group cursor-pointer">
                             @else
@@ -75,7 +73,7 @@
 
                                 <div
                                     class="w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300
-                                {{ $stepNum < $currentStep ? 'bg-[#0A6025] border-[#0A6025]' : ($stepNum === $currentStep ? 'bg-white border-[#0A6025]' : 'bg-white border-gray-300') }}">
+                            {{ $stepNum < $currentStep ? 'bg-[#0A6025] border-[#0A6025]' : ($stepNum === $currentStep ? 'bg-white border-[#0A6025]' : 'bg-white border-gray-300') }}">
                                     @if($stepNum < $currentStep) <svg class="w-5 h-5 text-white" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -240,7 +238,7 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2">First Name <span
                                     class="text-red-500">*</span></label>
                             <input type="text" wire:model="first_name"
-                                class="block w-full px-4 py-3 bg-gray-50 border @error('first_name') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                                class="block w-full px-4 py-3 bg-gray-50 border @error('first_name') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-transparent transition">
                             @error('first_name')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
@@ -249,14 +247,14 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Middle Name <span
                                     class="text-gray-400 font-normal">(Optional)</span></label>
                             <input type="text" wire:model="middle_name"
-                                class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                                class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-transparent transition">
                         </div>
 
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Last Name <span
                                     class="text-red-500">*</span></label>
                             <input type="text" wire:model="last_name"
-                                class="block w-full px-4 py-3 bg-gray-50 border @error('last_name') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                                class="block w-full px-4 py-3 bg-gray-50 border @error('last_name') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-transparent transition">
                             @error('last_name')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
@@ -265,7 +263,7 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Suffix <span
                                     class="text-gray-400 font-normal">(Optional)</span></label>
                             <select wire:model="suffix"
-                                class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                                class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-transparent transition">
                                 <option value="">Select Suffix</option>
                                 <option value="Jr.">Jr.</option>
                                 <option value="Sr.">Sr.</option>
@@ -282,15 +280,15 @@
                             <div class="relative max-w-xs">
                                 <input type="text" wire:model.live="phone_number" placeholder="09XXXXXXXXX"
                                     maxlength="11" pattern="[0-9]*" inputmode="numeric"
-                                    class="block w-full px-4 py-3 bg-gray-50 border @error('phone_number') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition"
+                                    class="block w-full px-4 py-3 bg-gray-50 border @error('phone_number') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] focus:border-transparent transition"
                                     x-data
                                     x-on:keypress="if (!/[0-9]/.test(String.fromCharCode($event.keyCode))) $event.preventDefault()"
                                     x-on:paste.prevent="
-                                            let paste = ($event.clipboardData || window.clipboardData).getData('text');
-                                            paste = paste.replace(/[^0-9]/g, '');
-                                            $event.target.value = paste.substring(0, 11);
-                                            $event.target.dispatchEvent(new Event('input'));
-                                        ">
+                                                let paste = ($event.clipboardData || window.clipboardData).getData('text');
+                                                paste = paste.replace(/[^0-9]/g, '');
+                                                $event.target.value = paste.substring(0, 11);
+                                                $event.target.dispatchEvent(new Event('input'));
+                                            ">
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -416,29 +414,45 @@
                         </div>
                         <div>
                             <h3 class="text-2xl font-bold text-gray-800">Employment Information</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">Update your professional background</p>
+                            <p class="text-sm text-gray-500 mt-0.5">Update your professional background and
+                                qualifications</p>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        {{-- Present Position (optional) --}}
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Present Position <span
-                                    class="text-red-500">*</span></label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Present Position
+                                <span class="text-gray-400 font-normal">(Optional)</span>
+                            </label>
                             <input type="text" wire:model="present_position"
+                                placeholder="e.g., Instructor I, Admin Staff"
                                 class="block w-full px-4 py-3 bg-gray-50 border @error('present_position') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                            <p class="mt-1 text-xs text-gray-500">Leave blank if currently unemployed or not applicable.
+                            </p>
                             @error('present_position')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
 
+                        {{-- Total Years of Experience --}}
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Years of Experience <span
-                                    class="text-red-500">*</span></label>
-                            <input type="number" wire:model="experience" min="0"
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Total Years of Experience
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" wire:model="experience" min="0" placeholder="e.g., 5"
                                 class="block w-full px-4 py-3 bg-gray-50 border @error('experience') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                            <p class="mt-1 text-xs text-gray-500">
+                                Count your <strong>cumulative years</strong> across all positions held — present and
+                                past combined.
+                            </p>
                             @error('experience')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
 
+                        {{-- Education --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Education <span
                                     class="text-red-500">*</span></label>
@@ -454,15 +468,17 @@
                                 }}</span>@enderror
                         </div>
 
+                        {{-- Training Hours --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Training (Hours) <span
                                     class="text-red-500">*</span></label>
-                            <input type="number" wire:model="training" min="0"
+                            <input type="number" wire:model="training" min="0" placeholder="e.g., 40"
                                 class="block w-full px-4 py-3 bg-gray-50 border @error('training') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
                             @error('training')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
 
+                        {{-- Eligibility --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Eligibility <span
                                     class="text-red-500">*</span></label>
@@ -495,14 +511,22 @@
                                 }}</span>@enderror
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Other Involvement <span
-                                    class="text-red-500">*</span></label>
-                            <input type="text" wire:model="other_involvement"
-                                class="block w-full px-4 py-3 bg-gray-50 border @error('other_involvement') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                        {{-- Designations / Other Involvement --}}
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                Other credentials
+                                <span class="text-gray-400 font-normal">(Optional)</span>
+                            </label>
+                            <p class="text-xs text-gray-500 mb-2">
+                                List any journals, publications, speakership in conferences, etc. relevant to your application. You may leave this blank if not applicable.
+                            </p>
+                            <textarea wire:model="other_involvement" rows="3"
+                                {{-- placeholder="e.g., Department Chairperson (2020–2023); Published: 'Title of Paper' in Journal of XYZ (2022); Resource Speaker, Regional Conference on Education (2021)" --}}
+                                class="block w-full px-4 py-3 bg-gray-50 border @error('other_involvement') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition resize-none"></textarea>
                             @error('other_involvement')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
+
                     </div>
                 </div>
                 @endif
@@ -510,6 +534,8 @@
                 {{-- ═══════════════ STEP 5: DOCUMENTS ═══════════════ --}}
                 @if($currentStep === 5)
                 <div class="animate-fadeIn space-y-8">
+
+                    <!-- Required Documents -->
                     <div>
                         <div class="flex items-center gap-3 mb-6">
                             <div class="bg-gradient-to-br from-amber-500 to-yellow-600 rounded-lg p-2">
@@ -549,6 +575,7 @@
                                         <li>Applicants for <strong>Instructor I to Assistant Professor I</strong>
                                             positions shall only submit an E-copy of their credentials</li>
                                     </ol>
+
                                     <div class="mt-3 pt-3 border-t border-amber-300">
                                         <p class="font-bold text-amber-900 mb-1">📌 ADDITIONAL REQUIREMENTS:</p>
                                         <ol class="list-decimal list-inside space-y-1 text-amber-800" start="7">
@@ -604,29 +631,29 @@
 
                         <!-- Upload Area -->
                         <div x-data="{
-                                        isDragging: false,
-                                        isUploading: false,
-                                        handleDragOver(e) { e.preventDefault(); this.isDragging = true; },
-                                        handleDragLeave(e) { e.preventDefault(); this.isDragging = false; },
-                                        handleDrop(e) {
-                                            e.preventDefault();
-                                            this.isDragging = false;
-                                            const files = e.dataTransfer.files;
-                                            if (files.length > 0) {
-                                                const file = files[0];
-                                                if (file.type === 'application/pdf') {
-                                                    this.isUploading = true;
-                                                    const input = this.$refs.fileInput;
-                                                    const dataTransfer = new DataTransfer();
-                                                    dataTransfer.items.add(file);
-                                                    input.files = dataTransfer.files;
-                                                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                                                } else {
-                                                    Swal.fire({ icon: 'error', title: 'Invalid File Type', text: 'Please upload a PDF file only.', confirmButtonColor: '#0A6025' });
+                                            isDragging: false,
+                                            isUploading: false,
+                                            handleDragOver(e) { e.preventDefault(); this.isDragging = true; },
+                                            handleDragLeave(e) { e.preventDefault(); this.isDragging = false; },
+                                            handleDrop(e) {
+                                                e.preventDefault();
+                                                this.isDragging = false;
+                                                const files = e.dataTransfer.files;
+                                                if (files.length > 0) {
+                                                    const file = files[0];
+                                                    if (file.type === 'application/pdf') {
+                                                        this.isUploading = true;
+                                                        const input = this.$refs.fileInput;
+                                                        const dataTransfer = new DataTransfer();
+                                                        dataTransfer.items.add(file);
+                                                        input.files = dataTransfer.files;
+                                                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                                                    } else {
+                                                        Swal.fire({ icon: 'error', title: 'Invalid File Type', text: 'Please upload a PDF file only.', confirmButtonColor: '#0A6025' });
+                                                    }
                                                 }
                                             }
-                                        }
-                                    }"
+                                        }"
                             x-init="$watch('$wire.requirements_file', value => { if (value) { isUploading = false; } })">
                             <label @dragover="handleDragOver" @dragleave="handleDragLeave" @drop="handleDrop"
                                 :class="{ 'border-[#0A6025] bg-green-50 scale-[1.01]': isDragging }"
@@ -718,6 +745,7 @@
 
                 {{-- ═══════════════ NAVIGATION BUTTONS ═══════════════ --}}
                 <div class="flex justify-between items-center pt-6 border-t border-gray-200">
+                    <!-- Left: Back / Cancel -->
                     <div>
                         @if($currentStep > 1)
                         <button type="button" wire:click="previousStep"
@@ -736,6 +764,7 @@
                         @endif
                     </div>
 
+                    <!-- Right: Next / Submit -->
                     <div>
                         @if($currentStep < $totalSteps) <button type="button" wire:click="nextStep"
                             wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed"
@@ -779,6 +808,34 @@
         </div>
     </div>
 </div>
+<!-- SWEETALERT2 INTEGRATION -->
+<div x-data x-on:show-swal-confirm.window="
+            Swal.fire({
+                title: 'Update Job Application?',
+                text: 'Please confirm that all details are correct before updating.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0A6025',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Update',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $wire.save();
+                }
+            });
+        " x-on:swal:success.window="
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: $event.detail.message,
+                confirmButtonColor: '#2563eb'
+            }).then(() => {
+                window.location.href = '{{ route('apply-job') }}';
+            });
+        ">
+</div>
+
+
 <!-- PDF VIEWER MODAL -->
 <div x-data="{
             open: false,
@@ -847,45 +904,13 @@
     </div>
 </div>
 
-<!-- SWEETALERT2 INTEGRATION -->
-<div x-data x-on:show-swal-confirm.window="
-            Swal.fire({
-                title: 'Update Job Application?',
-                text: 'Please confirm that all details are correct before updating.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#0A6025',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, Update',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $wire.save();
-                }
-            });
-        " x-on:swal:success.window="
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: $event.detail.message,
-                confirmButtonColor: '#2563eb'
-            }).then(() => {
-                window.location.href = '{{ route('apply-job') }}';
-            });
-        " x-on:show-error.window="
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: $event.detail.message,
-                confirmButtonColor: '#d33'
-            });
-        ">
-</div>
-
 <style>
     [x-cloak] {
         display: none !important;
     }
+</style>
 
+<style>
     @keyframes fadeIn {
         from {
             opacity: 0;

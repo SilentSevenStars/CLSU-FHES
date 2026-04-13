@@ -65,7 +65,6 @@
 
                     @foreach($steps as $stepNum => $stepData)
                     <div class="flex items-center {{ $stepNum < $totalSteps ? 'flex-1' : '' }}">
-                        <!-- Step circle -->
                         @if($stepNum < $currentStep) <button type="button" wire:click="goToStep({{ $stepNum }})"
                             class="flex flex-col items-center group cursor-pointer">
                             @else
@@ -74,7 +73,7 @@
 
                                 <div
                                     class="w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300
-                                {{ $stepNum < $currentStep ? 'bg-[#0A6025] border-[#0A6025]' : ($stepNum === $currentStep ? 'bg-white border-[#0A6025]' : 'bg-white border-gray-300') }}">
+                            {{ $stepNum < $currentStep ? 'bg-[#0A6025] border-[#0A6025]' : ($stepNum === $currentStep ? 'bg-white border-[#0A6025]' : 'bg-white border-gray-300') }}">
                                     @if($stepNum < $currentStep) <svg class="w-5 h-5 text-white" fill="none"
                                         stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
@@ -98,7 +97,6 @@
                             </div>
                             @endif
 
-                            <!-- Connector line -->
                             @if($stepNum < $totalSteps) <div class="flex-1 h-0.5 mx-2 mt-[-16px] sm:mt-[-10px] transition-all duration-500
                             {{ $stepNum < $currentStep ? 'bg-[#0A6025]' : 'bg-gray-200' }}">
                     </div>
@@ -286,11 +284,11 @@
                                     x-data
                                     x-on:keypress="if (!/[0-9]/.test(String.fromCharCode($event.keyCode))) $event.preventDefault()"
                                     x-on:paste.prevent="
-                                            let paste = ($event.clipboardData || window.clipboardData).getData('text');
-                                            paste = paste.replace(/[^0-9]/g, '');
-                                            $event.target.value = paste.substring(0, 11);
-                                            $event.target.dispatchEvent(new Event('input'));
-                                        ">
+                                                let paste = ($event.clipboardData || window.clipboardData).getData('text');
+                                                paste = paste.replace(/[^0-9]/g, '');
+                                                $event.target.value = paste.substring(0, 11);
+                                                $event.target.dispatchEvent(new Event('input'));
+                                            ">
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                     <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
@@ -422,24 +420,39 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        {{-- Present Position (optional) --}}
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Present Position <span
-                                    class="text-red-500">*</span></label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Present Position
+                                <span class="text-gray-400 font-normal">(Optional)</span>
+                            </label>
                             <input type="text" wire:model="present_position"
+                                placeholder="e.g., Instructor I, Admin Staff"
                                 class="block w-full px-4 py-3 bg-gray-50 border @error('present_position') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                            <p class="mt-1 text-xs text-gray-500">Leave blank if currently unemployed or not applicable.
+                            </p>
                             @error('present_position')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
 
+                        {{-- Total Years of Experience --}}
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Years of Experience <span
-                                    class="text-red-500">*</span></label>
-                            <input type="number" wire:model="experience" min="0"
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                Total Years of Experience
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" wire:model="experience" min="0" placeholder="e.g., 5"
                                 class="block w-full px-4 py-3 bg-gray-50 border @error('experience') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                            <p class="mt-1 text-xs text-gray-500">
+                                Count your <strong>cumulative years</strong> across all positions held — present and
+                                past combined.
+                            </p>
                             @error('experience')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
 
+                        {{-- Education --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Education <span
                                     class="text-red-500">*</span></label>
@@ -455,15 +468,17 @@
                                 }}</span>@enderror
                         </div>
 
+                        {{-- Training Hours --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Training (Hours) <span
                                     class="text-red-500">*</span></label>
-                            <input type="number" wire:model="training" min="0"
+                            <input type="number" wire:model="training" min="0" placeholder="e.g., 40"
                                 class="block w-full px-4 py-3 bg-gray-50 border @error('training') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
                             @error('training')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
 
+                        {{-- Eligibility --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Eligibility <span
                                     class="text-red-500">*</span></label>
@@ -496,14 +511,22 @@
                                 }}</span>@enderror
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Other Involvement <span
-                                    class="text-red-500">*</span></label>
-                            <input type="text" wire:model="other_involvement"
-                                class="block w-full px-4 py-3 bg-gray-50 border @error('other_involvement') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition">
+                        {{-- Designations / Other Involvement --}}
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                Other credentials
+                                <span class="text-gray-400 font-normal">(Optional)</span>
+                            </label>
+                            <p class="text-xs text-gray-500 mb-2">
+                                List any journals, publications, speakership in conferences, etc. relevant to your application. You may leave this blank if not applicable.
+                            </p>
+                            <textarea wire:model="other_involvement" rows="3"
+                                {{-- placeholder="e.g., Department Chairperson (2020–2023); Published: 'Title of Paper' in Journal of XYZ (2022); Resource Speaker, Regional Conference on Education (2021)" --}}
+                                class="block w-full px-4 py-3 bg-gray-50 border @error('other_involvement') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition resize-none"></textarea>
                             @error('other_involvement')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
+
                     </div>
                 </div>
                 @endif
@@ -576,29 +599,29 @@
 
                         <!-- Upload Area -->
                         <div x-data="{
-                                        isDragging: false,
-                                        isUploading: false,
-                                        handleDragOver(e) { e.preventDefault(); this.isDragging = true; },
-                                        handleDragLeave(e) { e.preventDefault(); this.isDragging = false; },
-                                        handleDrop(e) {
-                                            e.preventDefault();
-                                            this.isDragging = false;
-                                            const files = e.dataTransfer.files;
-                                            if (files.length > 0) {
-                                                const file = files[0];
-                                                if (file.type === 'application/pdf') {
-                                                    this.isUploading = true;
-                                                    const input = this.$refs.fileInput;
-                                                    const dataTransfer = new DataTransfer();
-                                                    dataTransfer.items.add(file);
-                                                    input.files = dataTransfer.files;
-                                                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                                                } else {
-                                                    Swal.fire({ icon: 'error', title: 'Invalid File Type', text: 'Please upload a PDF file only.', confirmButtonColor: '#0A6025' });
+                                            isDragging: false,
+                                            isUploading: false,
+                                            handleDragOver(e) { e.preventDefault(); this.isDragging = true; },
+                                            handleDragLeave(e) { e.preventDefault(); this.isDragging = false; },
+                                            handleDrop(e) {
+                                                e.preventDefault();
+                                                this.isDragging = false;
+                                                const files = e.dataTransfer.files;
+                                                if (files.length > 0) {
+                                                    const file = files[0];
+                                                    if (file.type === 'application/pdf') {
+                                                        this.isUploading = true;
+                                                        const input = this.$refs.fileInput;
+                                                        const dataTransfer = new DataTransfer();
+                                                        dataTransfer.items.add(file);
+                                                        input.files = dataTransfer.files;
+                                                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                                                    } else {
+                                                        Swal.fire({ icon: 'error', title: 'Invalid File Type', text: 'Please upload a PDF file only.', confirmButtonColor: '#0A6025' });
+                                                    }
                                                 }
                                             }
-                                        }
-                                    }"
+                                        }"
                             x-init="$watch('$wire.requirements_file', value => { if (value) { isUploading = false; } })">
                             <label @dragover="handleDragOver" @dragleave="handleDragLeave" @drop="handleDrop"
                                 :class="{ 'border-[#0A6025] bg-green-50 scale-[1.01]': isDragging }"

@@ -68,12 +68,6 @@ class EditJobApplication extends Component
     // ── Change tracking ───────────────────────────────────────────────────────
     protected array $originalData = [];
 
-    // ── Per-step validation rules ─────────────────────────────────────────────
-    // Step 1: Data Privacy Agreement
-    // Step 2: Personal Information
-    // Step 3: Address
-    // Step 4: Employment
-    // Step 5: Documents
     protected array $stepRules = [
         1 => [
             'agree_to_terms' => 'accepted',
@@ -94,12 +88,12 @@ class EditJobApplication extends Component
             'postal_code' => 'required|string|max:10',
         ],
         4 => [
-            'present_position'  => 'required|string|max:255',
+            'present_position'  => 'nullable|string|max:255',
             'education'         => 'required|string|max:255',
             'experience'        => 'required|integer|min:0',
             'training'          => 'required|integer|min:0',
             'eligibility'       => 'required|string|max:255',
-            'other_involvement' => 'required|string|max:255',
+            'other_involvement' => 'nullable|string|max:255',
         ],
         5 => [
             'requirements_file' => 'nullable|mimes:pdf|max:102400',
@@ -118,12 +112,12 @@ class EditJobApplication extends Component
         'barangay'          => 'required|string|max:255',
         'street'            => 'required|string|max:255',
         'postal_code'       => 'required|string|max:10',
-        'present_position'  => 'required|string|max:255',
+        'present_position'  => 'nullable|string|max:255',
         'education'         => 'required|string|max:255',
         'experience'        => 'required|integer|min:0',
         'training'          => 'required|integer|min:0',
         'eligibility'       => 'required|string|max:255',
-        'other_involvement' => 'required|string|max:255',
+        'other_involvement' => 'nullable|string|max:255',
         'requirements_file' => 'nullable|mimes:pdf|max:102400',
         'agree_to_terms'    => 'accepted',
     ];
@@ -186,11 +180,11 @@ class EditJobApplication extends Component
         $this->street       = $applicant->street ?? '';
         $this->postal_code  = $applicant->postal_code ?? '';
 
-        $this->present_position  = $application->present_position;
+        $this->present_position  = $application->present_position ?? '';
         $this->education         = $application->education;
         $this->experience        = $application->experience;
         $this->training          = $application->training;
-        $this->other_involvement = $application->other_involvement;
+        $this->other_involvement = $application->other_involvement ?? '';
         $this->existing_file_path = $application->requirements_file;
 
         $this->positionEligibility = $position->eligibility ?? '';
@@ -218,7 +212,7 @@ class EditJobApplication extends Component
             'experience'        => (string) $this->experience,
             'training'          => (string) $this->training,
             'eligibility'       => $this->eligibility,
-            'other_involvement' => $this->other_involvement,
+            'other_involvement' => $this->other_involvement ?: null,
         ];
 
         $this->loadRegions();
@@ -268,7 +262,6 @@ class EditJobApplication extends Component
 
     protected function validateStep(int $step): void
     {
-        // Step 4 is now Employment (was step 3)
         if ($step === 4 && $this->eligibilityIsFixed) {
             $this->eligibility = 'None Required';
         }
@@ -503,12 +496,12 @@ class EditJobApplication extends Component
 
         $jobApplication = ModelsJobApplication::find($this->application_id);
         $jobApplication->fill([
-            'present_position'  => $this->present_position,
+            'present_position'  => $this->present_position ?: null,
             'education'         => $this->education,
             'experience'        => $this->experience,
             'training'          => $this->training,
             'eligibility'       => $this->eligibility,
-            'other_involvement' => $this->other_involvement,
+            'other_involvement' => $this->other_involvement ?: null,
             'requirements_file' => $encryptedPath,
         ]);
         $jobApplication->save();
@@ -527,10 +520,10 @@ class EditJobApplication extends Component
             'postal_code'       => 'Postal Code',
             'present_position'  => 'Present Position',
             'education'         => 'Education',
-            'experience'        => 'Experience',
+            'experience'        => 'Total Years of Experience',
             'training'          => 'Training',
             'eligibility'       => 'Eligibility',
-            'other_involvement' => 'Other Involvement',
+            'other_involvement' => 'Designations / Other Involvement',
         ];
 
         $currentData = [
@@ -550,7 +543,7 @@ class EditJobApplication extends Component
             'experience'        => (string) $this->experience,
             'training'          => (string) $this->training,
             'eligibility'       => $this->eligibility,
-            'other_involvement' => $this->other_involvement,
+            'other_involvement' => $this->other_involvement ?: null,
         ];
 
         $changes = [];

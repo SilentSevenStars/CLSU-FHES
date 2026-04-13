@@ -187,7 +187,7 @@
                         <!-- Start Date -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Start Date <span class="text-red-500">*</span>
+                                Start of Hiring <span class="text-red-500">*</span>
                             </label>
                             <input type="date" wire:model="start_date"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
@@ -197,7 +197,7 @@
                         <!-- End Date -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                End Date <span class="text-red-500">*</span>
+                                End of Date <span class="text-red-500">*</span>
                             </label>
                             <input type="date" wire:model="end_date"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">

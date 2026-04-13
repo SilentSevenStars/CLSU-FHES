@@ -181,10 +181,10 @@
                                                     <span class="text-xs font-semibold uppercase text-black">Department</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <span class="text-xs font-semibold uppercase text-black">Start Date</span>
+                                                    <span class="text-xs font-semibold uppercase text-black">Start of Hiring</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
-                                                    <span class="text-xs font-semibold uppercase text-black">End Date</span>
+                                                    <span class="text-xs font-semibold uppercase text-black">End of Hiring</span>
                                                 </th>
                                                 <th scope="col" class="px-6 py-3 text-start">
                                                     <span class="text-xs font-semibold uppercase text-black">Action</span>
@@ -345,7 +345,7 @@
 
                     {{-- Start Date --}}
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Start Date</p>
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Start of Hiring</p>
                         <p class="text-gray-800 font-medium">
                             {{ $viewPosition->start_date
                                 ? \Carbon\Carbon::parse($viewPosition->start_date)->format('F j, Y')
@@ -355,7 +355,7 @@
 
                     {{-- End Date --}}
                     <div class="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">End Date</p>
+                        <p class="text-xs font-semibold uppercase text-gray-500 mb-1">End of Hiring</p>
                         <p class="text-gray-800 font-medium">
                             {{ $viewPosition->end_date
                                 ? \Carbon\Carbon::parse($viewPosition->end_date)->format('F j, Y')
