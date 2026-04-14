@@ -412,7 +412,7 @@ class AssignPosition extends Component
 
             $adminMessageBlock = '';
             if (!empty(strip_tags($adminMessage ?? ''))) {
-                $adminMessageBlock = "<div style='margin: 16px 0;'>{$adminMessage}</div>";
+                $adminMessageBlock = $adminMessage;
             }
 
             $placementRows = '';
@@ -471,10 +471,11 @@ class AssignPosition extends Component
                 }
             }
 
-            Mail::to($applicant->user->email)->queue($mailable);
+            // Use send() for immediate delivery — same as ApplicantShow
+            Mail::to($applicant->user->email)->send($mailable);
             $notification->update(['email_sent' => true, 'email_sent_at' => now()]);
 
-            Log::info("Promotion email queued to {$applicant->user->email} ✅");
+            Log::info("Promotion email sent to {$applicant->user->email} ✅");
         } catch (Exception $e) {
             Log::error("Failed to send promotion email: " . $e->getMessage());
         }
@@ -493,7 +494,7 @@ class AssignPosition extends Component
 
             $adminMessageBlock = '';
             if (!empty(strip_tags($adminMessage ?? ''))) {
-                $adminMessageBlock = "<div style='margin:16px 0;'>{$adminMessage}</div>";
+                $adminMessageBlock = $adminMessage;
             }
 
             $attachmentBlock = $this->buildAttachmentBlock($storedFiles);
@@ -523,10 +524,11 @@ class AssignPosition extends Component
                 }
             }
 
-            Mail::to($applicant->user->email)->queue($mailable);
+            // Use send() for immediate delivery — same as ApplicantShow
+            Mail::to($applicant->user->email)->send($mailable);
             $notification->update(['email_sent' => true, 'email_sent_at' => now()]);
 
-            Log::info("Archive email queued to {$applicant->user->email} ✅");
+            Log::info("Archive email sent to {$applicant->user->email} ✅");
         } catch (Exception $e) {
             Log::error("Failed to send archive email: " . $e->getMessage());
         }
@@ -575,14 +577,19 @@ class AssignPosition extends Component
         $headerBg    = '#1E7F3E';
         $badgeText   = $type === 'hired' ? '🎉 Congratulations!' : '📋 Application Update';
 
+        // Only wrap adminMessageBlock if it has content
+        $adminSection = !empty($adminMessageBlock)
+            ? "<div style='margin:16px 0;font-size:14px;color:#374151;'>{$adminMessageBlock}</div>"
+            : '';
+
         return "
 <div style='font-family:Georgia,\"Times New Roman\",serif;max-width:680px;margin:0 auto;'>
     <div style='background:{$headerBg};padding:0;border-radius:12px 12px 0 0;overflow:hidden;'>
         <div style='background:rgba(0,0,0,.15);height:6px;'></div>
         <div style='padding:32px 40px 28px;text-align:center;'>
             <div style='display:inline-flex;align-items:center;gap:12px;margin-bottom:16px;'>
-                <div style='width:52px;height:52px;background:white;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;'>
-                    <span style='font-size:24px;'>🌿</span>
+                <div style='width:52px;height:52px;background:white;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;'>
+                    <img src='{{ asset(\"image/clsu-logo-green.png\") }}' alt='CLSU Logo' style='width:44px;height:44px;object-fit:contain;'>
                 </div>
                 <div style='text-align:left;'>
                     <div style='color:white;font-size:18px;font-weight:700;letter-spacing:.5px;'>CLSU FHES</div>
@@ -600,9 +607,7 @@ class AssignPosition extends Component
         <p style='margin:0 0 20px;font-size:15px;color:#6b7280;'>
             You have received a new notification from the CLSU Faculty Hiring Evaluation System.
         </p>
-        <div style='background:#f8fffe;border:1px solid #bbf7d0;border-radius:8px;padding:20px 24px;margin:20px 0;'>
-            {$adminMessageBlock}
-        </div>
+        {$adminSection}
         {$placementBlock}
         {$attachmentBlock}
         <div style='text-align:center;margin:28px 0;'>

@@ -91,7 +91,8 @@ class Message extends Component
                         }
                     }
 
-                    Mail::to($applicant->user->email)->queue($mailable);
+                    // Use send() for immediate delivery — same as ApplicantShow
+                    Mail::to($applicant->user->email)->send($mailable);
 
                     $notification->update([
                         'email_sent'    => true,
