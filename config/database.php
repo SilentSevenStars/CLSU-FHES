@@ -61,6 +61,11 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            // This is the path for the XAMPP MySQL
+            'dump' => [
+                // 'dump_binary_path' => 'C:\xampp\mysql\bin', // This is the path for the XAMPP MySQL
+                'dump_binary_path' => 'C:\Program Files\MySQL\MySQL Server 9.4\bin',
+            ],
         ],
 
         'mariadb' => [

@@ -22,6 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
+    ->withSchedule(function ($schedule): void {
+        $schedule->command('backup:run')->dailyAt('02:00');
+        $schedule->command('backup:clean')->dailyAt('03:00');
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
