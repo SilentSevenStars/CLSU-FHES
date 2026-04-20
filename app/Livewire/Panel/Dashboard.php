@@ -29,11 +29,36 @@ class Dashboard extends Component
         $this->resetPage();
     }
 
+    /**
+     * Resolve the effective college_id and department_id for an application.
+     * If position has no college/department, fall back to the applicant's values.
+     */
+    private function resolveCollegeAndDepartment(JobApplication $app): array
+    {
+        $position  = $app->position;
+        $applicant = $app->applicant;
+
+        $posCollegeId    = $position?->college_id;
+        $posDepartmentId = $position?->department_id;
+
+        // Fallback: if position has no college AND no department, use applicant's
+        if (is_null($posCollegeId) && is_null($posDepartmentId)) {
+            return [
+                'college_id'    => $applicant?->college_id,
+                'department_id' => $applicant?->department_id,
+            ];
+        }
+
+        return [
+            'college_id'    => $posCollegeId,
+            'department_id' => $posDepartmentId,
+        ];
+    }
+
     public function render()
     {
         $user = Auth::user();
 
-        // Load panel with relationships
         $panel = Panel::with(['college', 'department'])
             ->where('user_id', $user->id)
             ->first();
@@ -46,7 +71,6 @@ class Dashboard extends Component
             ]);
         }
 
-        // Allowed position names (whitelist)
         $allowedPositions = [
             'Instructor I',
             'Instructor II',
@@ -64,7 +88,7 @@ class Dashboard extends Component
             'Professor II',
         ];
 
-        // Base query
+        // Base query — fetch all matching applications; filtering by scope is done in PHP
         $query = JobApplication::query()
             ->whereHas('evaluation', function ($q) {
                 $q->whereDate('interview_date', today());
@@ -73,63 +97,64 @@ class Dashboard extends Component
                 $q->whereIn('name', $allowedPositions);
             });
 
-        $panelPos = strtolower($panel->panel_position);
-        $isUniversityLevel = in_array($panelPos, self::UNIVERSITY_POSITIONS);
-
-        if ($isUniversityLevel) {
-            // No college or department filter — they see ALL applications.
-
-        } elseif ($panelPos === 'dean') {
-            if (is_null($panel->college_id)) {
-                // Dean with no college assigned → sees ALL applications
-
-            } else {
-                $query->whereHas('position', function ($q) use ($panel) {
-                    $q->where(function ($inner) use ($panel) {
-                        $inner->where('college_id', $panel->college_id)
-                              ->orWhereNull('college_id');
-                    });
-                });
-            }
-
-        } elseif (in_array($panelPos, ['head', 'senior', 'señior'])) {
-            if (is_null($panel->college_id)) {
-                // No college assigned → sees ALL applications
-
-            } elseif (is_null($panel->department_id)) {
-                $query->whereHas('position', function ($q) use ($panel) {
-                    $q->where(function ($inner) use ($panel) {
-                        $inner->where('college_id', $panel->college_id)
-                              ->orWhereNull('college_id');
-                    });
-                });
-
-            } else {
-                $query->whereHas('position', function ($q) use ($panel) {
-                    $q->where(function ($inner) use ($panel) {
-                        $inner->where('college_id', $panel->college_id)
-                              ->where('department_id', $panel->department_id);
-                    })->orWhere(function ($inner) use ($panel) {
-                        $inner->where('college_id', $panel->college_id)
-                              ->whereNull('department_id');
-                    })->orWhere(function ($inner) {
-                        $inner->whereNull('college_id');
-                    });
-                });
-            }
-        }
-
-        // Eager load everything BEFORE PHP-side filtering
+        // Eager-load everything needed, including applicant's college/department
         $applications = $query->with([
             'applicant.user',
+            'applicant',           // includes college_id / department_id
             'position.college',
             'position.department',
             'evaluation',
         ])->get();
 
+        $panelPos          = strtolower($panel->panel_position);
+        $isUniversityLevel = in_array($panelPos, self::UNIVERSITY_POSITIONS);
+
+        // PHP-side scope filter using resolved college/department
+        if (! $isUniversityLevel) {
+            $applications = $applications->filter(function ($app) use ($panel, $panelPos) {
+                ['college_id' => $effectiveCollege, 'department_id' => $effectiveDepartment]
+                    = $this->resolveCollegeAndDepartment($app);
+
+                if ($panelPos === 'dean') {
+                    if (is_null($panel->college_id)) {
+                        return true; // Dean with no college → sees all
+                    }
+                    // Match college, or no effective college (university-wide position)
+                    return is_null($effectiveCollege)
+                        || $effectiveCollege == $panel->college_id;
+
+                } elseif (in_array($panelPos, ['head', 'senior', 'señior'])) {
+                    if (is_null($panel->college_id)) {
+                        return true; // No college assigned → sees all
+                    }
+
+                    if (is_null($panel->department_id)) {
+                        // College-level head: match college or no effective college
+                        return is_null($effectiveCollege)
+                            || $effectiveCollege == $panel->college_id;
+                    }
+
+                    // Department-level head: match college+department, college-only, or university-wide
+                    if (is_null($effectiveCollege)) {
+                        return true; // University-wide position
+                    }
+
+                    if ($effectiveCollege == $panel->college_id) {
+                        // Same college: match department or no department set
+                        return is_null($effectiveDepartment)
+                            || $effectiveDepartment == $panel->department_id;
+                    }
+
+                    return false;
+                }
+
+                return true; // Unknown panel position → show all
+            });
+        }
+
         // PHP-side search
         if ($this->search) {
-            $search = strtolower($this->search);
+            $search       = strtolower($this->search);
             $applications = $applications->filter(function ($app) use ($search) {
                 $name     = strtolower($app->applicant?->user?->name ?? '');
                 $email    = strtolower($app->applicant?->user?->email ?? '');
@@ -141,38 +166,31 @@ class Dashboard extends Component
             });
         }
 
-        // Get assignments for this panel — now keyed by user_id
+        // Get assignments keyed by evaluation_id
         $assignments = PanelAssignment::where('user_id', $user->id)
             ->get()
             ->keyBy('evaluation_id');
 
         // Sort: Pending first, then Completed
         $sortedApplications = $applications->sort(function ($a, $b) use ($assignments) {
-            $evalA = $a->evaluation;
-            $evalB = $b->evaluation;
+            $isCompleteA = isset($assignments[$a->evaluation->id])
+                && $assignments[$a->evaluation->id]->status === 'complete';
+            $isCompleteB = isset($assignments[$b->evaluation->id])
+                && $assignments[$b->evaluation->id]->status === 'complete';
 
-            $assignmentA = $assignments[$evalA->id] ?? null;
-            $assignmentB = $assignments[$evalB->id] ?? null;
-
-            $isCompleteA = $assignmentA && $assignmentA->status === 'complete';
-            $isCompleteB = $assignmentB && $assignmentB->status === 'complete';
-
-            if ($isCompleteA === $isCompleteB) {
-                return 0;
-            }
+            if ($isCompleteA === $isCompleteB) return 0;
             return $isCompleteA ? 1 : -1;
         });
 
-        // Calculate totals for summary cards
-        $totalCount = $applications->count();
+        // Summary counts
+        $totalCount     = $applications->count();
         $completedCount = $applications->filter(function ($app) use ($assignments) {
-            $evaluation = $app->evaluation;
-            $assignment = $assignments[$evaluation->id] ?? null;
+            $assignment = $assignments[$app->evaluation->id] ?? null;
             return $assignment && $assignment->status === 'complete';
         })->count();
         $pendingCount = $totalCount - $completedCount;
 
-        // Paginate the sorted collection
+        // Paginate
         $perPage     = 10;
         $currentPage = $this->getPage();
         $paginatedApplications = new \Illuminate\Pagination\LengthAwarePaginator(
