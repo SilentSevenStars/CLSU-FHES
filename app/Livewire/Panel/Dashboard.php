@@ -31,27 +31,25 @@ class Dashboard extends Component
 
     /**
      * Resolve the effective college_id and department_id for an application.
-     * If position has no college/department, fall back to the applicant's values.
+     *
+     * A null on the position means "various / university-wide" for that field,
+     * so we fall back to the applicant's own value for that specific field.
      */
     private function resolveCollegeAndDepartment(JobApplication $app): array
     {
         $position  = $app->position;
         $applicant = $app->applicant;
 
-        $posCollegeId    = $position?->college_id;
-        $posDepartmentId = $position?->department_id;
-
-        // Fallback: if position has no college AND no department, use applicant's
-        if (is_null($posCollegeId) && is_null($posDepartmentId)) {
-            return [
-                'college_id'    => $applicant?->college_id,
-                'department_id' => $applicant?->department_id,
-            ];
-        }
+        // For each field independently: if the position has no specific college
+        // or department (null = "various"), use the applicant's value as the
+        // effective scope. This ensures panel heads/deans/seniors can still
+        // match the applicant to their own college/department.
+        $effectiveCollege    = $position?->college_id    ?? $applicant?->college_id;
+        $effectiveDepartment = $position?->department_id ?? $applicant?->department_id;
 
         return [
-            'college_id'    => $posCollegeId,
-            'department_id' => $posDepartmentId,
+            'college_id'    => $effectiveCollege,
+            'department_id' => $effectiveDepartment,
         ];
     }
 
@@ -100,7 +98,7 @@ class Dashboard extends Component
         // Eager-load everything needed, including applicant's college/department
         $applications = $query->with([
             'applicant.user',
-            'applicant',           // includes college_id / department_id
+            'applicant',
             'position.college',
             'position.department',
             'evaluation',

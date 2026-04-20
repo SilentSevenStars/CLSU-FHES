@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Panel;
 
+use App\Models\College;
 use App\Models\Evaluation;
 use App\Models\Interview as ModelsInterview;
 use App\Models\PanelAssignment;
@@ -32,7 +33,7 @@ class Interview extends Component
 
     private const EXPERIENCE_ONLY_COLLEGES = [
         'College of Veterinary Science and Medicine',
-        'College of Business and Accountancy',
+        'College of Business Administration and Accountancy',
         'College of Engineering',
     ];
 
@@ -41,11 +42,38 @@ class Interview extends Component
         'assistant professor i',
     ];
 
+    /**
+     * Resolve the effective college name for the job application.
+     *
+     * Priority:
+     * 1. If position has a college_id → use position's college name.
+     * 2. If position college_id is null (various/university-wide) → fall back
+     *    to the applicant's college_id and look up that college's name.
+     */
+    private function resolveCollegeName(): string
+    {
+        $jobApp    = $this->evaluation->jobApplication;
+        $position  = $jobApp->position;
+        $applicant = $jobApp->applicant;
+
+        // Position has a specific college assigned — use it
+        if (!is_null($position?->college_id)) {
+            return $position->college?->name ?? '';
+        }
+
+        // Position college is null (various) → use applicant's college
+        if (!is_null($applicant?->college_id)) {
+            return College::find($applicant->college_id)?->name ?? '';
+        }
+
+        return '';
+    }
+
     protected function isExperienceOnlyHead(): bool
     {
         $panelPosition     = strtolower(Auth::user()->panel?->panel_position ?? '');
         $applicantPosition = strtolower($this->evaluation->jobApplication->position->name ?? '');
-        $collegeName       = $this->evaluation->jobApplication->position->college?->name ?? '';
+        $collegeName       = $this->resolveCollegeName();
 
         return $panelPosition === 'head'
             && in_array($applicantPosition, self::EXPERIENCE_ONLY_POSITIONS)
@@ -134,6 +162,7 @@ class Interview extends Component
 
         $this->evaluation = Evaluation::with([
             'jobApplication.applicant.user',
+            'jobApplication.applicant',   // college_id is a plain column, no relation needed
             'jobApplication.position.college',
         ])->findOrFail($evaluationId);
 

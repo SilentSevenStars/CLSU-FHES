@@ -7,16 +7,19 @@
 </head>
 <body style="margin:0;padding:10px 0;background-color:#f8fafc;font-family:Arial,sans-serif;">
 
-    <div style="max-width:900px;margin:0 auto;background:#ffffff;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.08);overflow:hidden;">
+    <div style="max-width:680px;margin:0 auto;background:#ffffff;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,.08);overflow:hidden;">
 
         {{-- ══ HEADER ══ --}}
-        <div style="background-color:#0A6025;padding:28px 48px;text-align:center;">
-            <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+        <div style="background-color:#1E7F3E;padding:32px 40px 28px;text-align:center;">
+            <table cellpadding="0" cellspacing="0" style="margin:0 auto 16px;">
                 <tr>
                     <td style="padding-right:12px;vertical-align:middle;">
-                        {{-- CLSU Logo --}}
-                        <div style="width:56px;height:56px;background:#ffffff;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;">
-                            <img src="{{ asset('image/clsu-logo-green.png') }}" alt="CLSU Logo" style="width:48px;height:48px;object-fit:contain;">
+                        {{-- Inline logo using base64 to guarantee rendering in email clients --}}
+                        <div style="width:56px;height:56px;background:#ffffff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;">
+                            <img src="{{ url('image/clsu-logo-green.png') }}"
+                                 alt="CLSU Logo"
+                                 width="48" height="48"
+                                 style="width:48px;height:48px;object-fit:contain;display:block;">
                         </div>
                     </td>
                     <td style="vertical-align:middle;text-align:left;">
@@ -25,22 +28,21 @@
                     </td>
                 </tr>
             </table>
-
-            <div style="margin-top:18px;color:#ffffff;font-size:22px;font-weight:700;">
+            <div style="color:#ffffff;font-size:22px;font-weight:700;">
                 {{ $subject }}
             </div>
         </div>
 
         {{-- ══ BODY ══ --}}
-        <div style="padding:36px 48px;border:1px solid #d1fae5;border-top:none;">
+        <div style="padding:36px 40px;border:1px solid #d1fae5;border-top:none;">
 
-            {{-- The $notificationMessage already contains greeting + details HTML --}}
+            {{-- Inner content built by buildNotificationBody() — greeting, message, placement details --}}
             {!! $notificationMessage !!}
 
             {{-- ── Attachments ─────────────────────────────────────────── --}}
             @if(!empty($attachedFiles))
             <div style="margin:28px 0 0;">
-                <p style="margin:0 0 10px;font-weight:700;color:#0D7A2F;font-size:15px;">📎 Attachments ({{ count($attachedFiles) }})</p>
+                <p style="margin:0 0 10px;font-weight:700;color:#1E7F3E;font-size:15px;">📎 Attachments ({{ count($attachedFiles) }})</p>
                 <table style="width:100%;border-collapse:collapse;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
                     @foreach($attachedFiles as $file)
                     @php
@@ -53,7 +55,7 @@
                         <td style="padding:10px 16px;border-bottom:1px solid #e5e7eb;">
                             <table cellpadding="0" cellspacing="0">
                                 <tr>
-                                    <td style="width:36px;height:36px;background:#0D7A2F;border-radius:6px;text-align:center;vertical-align:middle;">
+                                    <td style="width:36px;height:36px;background:#1E7F3E;border-radius:6px;text-align:center;vertical-align:middle;">
                                         <span style="color:white;font-size:11px;font-weight:700;">{{ $ext }}</span>
                                     </td>
                                     <td style="padding-left:12px;vertical-align:middle;">
@@ -76,20 +78,17 @@
 
             {{-- CTA button --}}
             <div style="text-align:center;margin:36px 0 8px;">
-                <a href="{{ url('/notifications') }}"
-                   style="display:inline-block;padding:16px 48px;background:#0D7A2F;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;letter-spacing:.3px;">
+                <a href="{{ url('/applicant/notifications') }}"
+                   style="display:inline-block;padding:16px 48px;background:#1E7F3E;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:700;font-size:16px;letter-spacing:.3px;">
                     View All Notifications →
                 </a>
             </div>
 
-            <p style="margin:24px 0 0;font-size:14px;color:#6b7280;text-align:center;">
-                If you have any questions, please don't hesitate to contact the HR Department.
-            </p>
         </div>
 
         {{-- ══ FOOTER ══ --}}
-        <div style="background:#f9fafb;padding:24px 48px;text-align:center;border-top:1px solid #e5e7eb;">
-            <p style="margin:0 0 4px;font-size:14px;color:#0D7A2F;font-weight:600;">
+        <div style="background:#f9fafb;padding:24px 40px;text-align:center;border-top:1px solid #e5e7eb;">
+            <p style="margin:0 0 4px;font-size:14px;color:#1E7F3E;font-weight:600;">
                 CLSU HR Department — Central Luzon State University
             </p>
             <p style="margin:0;font-size:13px;color:#9ca3af;line-height:1.6;">

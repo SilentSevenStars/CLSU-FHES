@@ -22,7 +22,7 @@ class Experience extends Component
     public $education_qualification  = 0;
     public $experience_type          = 0;
     public $licensure_examination    = 0;
-    public $place_board_exam         = 0;   // default 0 = Not Applicable
+    public $place_board_exam         = 0;
     public $professional_activities  = 0;
     public $academic_performance     = '';
     public $publication              = '';
@@ -32,7 +32,7 @@ class Experience extends Component
     public $showApplicantModal = false;
 
     public $placeBoardExamOptions = [
-        0  => 'Not Applicable',   // value 0 → score 0
+        0  => 'Not Applicable',
         10 => '1st Place',
         8  => '2nd Place',
         5  => '3rd to 20th Place',
@@ -73,11 +73,29 @@ class Experience extends Component
         'assistant professor i',
     ];
 
+    /**
+     * Resolve the effective college name for the job application.
+     * If the position has no college assigned (null = various/university-wide),
+     * fall back to the applicant's own college.
+     */
+    private function resolveCollegeName(): string
+    {
+        $jobApp = $this->evaluation->jobApplication;
+
+        // If position has a college, use it
+        if ($jobApp->position?->college !== null) {
+            return $jobApp->position->college->name ?? '';
+        }
+
+        // Position college is null (various) → fall back to applicant's college
+        return $jobApp->applicant?->college?->name ?? '';
+    }
+
     protected function isExperienceOnlyHead(): bool
     {
         $panelPosition     = strtolower(Auth::user()->panel?->panel_position ?? '');
         $applicantPosition = strtolower($this->evaluation->jobApplication->position->name ?? '');
-        $collegeName       = $this->evaluation->jobApplication->position->college?->name ?? '';
+        $collegeName       = $this->resolveCollegeName();
 
         return $panelPosition === 'head'
             && in_array($applicantPosition, self::EXPERIENCE_ONLY_POSITIONS)
@@ -89,6 +107,7 @@ class Experience extends Component
         $this->evaluationId = $evaluationId;
         $this->evaluation   = Evaluation::with([
             'jobApplication.applicant.user',
+            'jobApplication.applicant.college',   // ← needed for fallback
             'jobApplication.position.college',
         ])->findOrFail($evaluationId);
 
@@ -146,7 +165,7 @@ class Experience extends Component
             floatval($this->education_qualification) +
             floatval($this->experience_type) +
             floatval($this->licensure_examination) +
-            floatval($this->place_board_exam) +   // 0 when Not Applicable
+            floatval($this->place_board_exam) +
             floatval($this->professional_activities) +
             floatval($this->academic_performance) +
             floatval($this->publication) +
@@ -164,7 +183,7 @@ class Experience extends Component
             'education_qualification' => 'required|numeric|min:0|max:85',
             'experience_type'         => 'required|numeric|min:0|max:25',
             'licensure_examination'   => 'required|numeric|min:3|max:5',
-            'place_board_exam'        => 'required|numeric|min:0|max:10',  // 0 = Not Applicable
+            'place_board_exam'        => 'required|numeric|min:0|max:10',
             'professional_activities' => 'required|numeric|min:0|max:15',
             'academic_performance'    => 'required|numeric',
             'publication'             => 'required|numeric',
@@ -195,7 +214,7 @@ class Experience extends Component
                 'experience_type'               => $this->experience_type,
                 'licensure_examination'         => $this->licensure_examination,
                 'passing_licensure_examination' => 0,
-                'place_board_exam'              => $this->place_board_exam,  // 0 saved when Not Applicable
+                'place_board_exam'              => $this->place_board_exam,
                 'professional_activities'       => $this->professional_activities,
                 'academic_performance'          => $this->academic_performance,
                 'publication'                   => $this->publication,

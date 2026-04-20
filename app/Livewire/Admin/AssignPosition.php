@@ -164,6 +164,7 @@ class AssignPosition extends Component
         $this->selectedEvaluation = Evaluation::with([
             'jobApplication.position.college',
             'jobApplication.position.department',
+            'jobApplication.applicant',
             'panelAssignments',
             'nbcAssignments',
         ])->findOrFail($evaluationId);
@@ -177,11 +178,14 @@ class AssignPosition extends Component
             return;
         }
 
-        // Pre-fill selects from the job application's position
-        $position = $this->selectedEvaluation->jobApplication->position;
-        $this->confirmPositionId   = $position->id            ?? null;
-        $this->confirmCollegeId    = $position->college_id    ?? null;
-        $this->confirmDepartmentId = $position->department_id ?? null;
+        // Pre-fill selects from the job application's position.
+        // If position has no college/department (various), fall back to the applicant's own values.
+        $position  = $this->selectedEvaluation->jobApplication->position;
+        $applicant = $this->selectedEvaluation->jobApplication->applicant;
+
+        $this->confirmPositionId   = $position->id ?? null;
+        $this->confirmCollegeId    = $position->college_id    ?? $applicant->college_id    ?? null;
+        $this->confirmDepartmentId = $position->department_id ?? $applicant->department_id ?? null;
 
         $this->admin_message = '';
         $this->attachments   = [];
@@ -237,9 +241,18 @@ class AssignPosition extends Component
             $oldPosition   = $this->selectedApplicant->position ?? 'None';
             $positionModel = $this->selectedEvaluation->jobApplication->position;
 
+            // Resolve effective college/department:
+            // If the position has no college/department (various), fall back to applicant's own values.
+            // Then allow the admin to override via the confirm modal selects.
+            $effectiveCollegeId    = $this->confirmCollegeId    ?? null;
+            $effectiveDepartmentId = $this->confirmDepartmentId ?? null;
+
+            // Update the applicant: position, hired flag, AND college/department
             $this->selectedApplicant->update([
-                'position' => $newPosition,
-                'hired'    => true,
+                'position'      => $newPosition,
+                'hired'         => true,
+                'college_id'    => $effectiveCollegeId,
+                'department_id' => $effectiveDepartmentId,
             ]);
 
             $this->selectedEvaluation->jobApplication->update([
@@ -249,12 +262,20 @@ class AssignPosition extends Component
 
             $storedFiles = $this->storeUploadedFiles($this->attachments, 'assign-position-attachments');
 
-            $this->sendPromotionEmail($this->selectedApplicant, $oldPosition, $positionModel, $this->admin_message, $storedFiles);
+            $this->sendPromotionEmail(
+                $this->selectedApplicant,
+                $oldPosition,
+                $positionModel,
+                $effectiveCollegeId,
+                $effectiveDepartmentId,
+                $this->admin_message,
+                $storedFiles
+            );
 
             DB::commit();
 
-            $collegeName    = $positionModel->college->name    ?? 'Various Colleges';
-            $departmentName = $positionModel->department->name ?? 'Various Departments';
+            $collegeName    = College::find($effectiveCollegeId)?->name    ?? 'Various Colleges';
+            $departmentName = Department::find($effectiveDepartmentId)?->name ?? 'Various Departments';
 
             AccountActivityService::log(
                 Auth::user(),
@@ -331,7 +352,6 @@ class AssignPosition extends Component
                     . "College: {$collegeName}, Department: {$departmentName}."
             );
 
-            // Only send email if there's a message or attachments
             if (!empty(strip_tags($this->archive_message ?? '')) || !empty($this->archiveAttachments)) {
                 $storedFiles = $this->storeUploadedFiles($this->archiveAttachments, 'archive-attachments');
                 $this->sendArchiveEmail($this->selectedJobApplication, $this->archive_message, $storedFiles);
@@ -400,57 +420,94 @@ class AssignPosition extends Component
     }
 
     // ─── Email helpers ────────────────────────────────────────────────────────
-    protected function sendPromotionEmail($applicant, $oldPosition, $position, $adminMessage, array $storedFiles = [])
-    {
+
+    /**
+     * Build the inner body HTML only (no header/footer — those come from the Blade template).
+     * This is what gets stored in notification->message and rendered inside {!! $notificationMessage !!}.
+     */
+    protected function buildNotificationBody(
+        string $recipientName,
+        string $adminMessage,
+        string $positionName,
+        ?string $collegeName,
+        ?string $departmentName,
+        string $type // 'hired' | 'archive'
+    ): string {
+        $accentColor = $type === 'hired' ? '#1E7F3E' : '#ca8a04';
+
+        // Admin message section
+        $adminSection = !empty(strip_tags($adminMessage))
+            ? "<div style='margin:16px 0;font-size:14px;color:#374151;line-height:1.6;'>{$adminMessage}</div>"
+            : '';
+
+        // Placement block (only for hired)
+        $placementBlock = '';
+        if ($type === 'hired') {
+            $rows = "<tr>
+                <td style='padding:6px 12px;color:#4b5563;width:140px;font-size:14px;'><strong>Position:</strong></td>
+                <td style='padding:6px 12px;font-weight:700;color:#15803d;font-size:14px;'>{$positionName}</td>
+            </tr>";
+
+            if ($collegeName) {
+                $rows .= "<tr>
+                    <td style='padding:6px 12px;color:#4b5563;font-size:14px;'><strong>College:</strong></td>
+                    <td style='padding:6px 12px;font-size:14px;'>{$collegeName}</td>
+                </tr>";
+            }
+
+            if ($departmentName) {
+                $rows .= "<tr>
+                    <td style='padding:6px 12px;color:#4b5563;font-size:14px;'><strong>Department:</strong></td>
+                    <td style='padding:6px 12px;font-size:14px;'>{$departmentName}</td>
+                </tr>";
+            }
+
+            $placementBlock = "
+            <div style='background:#f0fdf4;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #16a34a;'>
+                <p style='margin:0 0 12px;font-weight:700;color:#15803d;font-size:14px;text-transform:uppercase;letter-spacing:.5px;'>Placement Details</p>
+                <table style='width:100%;border-collapse:collapse;'>{$rows}</table>
+            </div>";
+        }
+
+        return "
+        <p style='margin:0 0 16px;font-size:16px;color:#374151;'>
+            Dear <strong>{$recipientName}</strong>,
+        </p>
+        <p style='margin:0 0 20px;font-size:15px;color:#6b7280;'>
+            You have received a new notification from the CLSU Faculty Hiring Evaluation System.
+        </p>
+        {$adminSection}
+        {$placementBlock}
+        <p style='margin:24px 0 0;font-size:14px;color:#9ca3af;'>
+            If you have any questions, please don't hesitate to contact the HR Department.
+        </p>";
+    }
+
+    protected function sendPromotionEmail(
+        $applicant,
+        $oldPosition,
+        $positionModel,
+        ?int $effectiveCollegeId,
+        ?int $effectiveDepartmentId,
+        $adminMessage,
+        array $storedFiles = []
+    ) {
         try {
             if (!$applicant || !$applicant->user) {
                 Log::error("Applicant or user not found");
                 return;
             }
 
-            $newPositionName = $position->name;
+            $newPositionName = $positionModel->name;
+            $collegeName     = College::find($effectiveCollegeId)?->name     ?? null;
+            $departmentName  = Department::find($effectiveDepartmentId)?->name ?? null;
 
-            $adminMessageBlock = '';
-            if (!empty(strip_tags($adminMessage ?? ''))) {
-                $adminMessageBlock = $adminMessage;
-            }
-
-            $placementRows = '';
-            if ($position->college) {
-                $placementRows .= "<tr>
-                    <td style='padding:6px 12px;color:#4b5563;width:140px;'><strong>College:</strong></td>
-                    <td style='padding:6px 12px;'>{$position->college->name}</td>
-                </tr>";
-            }
-            if ($position->department) {
-                $placementRows .= "<tr>
-                    <td style='padding:6px 12px;color:#4b5563;'><strong>Department:</strong></td>
-                    <td style='padding:6px 12px;'>{$position->department->name}</td>
-                </tr>";
-            }
-
-            $placementBlock = '';
-            if ($placementRows) {
-                $placementBlock = "
-                <div style='background:#f0fdf4;padding:20px;border-radius:8px;margin:20px 0;border-left:4px solid #16a34a;'>
-                    <p style='margin:0 0 12px;font-weight:700;color:#15803d;font-size:14px;text-transform:uppercase;letter-spacing:.5px;'>Placement Details</p>
-                    <table style='width:100%;border-collapse:collapse;'>
-                        <tr>
-                            <td style='padding:6px 12px;color:#4b5563;width:140px;'><strong>Position:</strong></td>
-                            <td style='padding:6px 12px;font-weight:700;color:#15803d;'>{$newPositionName}</td>
-                        </tr>
-                        {$placementRows}
-                    </table>
-                </div>";
-            }
-
-            $attachmentBlock = $this->buildAttachmentBlock($storedFiles);
-
-            $messageContent = $this->buildEmailHtml(
+            $messageContent = $this->buildNotificationBody(
                 "{$applicant->first_name} {$applicant->last_name}",
-                $adminMessageBlock,
-                $placementBlock,
-                $attachmentBlock,
+                $adminMessage ?? '',
+                $newPositionName,
+                $collegeName,
+                $departmentName,
                 'hired'
             );
 
@@ -471,7 +528,6 @@ class AssignPosition extends Component
                 }
             }
 
-            // Use send() for immediate delivery — same as ApplicantShow
             Mail::to($applicant->user->email)->send($mailable);
             $notification->update(['email_sent' => true, 'email_sent_at' => now()]);
 
@@ -492,18 +548,12 @@ class AssignPosition extends Component
                 return;
             }
 
-            $adminMessageBlock = '';
-            if (!empty(strip_tags($adminMessage ?? ''))) {
-                $adminMessageBlock = $adminMessage;
-            }
-
-            $attachmentBlock = $this->buildAttachmentBlock($storedFiles);
-
-            $messageContent = $this->buildEmailHtml(
+            $messageContent = $this->buildNotificationBody(
                 "{$applicant->first_name} {$applicant->last_name}",
-                $adminMessageBlock,
-                '',
-                $attachmentBlock,
+                $adminMessage ?? '',
+                $position->name,
+                null,
+                null,
                 'archive'
             );
 
@@ -524,7 +574,6 @@ class AssignPosition extends Component
                 }
             }
 
-            // Use send() for immediate delivery — same as ApplicantShow
             Mail::to($applicant->user->email)->send($mailable);
             $notification->update(['email_sent' => true, 'email_sent_at' => now()]);
 
@@ -532,102 +581,6 @@ class AssignPosition extends Component
         } catch (Exception $e) {
             Log::error("Failed to send archive email: " . $e->getMessage());
         }
-    }
-
-    protected function buildAttachmentBlock(array $storedFiles): string
-    {
-        if (empty($storedFiles)) {
-            return '';
-        }
-
-        $items = '';
-        foreach ($storedFiles as $file) {
-            $sizeFormatted = $this->formatBytes($file['size']);
-            $items .= "
-            <tr>
-                <td style='padding:8px 12px;border-bottom:1px solid #e5e7eb;'>
-                    <span style='display:inline-flex;align-items:center;gap:8px;'>
-                        <span style='width:32px;height:32px;background:#1E7F3E;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:700;flex-shrink:0;'>
-                            " . strtoupper(pathinfo($file['name'], PATHINFO_EXTENSION)) . "
-                        </span>
-                        <span>
-                            <span style='display:block;font-size:14px;color:#111827;font-weight:600;'>{$file['name']}</span>
-                            <span style='display:block;font-size:12px;color:#6b7280;'>{$sizeFormatted}</span>
-                        </span>
-                    </span>
-                </td>
-            </tr>";
-        }
-
-        return "
-        <div style='margin:20px 0;'>
-            <p style='margin:0 0 10px;font-weight:700;color:#1E7F3E;font-size:14px;text-transform:uppercase;letter-spacing:.5px;'>
-                📎 Attachments (" . count($storedFiles) . ")
-            </p>
-            <table style='width:100%;border-collapse:collapse;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;'>
-                {$items}
-            </table>
-            <p style='margin:8px 0 0;font-size:12px;color:#9ca3af;'>Files are attached to this email.</p>
-        </div>";
-    }
-
-    protected function buildEmailHtml(string $recipientName, string $adminMessageBlock, string $placementBlock, string $attachmentBlock, string $type): string
-    {
-        $accentColor = $type === 'hired' ? '#1E7F3E' : '#ca8a04';
-        $headerBg    = '#1E7F3E';
-        $badgeText   = $type === 'hired' ? '🎉 Congratulations!' : '📋 Application Update';
-
-        // Only wrap adminMessageBlock if it has content
-        $adminSection = !empty($adminMessageBlock)
-            ? "<div style='margin:16px 0;font-size:14px;color:#374151;'>{$adminMessageBlock}</div>"
-            : '';
-
-        return "
-<div style='font-family:Georgia,\"Times New Roman\",serif;max-width:680px;margin:0 auto;'>
-    <div style='background:{$headerBg};padding:0;border-radius:12px 12px 0 0;overflow:hidden;'>
-        <div style='background:rgba(0,0,0,.15);height:6px;'></div>
-        <div style='padding:32px 40px 28px;text-align:center;'>
-            <div style='display:inline-flex;align-items:center;gap:12px;margin-bottom:16px;'>
-                <div style='width:52px;height:52px;background:white;border-radius:50%;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;'>
-                    <img src='{{ asset(\"image/clsu-logo-green.png\") }}' alt='CLSU Logo' style='width:44px;height:44px;object-fit:contain;'>
-                </div>
-                <div style='text-align:left;'>
-                    <div style='color:white;font-size:18px;font-weight:700;letter-spacing:.5px;'>CLSU FHES</div>
-                    <div style='color:rgba(255,255,255,.75);font-size:12px;letter-spacing:1px;text-transform:uppercase;'>Faculty Hiring Evaluation System</div>
-                </div>
-            </div>
-            <div style='color:rgba(255,255,255,.9);font-size:22px;font-weight:700;margin-top:4px;'>{$badgeText}</div>
-        </div>
-        <div style='background:rgba(0,0,0,.08);height:3px;'></div>
-    </div>
-    <div style='background:#ffffff;padding:36px 40px;border:1px solid #e5e7eb;border-top:none;'>
-        <p style='margin:0 0 20px;font-size:16px;color:#374151;'>
-            Dear <strong>{$recipientName}</strong>,
-        </p>
-        <p style='margin:0 0 20px;font-size:15px;color:#6b7280;'>
-            You have received a new notification from the CLSU Faculty Hiring Evaluation System.
-        </p>
-        {$adminSection}
-        {$placementBlock}
-        {$attachmentBlock}
-        <div style='text-align:center;margin:28px 0;'>
-            <a href='{{ url(\"/applicant/notifications\") }}'
-               style='display:inline-block;padding:14px 32px;background:{$accentColor};color:white;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;letter-spacing:.3px;'>
-                View All Notifications →
-            </a>
-        </div>
-        <p style='margin:24px 0 0;font-size:14px;color:#9ca3af;'>
-            If you have any questions, please don't hesitate to contact the HR Department.
-        </p>
-    </div>
-    <div style='background:#f3f4f6;padding:20px 40px;text-align:center;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;'>
-        <p style='margin:0 0 6px;font-size:13px;color:#6b7280;'>
-            <strong style='color:{$headerBg};'>CLSU HR Department</strong> — Central Luzon State University
-        </p>
-        <p style='margin:0 0 6px;font-size:12px;color:#9ca3af;'>This is an automated message. Please do not reply to this email.</p>
-        <p style='margin:0;font-size:12px;color:#9ca3af;'>© " . date('Y') . " Central Luzon State University. All rights reserved.</p>
-    </div>
-</div>";
     }
 
     protected function formatBytes(int $bytes): string
