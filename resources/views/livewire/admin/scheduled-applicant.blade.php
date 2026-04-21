@@ -168,12 +168,12 @@
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap align-top">
                                                     <div class="text-sm font-medium text-black">
-                                                        {{ $application->position->college->name ?? 'N/A' }}
+                                                        {{ $application->position->college->name ?? 'Various College' }}
                                                     </div>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap align-top">
                                                     <div class="text-sm font-medium text-black">
-                                                        {{ $application->position->department->name ?? 'N/A' }}
+                                                        {{ $application->position->department->name ?? 'Various Department' }}
                                                     </div>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap align-top">
