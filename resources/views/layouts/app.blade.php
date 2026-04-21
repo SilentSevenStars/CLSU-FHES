@@ -12,7 +12,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endif
 @livewireStyles
-<script defer src="https://unpkg.com/alpinejs"></script>
 </head>
 
 <body class="bg-gray-50">
@@ -35,6 +34,7 @@
 {{-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> --}}
 <script src="{{ asset('js/sweetalert.js') }}"></script>
 <script src="{{ asset('js/chart.js') }}"></script>
+<script defer src="https://unpkg.com/alpinejs"></script>
 @livewireScripts
 </body>
 </html>
