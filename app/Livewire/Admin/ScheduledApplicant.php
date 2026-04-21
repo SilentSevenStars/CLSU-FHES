@@ -58,7 +58,7 @@ class ScheduledApplicant extends Component
 
         $positionIds = $this->getFilteredPositionIds();
 
-        $query = JobApplication::with(['applicant.user', 'position', 'evaluation'])
+        $query = JobApplication::with(['applicant.user', 'applicant.college', 'applicant.department', 'position', 'evaluation'])
             ->whereIn('position_id', $positionIds)
             ->whereHas('evaluation');
 
@@ -226,7 +226,13 @@ class ScheduledApplicant extends Component
 
         $positionIds = $this->getFilteredPositionIds();
 
-        $baseQuery = JobApplication::with(['applicant.user', 'position', 'evaluation'])
+        $baseQuery = JobApplication::with([
+                'applicant.user',
+                'applicant.college',      // ← eager-load college
+                'applicant.department',   // ← eager-load department
+                'position',
+                'evaluation',
+            ])
             ->whereIn('position_id', $positionIds)
             ->whereHas('evaluation');
 
