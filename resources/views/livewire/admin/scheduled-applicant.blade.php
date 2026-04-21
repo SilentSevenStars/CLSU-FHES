@@ -52,7 +52,7 @@
                             @endif
                         </div>
 
-                        <!-- Filters: Position → College → Department → Date -->
+                        <!-- Cascading Filters: Position → College → Department → Interview Date -->
                         <div class="flex flex-wrap items-center gap-3">
 
                             <!-- 1. Position (always visible) -->
@@ -86,7 +86,7 @@
                             </select>
                             @endif
 
-                            <!-- 4. Interview Date (visible once position is selected AND college AND department are chosen) -->
+                            <!-- 4. Interview Date (visible only after position + college + department are selected) -->
                             @if($selectedPositionName && $selectedCollegeId && $selectedDepartmentId && $availableDates->isNotEmpty())
                             <select wire:model.live="selectedDate"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
@@ -168,12 +168,12 @@
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap align-top">
                                                     <div class="text-sm font-medium text-black">
-                                                        {{ $application->applicant->college->name ?? 'N/A' }}
+                                                        {{ $application->position->college->name ?? 'N/A' }}
                                                     </div>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap align-top">
                                                     <div class="text-sm font-medium text-black">
-                                                        {{ $application->applicant->department->name ?? 'N/A' }}
+                                                        {{ $application->position->department->name ?? 'N/A' }}
                                                     </div>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap align-top">

@@ -58,7 +58,7 @@ class ScheduledApplicant extends Component
 
         $positionIds = $this->getFilteredPositionIds();
 
-        $query = JobApplication::with(['applicant.user', 'applicant.college', 'applicant.department', 'position', 'evaluation'])
+        $query = JobApplication::with(['applicant.user', 'position.college', 'position.department', 'evaluation'])
             ->whereIn('position_id', $positionIds)
             ->whereHas('evaluation');
 
@@ -132,32 +132,22 @@ class ScheduledApplicant extends Component
     }
 
     /**
-     * Get position IDs filtered by position name, college, and department.
-     * College and department filter against job_applications -> applicant
-     * since positions may not have college_id/department_id set.
+     * Get position IDs filtered by position name, college_id, and department_id
+     * directly from the positions table.
      */
     private function getFilteredPositionIds()
     {
-        // Start with positions matching the selected name
-        $positionIds = Position::where('name', $this->selectedPositionName)->pluck('id');
+        $query = Position::where('name', $this->selectedPositionName);
 
-        // Further filter job applications by college and department on the applicant
-        if ($this->selectedCollegeId || $this->selectedDepartmentId) {
-            $query = JobApplication::whereIn('position_id', $positionIds)
-                ->whereHas('applicant', function ($q) {
-                    if ($this->selectedCollegeId) {
-                        $q->where('college_id', $this->selectedCollegeId);
-                    }
-                    if ($this->selectedDepartmentId) {
-                        $q->where('department_id', $this->selectedDepartmentId);
-                    }
-                });
-
-            // Return the position IDs that still have matching applications
-            return $query->pluck('position_id')->unique()->values();
+        if ($this->selectedCollegeId) {
+            $query->where('college_id', $this->selectedCollegeId);
         }
 
-        return $positionIds;
+        if ($this->selectedDepartmentId) {
+            $query->where('department_id', $this->selectedDepartmentId);
+        }
+
+        return $query->pluck('id');
     }
 
     public function render()
@@ -168,37 +158,34 @@ class ScheduledApplicant extends Component
             ->unique()
             ->values();
 
-        // 2. All colleges — shown after position is selected
+        // 2. Colleges that belong to positions with the selected name
         $colleges = collect();
         if ($this->selectedPositionName) {
-            $colleges = College::orderBy('name')->get();
+            $collegeIds = Position::where('name', $this->selectedPositionName)
+                ->whereNotNull('college_id')
+                ->pluck('college_id')
+                ->unique();
+
+            $colleges = College::whereIn('id', $collegeIds)->orderBy('name')->get();
         }
 
-        // 3. Departments filtered by selected college — shown after college is selected
+        // 3. Departments that belong to positions matching name + college
         $departments = collect();
         if ($this->selectedPositionName && $this->selectedCollegeId) {
-            $departments = Department::where('college_id', $this->selectedCollegeId)
-                ->orderBy('name')
-                ->get();
+            $departmentIds = Position::where('name', $this->selectedPositionName)
+                ->where('college_id', $this->selectedCollegeId)
+                ->whereNotNull('department_id')
+                ->pluck('department_id')
+                ->unique();
+
+            $departments = Department::whereIn('id', $departmentIds)->orderBy('name')->get();
         }
 
-        // 4. Available interview dates scoped to all active filters
+        // 4. Interview dates — only shown after position + college + department are all selected
         $availableDates = collect();
-        if ($this->selectedPositionName) {
+        if ($this->selectedPositionName && $this->selectedCollegeId && $this->selectedDepartmentId) {
             $positionIds = $this->getFilteredPositionIds();
             $jobAppIds   = JobApplication::whereIn('position_id', $positionIds)->pluck('id');
-
-            if ($this->selectedCollegeId || $this->selectedDepartmentId) {
-                $jobAppIds = JobApplication::whereIn('position_id', $positionIds)
-                    ->whereHas('applicant', function ($q) {
-                        if ($this->selectedCollegeId) {
-                            $q->where('college_id', $this->selectedCollegeId);
-                        }
-                        if ($this->selectedDepartmentId) {
-                            $q->where('department_id', $this->selectedDepartmentId);
-                        }
-                    })->pluck('id');
-            }
 
             $availableDates = Evaluation::whereIn('job_application_id', $jobAppIds)
                 ->orderBy('interview_date')
@@ -228,24 +215,12 @@ class ScheduledApplicant extends Component
 
         $baseQuery = JobApplication::with([
                 'applicant.user',
-                'applicant.college',      // ← eager-load college
-                'applicant.department',   // ← eager-load department
-                'position',
+                'position.college',    // ← college from position
+                'position.department', // ← department from position
                 'evaluation',
             ])
             ->whereIn('position_id', $positionIds)
             ->whereHas('evaluation');
-
-        if ($this->selectedCollegeId || $this->selectedDepartmentId) {
-            $baseQuery->whereHas('applicant', function ($q) {
-                if ($this->selectedCollegeId) {
-                    $q->where('college_id', $this->selectedCollegeId);
-                }
-                if ($this->selectedDepartmentId) {
-                    $q->where('department_id', $this->selectedDepartmentId);
-                }
-            });
-        }
 
         if ($this->selectedDate) {
             $baseQuery->whereHas('evaluation', function ($q) {
