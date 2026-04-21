@@ -86,8 +86,9 @@
                             </select>
                             @endif
 
-                            <!-- 4. Interview Date (visible only after position + college + department are selected) -->
-                            @if($selectedPositionName && $selectedCollegeId && $selectedDepartmentId && $availableDates->isNotEmpty())
+                            <!-- 4. Interview Date — visible as soon as a position is selected.
+                                 Dates are automatically scoped by college/department if those are chosen. -->
+                            @if($selectedPositionName && $availableDates->isNotEmpty())
                             <select wire:model.live="selectedDate"
                                 class="bg-white/90 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-white focus:outline-none">
                                 <option value="">All Interview Dates</option>

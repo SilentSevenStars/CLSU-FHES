@@ -20,7 +20,6 @@ class ScheduledApplicant extends Component
     public $selectedDepartmentId = '';
     public $selectedDate         = '';
 
-    // When position changes, reset college, department, and date
     public function updatingSelectedPositionName()
     {
         $this->selectedCollegeId    = '';
@@ -29,7 +28,6 @@ class ScheduledApplicant extends Component
         $this->resetPage();
     }
 
-    // When college changes, reset department and date
     public function updatingSelectedCollegeId()
     {
         $this->selectedDepartmentId = '';
@@ -37,7 +35,6 @@ class ScheduledApplicant extends Component
         $this->resetPage();
     }
 
-    // When department changes, reset date only
     public function updatingSelectedDepartmentId()
     {
         $this->selectedDate = '';
@@ -131,10 +128,6 @@ class ScheduledApplicant extends Component
         $this->dispatch('openPrintTab', html: $html);
     }
 
-    /**
-     * Get position IDs filtered by position name, college_id, and department_id
-     * directly from the positions table.
-     */
     private function getFilteredPositionIds()
     {
         $query = Position::where('name', $this->selectedPositionName);
@@ -152,13 +145,11 @@ class ScheduledApplicant extends Component
 
     public function render()
     {
-        // 1. All unique position names — always the first filter
         $positionNames = Position::orderBy('name')
             ->pluck('name')
             ->unique()
             ->values();
 
-        // 2. Colleges that belong to positions with the selected name
         $colleges = collect();
         if ($this->selectedPositionName) {
             $collegeIds = Position::where('name', $this->selectedPositionName)
@@ -169,7 +160,6 @@ class ScheduledApplicant extends Component
             $colleges = College::whereIn('id', $collegeIds)->orderBy('name')->get();
         }
 
-        // 3. Departments that belong to positions matching name + college
         $departments = collect();
         if ($this->selectedPositionName && $this->selectedCollegeId) {
             $departmentIds = Position::where('name', $this->selectedPositionName)
@@ -181,20 +171,19 @@ class ScheduledApplicant extends Component
             $departments = Department::whereIn('id', $departmentIds)->orderBy('name')->get();
         }
 
-        // 4. Interview dates — only shown after position + college + department are all selected
         $availableDates = collect();
-        if ($this->selectedPositionName && $this->selectedCollegeId && $this->selectedDepartmentId) {
-            $positionIds = $this->getFilteredPositionIds();
+        if ($this->selectedPositionName) {
+            $positionIds = $this->getFilteredPositionIds(); 
             $jobAppIds   = JobApplication::whereIn('position_id', $positionIds)->pluck('id');
 
             $availableDates = Evaluation::whereIn('job_application_id', $jobAppIds)
+                ->whereNotNull('interview_date')
                 ->orderBy('interview_date')
                 ->pluck('interview_date')
                 ->unique()
                 ->values();
         }
 
-        // No position selected — return empty paginator
         if (empty($this->selectedPositionName)) {
             $emptyPaginator = new LengthAwarePaginator(
                 collect(), 0, 10, 1,
@@ -215,8 +204,8 @@ class ScheduledApplicant extends Component
 
         $baseQuery = JobApplication::with([
                 'applicant.user',
-                'position.college',    // ← college from position
-                'position.department', // ← department from position
+                'position.college',
+                'position.department',
                 'evaluation',
             ])
             ->whereIn('position_id', $positionIds)

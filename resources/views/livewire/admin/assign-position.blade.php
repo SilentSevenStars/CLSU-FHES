@@ -374,6 +374,134 @@
                                         </div>
                                     </div>
 
+                                    <!-- ══════════════════════════════════════════
+                                         Requirements Checklist
+                                    ══════════════════════════════════════════ -->
+                                    @php
+                                        $posName = $selectedEvaluation->jobApplication->position->name ?? '';
+                                        $posRanks = [
+                                            'Instructor I'            => 1,
+                                            'Instructor II'           => 2,
+                                            'Instructor III'          => 3,
+                                            'Assistant Professor I'   => 4,
+                                            'Assistant Professor II'  => 5,
+                                            'Assistant Professor III' => 6,
+                                            'Assistant Professor IV'  => 7,
+                                            'Associate Professor I'   => 8,
+                                            'Associate Professor II'  => 9,
+                                            'Associate Professor III' => 10,
+                                            'Associate Professor IV'  => 11,
+                                            'Associate Professor V'   => 12,
+                                            'Professor I'             => 13,
+                                            'Professor II'            => 14,
+                                            'Professor III'           => 15,
+                                            'Professor IV'            => 16,
+                                            'Professor V'             => 17,
+                                            'Professor VI'            => 18,
+                                        ];
+                                        $specialColleges = [
+                                            'College of Engineering',
+                                            'College of Business Administration and Accountancy',
+                                            'College of Veterinary Science and Medicine',
+                                        ];
+                                        $posRank        = $posRanks[$posName] ?? null;
+                                        $effectiveCollege = \App\Models\College::find($confirmCollegeId)?->name ?? '';
+                                        $isSpecial      = in_array($effectiveCollege, $specialColleges);
+
+                                        // Panel data
+                                        $panelRows = $selectedEvaluation->panelAssignments()->with(['interview','experience','performance'])->get();
+                                        $hasPanelInterview   = $panelRows->contains(fn($pa) => !is_null($pa->interview_id)   && !is_null($pa->interview));
+                                        $hasPanelExperience  = $panelRows->contains(fn($pa) => !is_null($pa->experience_id)  && !is_null($pa->experience));
+                                        $hasPanelPerformance = $panelRows->contains(fn($pa) => !is_null($pa->performance_id) && !is_null($pa->performance));
+                                        $hasNbc = $selectedEvaluation->nbcAssignments()
+                                            ->where('status', 'complete')
+                                            ->whereNotNull('educational_qualification_id')
+                                            ->whereNotNull('experience_service_id')
+                                            ->whereNotNull('professional_development_id')
+                                            ->exists();
+
+                                        // Determine required items
+                                        if ($posRank === null) {
+                                            $requirePanelInterview = $requirePanelExperience = $requirePanelPerformance = $requireNbc = true;
+                                        } elseif ($posRank <= 2) {
+                                            // Instructor I & II — any college
+                                            $requirePanelInterview   = true;
+                                            $requirePanelExperience  = true;
+                                            $requirePanelPerformance = true;
+                                            $requireNbc              = false;
+                                        } elseif ($posRank >= 3 && $posRank <= 4) {
+                                            // Instructor III & Assistant Professor I
+                                            $requirePanelInterview   = true;
+                                            $requirePanelPerformance = true;
+                                            // Special colleges → Panel Experience instead of NBC
+                                            $requirePanelExperience  = $isSpecial;
+                                            $requireNbc              = !$isSpecial;
+                                        } else {
+                                            // Assistant Professor II and above (all colleges)
+                                            $requirePanelInterview   = true;
+                                            $requirePanelPerformance = true;
+                                            $requirePanelExperience  = false;
+                                            $requireNbc              = true;
+                                        }
+
+                                        $requirementItems = [];
+                                        if ($requirePanelInterview)   $requirementItems[] = ['label' => 'Panel: Interview',    'met' => $hasPanelInterview];
+                                        if ($requirePanelExperience)  $requirementItems[] = ['label' => 'Panel: Experience',   'met' => $hasPanelExperience];
+                                        if ($requirePanelPerformance) $requirementItems[] = ['label' => 'Panel: Performance',  'met' => $hasPanelPerformance];
+                                        if ($requireNbc)              $requirementItems[] = ['label' => 'NBC Evaluation (complete with all sub-records)', 'met' => $hasNbc];
+
+                                        $allRequirementsMet = collect($requirementItems)->every(fn($r) => $r['met']);
+                                    @endphp
+
+                                    <div class="border rounded-lg overflow-hidden {{ $allRequirementsMet ? 'border-green-200' : 'border-red-200' }}">
+                                        {{-- Header bar --}}
+                                        <div class="px-4 py-2.5 flex items-center gap-2 {{ $allRequirementsMet ? 'bg-[#1E7F3E]' : 'bg-red-600' }}">
+                                            @if($allRequirementsMet)
+                                                <svg class="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                                <p class="text-white text-sm font-semibold">All Requirements Met</p>
+                                            @else
+                                                <svg class="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                                </svg>
+                                                <p class="text-white text-sm font-semibold">Requirements Incomplete — Cannot Assign</p>
+                                            @endif
+                                        </div>
+                                        {{-- Body --}}
+                                        <div class="px-4 py-3 space-y-2 {{ $allRequirementsMet ? 'bg-green-50' : 'bg-red-50' }}">
+                                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-2">
+                                                Requirements for <span class="text-gray-800">{{ $posName }}</span>
+                                                @if($effectiveCollege)
+                                                    &mdash; <span class="text-gray-800">{{ $effectiveCollege }}</span>
+                                                @endif
+                                            </p>
+
+                                            @foreach($requirementItems as $req)
+                                            <div class="flex items-center gap-2.5">
+                                                @if($req['met'])
+                                                    <span class="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 border border-green-300 flex items-center justify-center">
+                                                        <svg class="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                                        </svg>
+                                                    </span>
+                                                    <span class="text-sm text-green-800 font-medium">{{ $req['label'] }}</span>
+                                                @else
+                                                    <span class="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 border border-red-300 flex items-center justify-center">
+                                                        <svg class="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+                                                        </svg>
+                                                    </span>
+                                                    <span class="text-sm text-red-700 font-medium">
+                                                        {{ $req['label'] }}
+                                                        <span class="text-red-400 font-normal text-xs ml-1">(missing or incomplete)</span>
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
                                     <!-- Verification Selects -->
                                     <div class="border border-green-200 rounded-lg overflow-hidden">
                                         <div class="bg-[#1E7F3E] px-4 py-2">
@@ -487,8 +615,17 @@
                         </div>
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="button" wire:click="confirmAssignment" wire:loading.attr="disabled" wire:target="confirmAssignment"
-                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                        {{-- Confirm button is disabled if requirements are not met --}}
+                        <button type="button" wire:click="confirmAssignment"
+                            wire:loading.attr="disabled" wire:target="confirmAssignment"
+                            @if($selectedEvaluation)
+                                @php
+                                    // Recompute $allRequirementsMet for button state (already computed above in @php block)
+                                @endphp
+                                {{ !$allRequirementsMet ? 'disabled' : '' }}
+                            @endif
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+                                {{ ($selectedEvaluation && !$allRequirementsMet) ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 focus:ring-green-500' }}">
                             <span wire:loading.remove wire:target="confirmAssignment">Confirm</span>
                             <span wire:loading wire:target="confirmAssignment" class="flex items-center">
                                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
@@ -538,7 +675,6 @@
 
                                 @if($selectedJobApplication)
                                 <div class="mt-2 space-y-4">
-                                    <!-- Applicant info (read-only) -->
                                     <div class="bg-gray-50 rounded-lg p-4 space-y-2">
                                         <div class="flex justify-between text-sm">
                                             <span class="font-medium text-gray-700">Applicant:</span>
@@ -554,7 +690,6 @@
                                         Are you sure you want to archive this application? You can optionally send the applicant a message and/or attachments.
                                     </p>
 
-                                    <!-- Optional message -->
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                                             Message to Applicant
@@ -565,7 +700,6 @@
                                             placeholder="Write an optional message to the applicant..."></textarea>
                                     </div>
 
-                                    <!-- Optional file attachments -->
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                                             Attachments

@@ -39,27 +39,23 @@ class AssignPosition extends Component
     public $showDropdown = false;
     public $filteredNames = [];
 
-    // Message for hire/promote notification
     public $admin_message = '';
 
-    // Confirm modal — read-only selects pre-filled from job application
     public $confirmPositionId   = null;
     public $confirmCollegeId    = null;
     public $confirmDepartmentId = null;
 
-    // File attachments for hire/promote email
     public $attachments = [];
 
-    // Archive functionality
     public $showArchiveModal = false;
     public $selectedJobApplication = null;
     public $showArchived = false;
 
-    // Message for archive notification (optional)
     public $archive_message = '';
 
-    // File attachments for archive email (optional)
     public $archiveAttachments = [];
+
+    public $hiringRequirementsError = '';
 
     protected $queryString = [
         'search'         => ['except' => ''],
@@ -68,7 +64,33 @@ class AssignPosition extends Component
         'showArchived'   => ['except' => false],
     ];
 
-    // ─── Validation rules for file uploads ────────────────────────────────────
+    const SPECIAL_COLLEGES = [
+        'College of Engineering',
+        'College of Business Administration and Accountancy',
+        'College of Veterinary Science and Medicine',
+    ];
+
+    const POSITION_RANKS = [
+        'Instructor I'          => 1,
+        'Instructor II'         => 2,
+        'Instructor III'        => 3,
+        'Assistant Professor I' => 4,
+        'Assistant Professor II'=> 5,
+        'Assistant Professor III'=> 6,
+        'Assistant Professor IV'=> 7,
+        'Associate Professor I' => 8,
+        'Associate Professor II'=> 9,
+        'Associate Professor III'=> 10,
+        'Associate Professor IV'=> 11,
+        'Associate Professor V' => 12,
+        'Professor I'           => 13,
+        'Professor II'          => 14,
+        'Professor III'         => 15,
+        'Professor IV'          => 16,
+        'Professor V'           => 17,
+        'Professor VI'          => 18,
+    ];
+
     protected function rules(): array
     {
         return [
@@ -77,12 +99,10 @@ class AssignPosition extends Component
         ];
     }
 
-    // ─── Pagination resets ────────────────────────────────────────────────────
     public function updatingSearch()         { $this->resetPage(); }
     public function updatingPositionFilter() { $this->resetPage(); }
     public function updatingPerPage()        { $this->resetPage(); }
 
-    // ─── Search modal autocomplete ────────────────────────────────────────────
     public function updatedSearchInput()
     {
         if (strlen($this->searchInput) >= 1) {
@@ -138,7 +158,6 @@ class AssignPosition extends Component
         $this->resetPage();
     }
 
-    // ─── Computed properties ──────────────────────────────────────────────────
     public function getAvailablePositionsProperty()
     {
         return \App\Models\Position::orderBy('name')->pluck('name');
@@ -157,7 +176,82 @@ class AssignPosition extends Component
         return Department::where('college_id', $this->confirmCollegeId)->orderBy('name')->get();
     }
 
-    // ─── Confirm (Hire/Promote) modal ─────────────────────────────────────────
+    protected function checkHiringRequirements(Evaluation $evaluation, string $positionName, ?int $collegeId): ?string
+    {
+        $rank = self::POSITION_RANKS[$positionName] ?? null;
+
+        $collegeName = $collegeId ? (College::find($collegeId)?->name ?? '') : '';
+        $isSpecialCollege = in_array($collegeName, self::SPECIAL_COLLEGES);
+
+        $panelAssignments = $evaluation->panelAssignments()->with(['interview', 'experience', 'performance'])->get();
+
+        $hasPanel = fn(string $relation) => $panelAssignments->contains(
+            fn($pa) => !is_null($pa->{$relation . '_id'}) && !is_null($pa->{$relation})
+        );
+
+        $hasPanelInterview   = $hasPanel('interview');
+        $hasPanelExperience  = $hasPanel('experience');
+        $hasPanelPerformance = $hasPanel('performance');
+
+        $hasNbc = $evaluation->nbcAssignments()
+            ->where('status', 'complete')
+            ->whereNotNull('educational_qualification_id')
+            ->whereNotNull('experience_service_id')
+            ->whereNotNull('professional_development_id')
+            ->exists();
+
+        $missing = [];
+
+        if ($rank === null) {
+            $hasPanelComplete = $evaluation->panelAssignments()->where('status', 'complete')->exists();
+            $hasNbcComplete   = $evaluation->nbcAssignments()->where('status', 'complete')->exists();
+            if (!$hasPanelComplete && !$hasNbcComplete) {
+                return 'Cannot assign position. Either Panel Assignment or NBC Assignment must be marked as complete.';
+            }
+            return null;
+        }
+
+        if ($rank <= 2) {
+            if (!$hasPanelInterview)   $missing[] = 'Panel Interview';
+            if (!$hasPanelExperience)  $missing[] = 'Panel Experience';
+            if (!$hasPanelPerformance) $missing[] = 'Panel Performance';
+        }
+
+        elseif ($rank >= 3 && $rank <= 4) {
+            if ($isSpecialCollege) {
+                // Special colleges: Panel Interview + Experience + Performance only
+                if (!$hasPanelInterview)   $missing[] = 'Panel Interview';
+                if (!$hasPanelExperience)  $missing[] = 'Panel Experience';
+                if (!$hasPanelPerformance) $missing[] = 'Panel Performance';
+            } else {
+                // Other colleges: NBC + Panel Interview + Performance
+                if (!$hasNbc)              $missing[] = 'NBC Evaluation (complete with all sub-records)';
+                if (!$hasPanelInterview)   $missing[] = 'Panel Interview';
+                if (!$hasPanelPerformance) $missing[] = 'Panel Performance';
+            }
+        }
+
+        elseif ($rank >= 5) {
+            if ($isSpecialCollege) {
+                // Special colleges: Panel Interview + Performance + NBC
+                if (!$hasPanelInterview)   $missing[] = 'Panel Interview';
+                if (!$hasPanelPerformance) $missing[] = 'Panel Performance';
+                if (!$hasNbc)              $missing[] = 'NBC Evaluation (complete with all sub-records)';
+            } else {
+                if (!$hasNbc)              $missing[] = 'NBC Evaluation (complete with all sub-records)';
+                if (!$hasPanelInterview)   $missing[] = 'Panel Interview';
+                if (!$hasPanelPerformance) $missing[] = 'Panel Performance';
+            }
+        }
+
+        if (empty($missing)) {
+            return null;
+        }
+
+        $list = implode(', ', $missing);
+        return "Cannot assign position \"{$positionName}\". The following evaluations are required but missing or incomplete: {$list}.";
+    }
+
     public function openConfirmModal($applicantId, $evaluationId)
     {
         $this->selectedApplicant  = Applicant::with(['user', 'jobApplications.position'])->findOrFail($applicantId);
@@ -165,21 +259,13 @@ class AssignPosition extends Component
             'jobApplication.position.college',
             'jobApplication.position.department',
             'jobApplication.applicant',
-            'panelAssignments',
+            'panelAssignments.interview',
+            'panelAssignments.experience',
+            'panelAssignments.performance',
             'nbcAssignments',
         ])->findOrFail($evaluationId);
 
-        $hasPanelComplete = $this->selectedEvaluation->panelAssignments()->where('status', 'complete')->exists();
-        $hasNbcComplete   = $this->selectedEvaluation->nbcAssignments()->where('status', 'complete')->exists();
-
-        if (!$hasPanelComplete && !$hasNbcComplete) {
-            $this->showAlert('error', 'Cannot assign position. Either Panel Assignment or NBC Assignment must be marked as complete.');
-            $this->reset(['selectedApplicant', 'selectedEvaluation']);
-            return;
-        }
-
         // Pre-fill selects from the job application's position.
-        // If position has no college/department (various), fall back to the applicant's own values.
         $position  = $this->selectedEvaluation->jobApplication->position;
         $applicant = $this->selectedEvaluation->jobApplication->applicant;
 
@@ -187,6 +273,22 @@ class AssignPosition extends Component
         $this->confirmCollegeId    = $position->college_id    ?? $applicant->college_id    ?? null;
         $this->confirmDepartmentId = $position->department_id ?? $applicant->department_id ?? null;
 
+        // Run requirements check
+        $positionName = $position->name ?? '';
+        $error = $this->checkHiringRequirements(
+            $this->selectedEvaluation,
+            $positionName,
+            $this->confirmCollegeId
+        );
+
+        if ($error) {
+            $this->hiringRequirementsError = $error;
+            $this->showAlert('error', $error);
+            $this->reset(['selectedApplicant', 'selectedEvaluation', 'confirmPositionId', 'confirmCollegeId', 'confirmDepartmentId']);
+            return;
+        }
+
+        $this->hiringRequirementsError = '';
         $this->admin_message = '';
         $this->attachments   = [];
         $this->showConfirmModal = true;
@@ -198,7 +300,7 @@ class AssignPosition extends Component
         $this->reset([
             'selectedApplicant', 'selectedEvaluation', 'admin_message',
             'confirmPositionId', 'confirmCollegeId', 'confirmDepartmentId',
-            'attachments',
+            'attachments', 'hiringRequirementsError',
         ]);
     }
 
@@ -219,11 +321,16 @@ class AssignPosition extends Component
             return;
         }
 
-        $hasPanelComplete = $this->selectedEvaluation->panelAssignments()->where('status', 'complete')->exists();
-        $hasNbcComplete   = $this->selectedEvaluation->nbcAssignments()->where('status', 'complete')->exists();
+        $position     = $this->selectedEvaluation->jobApplication->position;
+        $positionName = $position->name ?? '';
+        $error = $this->checkHiringRequirements(
+            $this->selectedEvaluation,
+            $positionName,
+            $this->confirmCollegeId
+        );
 
-        if (!$hasPanelComplete && !$hasNbcComplete) {
-            $this->showAlert('error', 'Cannot assign position. Either Panel Assignment or NBC Assignment must be marked as complete.');
+        if ($error) {
+            $this->showAlert('error', $error);
             $this->closeConfirmModal();
             return;
         }
@@ -237,13 +344,10 @@ class AssignPosition extends Component
         DB::beginTransaction();
 
         try {
-            $newPosition   = $this->selectedEvaluation->jobApplication->position->name;
+            $newPosition   = $position->name;
             $oldPosition   = $this->selectedApplicant->position ?? 'None';
-            $positionModel = $this->selectedEvaluation->jobApplication->position;
+            $positionModel = $position;
 
-            // Resolve effective college/department:
-            // If the position has no college/department (various), fall back to applicant's own values.
-            // Then allow the admin to override via the confirm modal selects.
             $effectiveCollegeId    = $this->confirmCollegeId    ?? null;
             $effectiveDepartmentId = $this->confirmDepartmentId ?? null;
 
@@ -294,7 +398,6 @@ class AssignPosition extends Component
         }
     }
 
-    // ─── Archive modal ────────────────────────────────────────────────────────
     public function openArchiveModal($jobApplicationId)
     {
         $jobApplication = \App\Models\JobApplication::with(['applicant.user', 'position'])
@@ -399,7 +502,6 @@ class AssignPosition extends Component
         }
     }
 
-    // ─── File helper ──────────────────────────────────────────────────────────
     protected function storeUploadedFiles(array $files, string $folder): array
     {
         $stored = [];
@@ -419,28 +521,20 @@ class AssignPosition extends Component
         return $stored;
     }
 
-    // ─── Email helpers ────────────────────────────────────────────────────────
-
-    /**
-     * Build the inner body HTML only (no header/footer — those come from the Blade template).
-     * This is what gets stored in notification->message and rendered inside {!! $notificationMessage !!}.
-     */
     protected function buildNotificationBody(
         string $recipientName,
         string $adminMessage,
         string $positionName,
         ?string $collegeName,
         ?string $departmentName,
-        string $type // 'hired' | 'archive'
+        string $type
     ): string {
         $accentColor = $type === 'hired' ? '#1E7F3E' : '#ca8a04';
 
-        // Admin message section
         $adminSection = !empty(strip_tags($adminMessage))
             ? "<div style='margin:16px 0;font-size:14px;color:#374151;line-height:1.6;'>{$adminMessage}</div>"
             : '';
 
-        // Placement block (only for hired)
         $placementBlock = '';
         if ($type === 'hired') {
             $rows = "<tr>
@@ -590,7 +684,6 @@ class AssignPosition extends Component
         return $bytes . ' B';
     }
 
-    // ─── Alert helpers ────────────────────────────────────────────────────────
     protected function showAlert($type, $message)
     {
         $this->alertType      = $type;
@@ -604,7 +697,6 @@ class AssignPosition extends Component
         $this->reset(['alertType', 'alertMessage']);
     }
 
-    // ─── Render ───────────────────────────────────────────────────────────────
     public function render()
     {
         $applicantsQuery = Applicant::query()
