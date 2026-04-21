@@ -12,6 +12,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endif
 @livewireStyles
+<script defer src="https://unpkg.com/alpinejs"></script>
 </head>
 
 <body class="bg-gray-50">
