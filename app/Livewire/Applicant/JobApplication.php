@@ -66,7 +66,7 @@ class JobApplication extends Component
             'first_name'   => 'required|string|max:255',
             'middle_name'  => 'nullable|string|max:255',
             'last_name'    => 'required|string|max:255',
-            'suffix'       => 'nullable|string|max:255', 
+            'suffix'       => 'nullable|string|max:255',
             'phone_number' => 'required|regex:/^09[0-9]{9}$/|size:11',
         ],
         3 => [
@@ -94,7 +94,7 @@ class JobApplication extends Component
         'first_name'        => 'required|string|max:255',
         'middle_name'       => 'nullable|string|max:255',
         'last_name'         => 'required|string|max:255',
-        'suffix' => 'nullable|string|max:255', 
+        'suffix'            => 'nullable|string|max:255',
         'phone_number'      => 'required|regex:/^09[0-9]{9}$/|size:11',
         'region'            => 'required|string|max:255',
         'province'          => 'required|string|max:255',
@@ -405,8 +405,6 @@ class JobApplication extends Component
 
     public function save()
     {
-        \Illuminate\Support\Facades\Log::info('SAVE: method called');
-
         if ($this->eligibilityIsFixed) {
             $this->eligibility = 'None Required';
         }
@@ -419,7 +417,6 @@ class JobApplication extends Component
                 ->exists();
 
             if ($anyActiveApplication) {
-                \Illuminate\Support\Facades\Log::info('SAVE: blocked - active application exists');
                 session()->flash('error', 'You already have an active application.');
                 return redirect()->route('apply-job');
             }
@@ -427,27 +424,57 @@ class JobApplication extends Component
 
         try {
             $this->validate();
-            \Illuminate\Support\Facades\Log::info('SAVE: validation passed');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Illuminate\Support\Facades\Log::info('SAVE: validation failed', $e->errors());
             $this->dispatch('scroll-to-error');
             throw $e;
         }
 
-        \Illuminate\Support\Facades\Log::info('SAVE: starting file encryption');
+        $this->isSubmitting = true;
 
-        try {
-            $encryptionService = new FileEncryptionService();
-            $encryptedPath = $encryptionService->encryptAndStore($this->requirements_file);
-            \Illuminate\Support\Facades\Log::info('SAVE: file encrypted', ['path' => $encryptedPath]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('SAVE: encryption failed', ['error' => $e->getMessage()]);
-            throw $e;
-        }
+        $encryptionService = new FileEncryptionService();
+        $encryptedPath = $encryptionService->encryptAndStore($this->requirements_file);
 
-        \Illuminate\Support\Facades\Log::info('SAVE: saving applicant and job application');
+        $applicant = Applicant::updateOrCreate(
+            ['user_id' => Auth::id()],
+            [
+                'first_name'   => $this->first_name,
+                'middle_name'  => $this->middle_name,
+                'last_name'    => $this->last_name,
+                'suffix'       => $this->suffix,
+                'phone_number' => $this->phone_number,
+                'region'       => $this->region,
+                'province'     => $this->province,
+                'city'         => $this->city,
+                'barangay'     => $this->barangay,
+                'street'       => $this->street,
+                'postal_code'  => $this->postal_code,
+            ]
+        );
 
-        // ... rest of your save method unchanged
+        $jobApplication = new ModelsJobApplication([
+            'present_position'  => $this->present_position ?: null,
+            'education'         => $this->education,
+            'experience'        => $this->experience,
+            'training'          => $this->training,
+            'eligibility'       => $this->eligibility,
+            'other_involvement' => $this->other_involvement ?: null,
+            'requirements_file' => $encryptedPath,
+            'applicant_id'      => $applicant->id,
+            'position_id'       => $this->position_id,
+        ]);
+        $jobApplication->save();
+
+        $position = Position::find($this->position_id);
+
+        AccountActivityService::log(
+            Auth::user(),
+            "Submitted a job application (ID: {$jobApplication->id}) for position \"{$position->title}\" (Position ID: {$this->position_id})."
+        );
+
+        $this->dispatch('job-application-submitted');
+
+        return redirect()->route('apply-job')
+            ->with('success', 'Application successfully submitted! Please wait for the admin to review your application.');
     }
 
     public function render()
