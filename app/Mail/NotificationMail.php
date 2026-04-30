@@ -34,9 +34,9 @@ class NotificationMail extends Mailable
             ->subject($this->notification->subject);
 
         Log::info('NotificationMail built', [
-            'notification_id' => $this->notification->id,
+            'notification_id'      => $this->notification->id,
             'attached_files_count' => count($this->attachedFiles),
-            'attached_files' => $this->attachedFiles,
+            'attached_files'       => $this->attachedFiles,
         ]);
 
         return $mailable;

@@ -14,13 +14,18 @@
             <table cellpadding="0" cellspacing="0" style="margin:0 auto 16px;">
                 <tr>
                     <td style="padding-right:12px;vertical-align:middle;">
-                        {{-- Inline logo using base64 to guarantee rendering in email clients --}}
-                        <div style="width:56px;height:56px;background:#ffffff;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;">
-                            <img src="{{ url('image/clsu-logo-green.png') }}"
-                                 alt="CLSU Logo"
-                                 width="48" height="48"
-                                 style="width:48px;height:48px;object-fit:contain;display:block;">
-                        </div>
+                        <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                            <tr>
+                                <td width="56" height="56"
+                                    style="width:56px;height:56px;background:#ffffff;border-radius:50%;
+                                           text-align:center;vertical-align:middle;padding:0;overflow:hidden;">
+                                    <img src="{{ asset('image/clsu-logo-green.png') }}"
+                                         alt="CLSU Logo"
+                                         width="56" height="56"
+                                         style="width:56px;height:56px;display:block;border:0;">
+                                </td>
+                            </tr>
+                        </table>
                     </td>
                     <td style="vertical-align:middle;text-align:left;">
                         <div style="color:#ffffff;font-size:20px;font-weight:700;letter-spacing:.5px;">CLSU FHES</div>
@@ -36,7 +41,6 @@
         {{-- ══ BODY ══ --}}
         <div style="padding:36px 40px;border:1px solid #d1fae5;border-top:none;">
 
-            {{-- Inner content built by buildNotificationBody() — greeting, message, placement details --}}
             {!! $notificationMessage !!}
 
             {{-- ── Attachments ─────────────────────────────────────────── --}}
