@@ -19,7 +19,7 @@
                                 <td width="56" height="56"
                                     style="width:56px;height:56px;background:#ffffff;border-radius:50%;
                                            text-align:center;vertical-align:middle;padding:0;overflow:hidden;">
-                                    <img src="{{ asset('image/clsu-logo-green.png') }}"
+                                    <img src="https://clsu.edu.ph/src/img/general/clsu-logo-green.png"
                                          alt="CLSU Logo"
                                          width="56" height="56"
                                          style="width:56px;height:56px;display:block;border:0;">
