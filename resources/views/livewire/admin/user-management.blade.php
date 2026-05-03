@@ -300,8 +300,12 @@
                                                             $details .= ' (' . $user->panel->department->name . ')';
                                                         }
                                                     } elseif ($roleName === 'nbc' && $user->nbcCommittee) {
-                                                        // position is automatically decrypted by the Encrypted cast
                                                         $details = $user->nbcCommittee->position;
+                                                    } elseif ($roleName === 'applicant' && $user->applicant) {
+                                                        $details = $user->applicant->position ?? '';
+                                                        if ($user->applicant->college_id && $user->applicant->relationLoaded('college') && $user->applicant->college) {
+                                                            $details .= ($details ? ' — ' : '') . $user->applicant->college->name;
+                                                        }
                                                     }
                                                 @endphp
                                                 <tr class="bg-gray-50 hover:bg-gray-100">
@@ -429,9 +433,60 @@
                             </div>
 
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Suffix (Jr., Sr., III, etc.)</label>
-                                <input wire:model="suffix" type="text" autocomplete="off"
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E]">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Suffix</label>
+                                <select wire:model="suffix"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E]">
+                                    <option value="">None</option>
+                                    <option value="Jr.">Jr.</option>
+                                    <option value="Sr.">Sr.</option>
+                                    <option value="II">II</option>
+                                    <option value="III">III</option>
+                                    <option value="IV">IV</option>
+                                    <option value="V">V</option>
+                                </select>
+                            </div>
+
+                            {{-- Position (from position_ranks) --}}
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Position</label>
+                                <select wire:model="applicant_position"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('applicant_position') border-red-500 @enderror">
+                                    <option value="">Select Position</option>
+                                    @foreach($positionRanks as $rank)
+                                        <option value="{{ $rank->name }}">{{ $rank->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('applicant_position') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- College --}}
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">College</label>
+                                <select wire:model.live="applicant_college_id"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('applicant_college_id') border-red-500 @enderror">
+                                    <option value="">Select College</option>
+                                    @foreach($colleges as $college)
+                                        <option value="{{ $college->id }}">{{ $college->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('applicant_college_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+
+                            {{-- Department --}}
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                                <select wire:model="applicant_department_id"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1E7F3E] @error('applicant_department_id') border-red-500 @enderror disabled:opacity-50 disabled:cursor-not-allowed"
+                                        {{ !$applicant_college_id ? 'disabled' : '' }}>
+                                    <option value="">Select Department</option>
+                                    @foreach($applicantDepartments as $dept)
+                                        <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+                                    @endforeach
+                                </select>
+                                @if(!$applicant_college_id)
+                                    <p class="mt-1 text-xs text-gray-500">Please select a college first</p>
+                                @endif
+                                @error('applicant_department_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
                         @elseif($filterRole === 'panel')

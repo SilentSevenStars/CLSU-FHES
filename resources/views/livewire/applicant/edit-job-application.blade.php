@@ -319,11 +319,13 @@
                         </div>
                         <div>
                             <h3 class="text-2xl font-bold text-gray-800">Address Information</h3>
-                            <p class="text-sm text-gray-500 mt-0.5">Update your current residential address</p>
+                            <p class="text-sm text-gray-500 mt-0.5">Provide your current residential address</p>
+                            {{-- For edit view, change the subtitle to: "Update your current residential address" --}}
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {{-- Region --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Region <span
                                     class="text-red-500">*</span></label>
@@ -337,6 +339,8 @@
                             @error('region')<span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>@enderror
                         </div>
 
+                        {{-- Province: hidden for NCR --}}
+                        @if(!$isNcrRegion)
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Province <span
                                     class="text-red-500">*</span></label>
@@ -351,14 +355,29 @@
                             @error('province')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror
                         </div>
+                        @else
+                        <div class="flex items-center">
+                            <p class="text-sm text-gray-500 italic mt-5">
+                                NCR has no provinces — select a city/municipality directly.
+                            </p>
+                        </div>
+                        @endif
 
+                        {{-- City/Municipality --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">City/Municipality <span
                                     class="text-red-500">*</span></label>
                             <select wire:model.live="city"
-                                class="block w-full px-4 py-3 bg-gray-50 border @error('city') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition {{ !$province ? 'opacity-60 cursor-not-allowed' : '' }}"
-                                @if(!$province) disabled @endif>
-                                <option value="">{{ $province ? 'Select City/Municipality' : 'Select Province first' }}
+                                class="block w-full px-4 py-3 bg-gray-50 border @error('city') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition {{ (!$isNcrRegion && !$province) ? 'opacity-60 cursor-not-allowed' : '' }}"
+                                @if(!$isNcrRegion && !$province) disabled @endif>
+                                <option value="">
+                                    @if($isNcrRegion)
+                                    Select City/Municipality
+                                    @elseif($province)
+                                    Select City/Municipality
+                                    @else
+                                    Select Province first
+                                    @endif
                                 </option>
                                 @foreach($cities as $ct)
                                 <option value="{{ $ct['name'] }}">{{ $ct['name'] }}</option>
@@ -367,6 +386,7 @@
                             @error('city')<span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>@enderror
                         </div>
 
+                        {{-- Barangay --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Barangay <span
                                     class="text-red-500">*</span></label>
@@ -382,6 +402,7 @@
                                 }}</span>@enderror
                         </div>
 
+                        {{-- Street --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Street/Building <span
                                     class="text-red-500">*</span></label>
@@ -390,6 +411,7 @@
                             @error('street')<span class="text-red-500 text-sm mt-1 block">{{ $message }}</span>@enderror
                         </div>
 
+                        {{-- Postal Code --}}
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Postal Code <span
                                     class="text-red-500">*</span></label>
@@ -518,10 +540,12 @@
                                 <span class="text-gray-400 font-normal">(Optional)</span>
                             </label>
                             <p class="text-xs text-gray-500 mb-2">
-                                List any journals, publications, speakership in conferences, etc. relevant to your application. You may leave this blank if not applicable.
+                                List any journals, publications, speakership in conferences, etc. relevant to your
+                                application. You may leave this blank if not applicable.
                             </p>
-                            <textarea wire:model="other_involvement" rows="3"
-                                {{-- placeholder="e.g., Department Chairperson (2020–2023); Published: 'Title of Paper' in Journal of XYZ (2022); Resource Speaker, Regional Conference on Education (2021)" --}}
+                            <textarea wire:model="other_involvement" rows="3" {{--
+                                placeholder="e.g., Department Chairperson (2020–2023); Published: 'Title of Paper' in Journal of XYZ (2022); Resource Speaker, Regional Conference on Education (2021)"
+                                --}}
                                 class="block w-full px-4 py-3 bg-gray-50 border @error('other_involvement') input-error border-red-500 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-[#0A6025] transition resize-none"></textarea>
                             @error('other_involvement')<span class="text-red-500 text-sm mt-1 block">{{ $message
                                 }}</span>@enderror

@@ -82,8 +82,17 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Suffix</label>
-                                <input type="text" wire:model="suffix" placeholder="Jr., Sr., III, etc."
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <select wire:model="suffix"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 @error('suffix') border-red-500 @enderror">
+                                    <option value="">None</option>
+                                    <option value="Jr.">Jr.</option>
+                                    <option value="Sr.">Sr.</option>
+                                    <option value="II">II</option>
+                                    <option value="III">III</option>
+                                    <option value="IV">IV</option>
+                                    <option value="V">V</option>
+                                </select>
+                                @error('suffix') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
@@ -116,6 +125,8 @@
                                 @error('region') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
+                            {{-- Province: hidden for NCR since it has no provinces --}}
+                            @if(!$isNcrRegion)
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
                                     Province <span class="text-red-500">*</span>
@@ -129,13 +140,21 @@
                                 </select>
                                 @error('province') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
+                            @else
+                            <div class="flex items-center">
+                                <p class="text-sm text-gray-500 italic mt-5">
+                                    NCR has no provinces — select a city/municipality directly.
+                                </p>
+                            </div>
+                            @endif
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
                                     City/Municipality <span class="text-red-500">*</span>
                                 </label>
                                 <select wire:model.live="city"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 @error('city') border-red-500 @enderror">
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 @error('city') border-red-500 @enderror"
+                                        @if(!$isNcrRegion && !$province) disabled @endif>
                                     <option value="">Select City/Municipality</option>
                                     @foreach($cities as $ct)
                                         <option value="{{ $ct['name'] }}">{{ $ct['name'] }}</option>
@@ -149,7 +168,8 @@
                                     Barangay <span class="text-red-500">*</span>
                                 </label>
                                 <select wire:model="barangay"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 @error('barangay') border-red-500 @enderror">
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 @error('barangay') border-red-500 @enderror"
+                                        @if(!$city) disabled @endif>
                                     <option value="">Select Barangay</option>
                                     @foreach($barangays as $brgy)
                                         <option value="{{ $brgy['name'] }}">{{ $brgy['name'] }}</option>

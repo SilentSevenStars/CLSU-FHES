@@ -7,6 +7,7 @@ use App\Models\College;
 use App\Models\Department;
 use App\Models\NbcCommittee;
 use App\Models\Panel;
+use App\Models\PositionRank;
 use App\Models\User;
 use App\Services\AccountActivityService;
 use Carbon\Carbon;
@@ -42,6 +43,11 @@ class UserManagement extends Component
     public $middle_name;
     public $last_name;
     public $suffix;
+
+    // Applicant extra fields
+    public $applicant_position = '';
+    public $applicant_college_id = '';
+    public $applicant_department_id = '';
 
     // Panel properties
     public $panel_position;
@@ -100,10 +106,13 @@ class UserManagement extends Component
 
         switch ($this->filterRole) {
             case 'applicant':
-                $rules['first_name']  = 'required|string|max:255';
-                $rules['last_name']   = 'required|string|max:255';
-                $rules['middle_name'] = 'nullable|string|max:255';
-                $rules['suffix']      = 'nullable|string|max:50';
+                $rules['first_name']               = 'required|string|max:255';
+                $rules['last_name']                = 'required|string|max:255';
+                $rules['middle_name']              = 'nullable|string|max:255';
+                $rules['suffix']                   = 'nullable|in:Jr.,Sr.,II,III,IV,V';
+                $rules['applicant_position']       = 'nullable|string|exists:position_ranks,name';
+                $rules['applicant_college_id']     = 'nullable|exists:colleges,id';
+                $rules['applicant_department_id']  = 'nullable|exists:departments,id';
                 break;
 
             case 'panel':
@@ -152,6 +161,11 @@ class UserManagement extends Component
         $this->department_id = null;
     }
 
+    public function updatedApplicantCollegeId()
+    {
+        $this->applicant_department_id = null;
+    }
+
     public function updatedPanelPosition()
     {
         if ($this->isNoCollegeDeptPosition()) {
@@ -184,10 +198,13 @@ class UserManagement extends Component
             case 'applicant':
                 $applicant = Applicant::where('user_id', $user->id)->first();
                 if ($applicant) {
-                    $this->first_name  = $applicant->first_name;
-                    $this->middle_name = $applicant->middle_name;
-                    $this->last_name   = $applicant->last_name;
-                    $this->suffix      = $applicant->suffix;
+                    $this->first_name              = $applicant->first_name;
+                    $this->middle_name             = $applicant->middle_name;
+                    $this->last_name               = $applicant->last_name;
+                    $this->suffix                  = $applicant->suffix;
+                    $this->applicant_position      = $applicant->position;
+                    $this->applicant_college_id    = $applicant->college_id;
+                    $this->applicant_department_id = $applicant->department_id;
                 }
                 break;
 
@@ -239,20 +256,23 @@ class UserManagement extends Component
 
     public function resetForm()
     {
-        $this->user_id               = null;
-        $this->name                  = '';
-        $this->first_name            = '';
-        $this->middle_name           = '';
-        $this->last_name             = '';
-        $this->suffix                = '';
-        $this->email                 = '';
-        $this->password              = '';
-        $this->password_confirmation = '';
-        $this->role                  = '';
-        $this->panel_position        = '';
-        $this->college_id            = '';
-        $this->department_id         = '';
-        $this->nbc_position          = '';
+        $this->user_id                 = null;
+        $this->name                    = '';
+        $this->first_name              = '';
+        $this->middle_name             = '';
+        $this->last_name               = '';
+        $this->suffix                  = '';
+        $this->email                   = '';
+        $this->password                = '';
+        $this->password_confirmation   = '';
+        $this->role                    = '';
+        $this->panel_position          = '';
+        $this->college_id              = '';
+        $this->department_id           = '';
+        $this->nbc_position            = '';
+        $this->applicant_position      = '';
+        $this->applicant_college_id    = '';
+        $this->applicant_department_id = '';
         $this->resetValidation();
     }
 
@@ -293,7 +313,6 @@ class UserManagement extends Component
 
     /**
      * Returns a readable label for the role being managed.
-     * e.g. 'panel' → 'Panel Member', 'nbc' → 'NBC Committee', etc.
      */
     private function roleLabel(): string
     {
@@ -369,11 +388,14 @@ class UserManagement extends Component
             case 'applicant':
                 $user->assignRole('applicant');
                 Applicant::create([
-                    'user_id'     => $user->id,
-                    'first_name'  => $this->first_name,
-                    'middle_name' => $this->middle_name,
-                    'last_name'   => $this->last_name,
-                    'suffix'      => $this->suffix,
+                    'user_id'       => $user->id,
+                    'first_name'    => $this->first_name,
+                    'middle_name'   => $this->middle_name,
+                    'last_name'     => $this->last_name,
+                    'suffix'        => $this->suffix,
+                    'position'      => $this->applicant_position ?: null,
+                    'college_id'    => $this->applicant_college_id ?: null,
+                    'department_id' => $this->applicant_department_id ?: null,
                 ]);
                 break;
 
@@ -413,6 +435,15 @@ class UserManagement extends Component
                            ? ', Department ID: ' . $this->department_id
                            : ''),
             'nbc'   => " — Position: {$this->nbc_position}",
+            'applicant' => ($this->applicant_position
+                           ? " — Position: {$this->applicant_position}"
+                           : '') .
+                           ($this->applicant_college_id
+                           ? ', College ID: ' . $this->applicant_college_id
+                           : '') .
+                           ($this->applicant_department_id
+                           ? ', Department ID: ' . $this->applicant_department_id
+                           : ''),
             default => '',
         };
 
@@ -453,10 +484,13 @@ class UserManagement extends Component
                 $applicant = Applicant::where('user_id', $user->id)->first();
                 if ($applicant) {
                     $applicant->update([
-                        'first_name'  => $this->first_name,
-                        'middle_name' => $this->middle_name,
-                        'last_name'   => $this->last_name,
-                        'suffix'      => $this->suffix,
+                        'first_name'    => $this->first_name,
+                        'middle_name'   => $this->middle_name,
+                        'last_name'     => $this->last_name,
+                        'suffix'        => $this->suffix,
+                        'position'      => $this->applicant_position ?: null,
+                        'college_id'    => $this->applicant_college_id ?: null,
+                        'department_id' => $this->applicant_department_id ?: null,
                     ]);
                 }
                 break;
@@ -512,7 +546,16 @@ class UserManagement extends Component
                        ($this->department_id
                            ? ', department ID: ' . $this->department_id
                            : ''),
-            'nbc'   => "position: {$this->nbc_position}",
+            'nbc'       => "position: {$this->nbc_position}",
+            'applicant' => ($this->applicant_position
+                           ? "position: {$this->applicant_position}"
+                           : 'position: (none)') .
+                           ($this->applicant_college_id
+                           ? ', college ID: ' . $this->applicant_college_id
+                           : '') .
+                           ($this->applicant_department_id
+                           ? ', department ID: ' . $this->applicant_department_id
+                           : ''),
             default => "role: {$this->role}",
         };
 
@@ -585,10 +628,19 @@ class UserManagement extends Component
 
         $colleges = College::orderBy('name')->get();
 
+        // Panel departments (filtered by panel's college_id)
         $departments = Department::query()
             ->when($this->college_id, fn($q) => $q->where('college_id', $this->college_id))
             ->orderBy('name')
             ->get();
+
+        // Applicant departments (filtered by applicant's college_id)
+        $applicantDepartments = Department::query()
+            ->when($this->applicant_college_id, fn($q) => $q->where('college_id', $this->applicant_college_id))
+            ->orderBy('name')
+            ->get();
+
+        $positionRanks = PositionRank::orderBy('id')->get();
 
         $chairpersonTaken = NbcCommittee::chairpersonExists(
             $this->isEditMode ? $this->user_id : null
@@ -638,17 +690,19 @@ class UserManagement extends Component
         }
 
         return view('livewire.admin.user-management', [
-            'users'            => $users,
-            'availableRoles'   => $availableRoles,
-            'colleges'         => $colleges,
-            'departments'      => $departments,
-            'totalUsers'       => $totalUsers,
-            'adminCount'       => $adminCount,
-            'superAdminCount'  => $superAdminCount,
-            'panelCount'       => $panelCount,
-            'nbcCount'         => $nbcCount,
-            'applicantCount'   => $applicantCount,
-            'chairpersonTaken' => $chairpersonTaken,
+            'users'                => $users,
+            'availableRoles'       => $availableRoles,
+            'colleges'             => $colleges,
+            'departments'          => $departments,
+            'applicantDepartments' => $applicantDepartments,
+            'positionRanks'        => $positionRanks,
+            'totalUsers'           => $totalUsers,
+            'adminCount'           => $adminCount,
+            'superAdminCount'      => $superAdminCount,
+            'panelCount'           => $panelCount,
+            'nbcCount'             => $nbcCount,
+            'applicantCount'       => $applicantCount,
+            'chairpersonTaken'     => $chairpersonTaken,
         ]);
     }
 }

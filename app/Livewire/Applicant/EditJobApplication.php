@@ -65,6 +65,12 @@ class EditJobApplication extends Component
     public $cities    = [];
     public $barangays = [];
 
+    // NCR has no provinces — track it so the view can react
+    public bool $isNcrRegion = false;
+
+    const NCR_REGION_NAME = 'NCR';
+    const NCR_REGION_CODE = '130000000';
+
     // ── Change tracking ───────────────────────────────────────────────────────
     protected array $originalData = [];
 
@@ -79,14 +85,7 @@ class EditJobApplication extends Component
             'suffix'       => 'nullable|string|max:5',
             'phone_number' => 'required|regex:/^09[0-9]{9}$/|size:11',
         ],
-        3 => [
-            'region'      => 'required|string|max:255',
-            'province'    => 'required|string|max:255',
-            'city'        => 'required|string|max:255',
-            'barangay'    => 'required|string|max:255',
-            'street'      => 'required|string|max:255',
-            'postal_code' => 'required|string|max:10',
-        ],
+        // Step 3 province rule is handled dynamically via getStepRules()
         4 => [
             'present_position'  => 'nullable|string|max:255',
             'education'         => 'required|string|max:255',
@@ -107,7 +106,6 @@ class EditJobApplication extends Component
         'suffix'            => 'nullable|string|max:5',
         'phone_number'      => 'required|regex:/^09[0-9]{9}$/|size:11',
         'region'            => 'required|string|max:255',
-        'province'          => 'required|string|max:255',
         'city'              => 'required|string|max:255',
         'barangay'          => 'required|string|max:255',
         'street'            => 'required|string|max:255',
@@ -128,6 +126,35 @@ class EditJobApplication extends Component
         'requirements_file.max'   => 'The file size must not exceed 100MB.',
         'agree_to_terms.accepted' => 'You must agree to the Data Privacy Act terms before proceeding.',
     ];
+
+    /**
+     * Returns the full rule set with province conditionally required.
+     */
+    public function getFullRules(): array
+    {
+        return array_merge($this->rules, [
+            'province' => $this->isNcrRegion ? 'nullable|string|max:255' : 'required|string|max:255',
+        ]);
+    }
+
+    /**
+     * Returns per-step rules, injecting the dynamic province rule for step 3.
+     */
+    public function getStepRules(int $step): array
+    {
+        if ($step === 3) {
+            return [
+                'region'      => 'required|string|max:255',
+                'province'    => $this->isNcrRegion ? 'nullable|string|max:255' : 'required|string|max:255',
+                'city'        => 'required|string|max:255',
+                'barangay'    => 'required|string|max:255',
+                'street'      => 'required|string|max:255',
+                'postal_code' => 'required|string|max:10',
+            ];
+        }
+
+        return $this->stepRules[$step] ?? [];
+    }
 
     public function mount($application_id)
     {
@@ -217,9 +244,19 @@ class EditJobApplication extends Component
 
         $this->loadRegions();
 
-        if ($this->region)   $this->loadProvinces();
-        if ($this->province) $this->loadCities();
-        if ($this->city)     $this->loadBarangays();
+        // Set NCR flag before conditionally loading address data
+        $this->isNcrRegion = $this->region === self::NCR_REGION_NAME;
+
+        if ($this->region) {
+            if ($this->isNcrRegion) {
+                $this->loadCitiesForNcr();
+            } else {
+                $this->loadProvinces();
+            }
+        }
+
+        if ($this->province && !$this->isNcrRegion) $this->loadCities();
+        if ($this->city) $this->loadBarangays();
 
         $deadline = Carbon::parse($position->end_date)->addDay()->startOfDay();
         $this->deadlineTimestamp = $deadline->timestamp;
@@ -266,7 +303,7 @@ class EditJobApplication extends Component
             $this->eligibility = 'None Required';
         }
 
-        $rules = $this->stepRules[$step] ?? [];
+        $rules = $this->getStepRules($step);
 
         try {
             $this->validate($rules);
@@ -354,6 +391,21 @@ class EditJobApplication extends Component
         }
     }
 
+    /**
+     * NCR has no provinces — load cities directly from the region.
+     */
+    public function loadCitiesForNcr()
+    {
+        try {
+            $response = Http::withOptions(['verify' => false])->get(
+                "https://psgc.gitlab.io/api/regions/" . self::NCR_REGION_CODE . "/cities-municipalities/"
+            );
+            if ($response->successful()) $this->cities = $response->json();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to load NCR cities.');
+        }
+    }
+
     public function loadCities()
     {
         if (!$this->province) return;
@@ -386,13 +438,21 @@ class EditJobApplication extends Component
 
     public function updatedRegion($value)
     {
-        $this->province  = '';
-        $this->city      = '';
-        $this->barangay  = '';
-        $this->provinces = [];
-        $this->cities    = [];
-        $this->barangays = [];
-        if ($value) $this->loadProvinces();
+        $this->province    = '';
+        $this->city        = '';
+        $this->barangay    = '';
+        $this->provinces   = [];
+        $this->cities      = [];
+        $this->barangays   = [];
+        $this->isNcrRegion = ($value === self::NCR_REGION_NAME);
+
+        if (!$value) return;
+
+        if ($this->isNcrRegion) {
+            $this->loadCitiesForNcr();
+        } else {
+            $this->loadProvinces();
+        }
     }
 
     public function updatedProvince($value)
@@ -457,7 +517,7 @@ class EditJobApplication extends Component
         }
 
         try {
-            $this->validate();
+            $this->validate($this->getFullRules());
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->dispatch('scroll-to-error');
             throw $e;

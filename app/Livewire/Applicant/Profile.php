@@ -31,23 +31,35 @@ class Profile extends Component
     public $cities    = [];
     public $barangays = [];
 
-    protected $rules = [
-        'first_name'   => 'required|string|max:255',
-        'middle_name'  => 'nullable|string|max:255',
-        'last_name'    => 'required|string|max:255',
-        'suffix'       => 'nullable|string|max:5',
-        'phone_number' => 'required|regex:/^09[0-9]{9}$/|size:11',
-        'region'       => 'required|string|max:255',
-        'province'     => 'required|string|max:255',
-        'city'         => 'required|string|max:255',
-        'barangay'     => 'required|string|max:255',
-        'street'       => 'nullable|string|max:255',
-        'postal_code'  => 'nullable|string|max:10',
-    ];
+    // NCR has no provinces — cities are loaded directly from the region
+    public bool $isNcrRegion = false;
+
+    // NCR region code in PSGC
+    const NCR_REGION_NAME = 'NCR';
+    const NCR_REGION_CODE = '130000000';
+
+    public function getRules()
+    {
+        return [
+            'first_name'   => 'required|string|max:255',
+            'middle_name'  => 'nullable|string|max:255',
+            'last_name'    => 'required|string|max:255',
+            'suffix'       => 'nullable|in:Jr.,Sr.,II,III,IV,V',
+            'phone_number' => 'required|regex:/^09[0-9]{9}$/|size:11',
+            'region'       => 'required|string|max:255',
+            // Province is optional for NCR since it has none
+            'province'     => $this->isNcrRegion ? 'nullable|string|max:255' : 'required|string|max:255',
+            'city'         => 'required|string|max:255',
+            'barangay'     => 'required|string|max:255',
+            'street'       => 'nullable|string|max:255',
+            'postal_code'  => 'nullable|string|max:10',
+        ];
+    }
 
     protected $messages = [
         'phone_number.regex' => 'Phone number must start with 09 and contain exactly 11 digits.',
         'phone_number.size'  => 'Phone number must be exactly 11 digits.',
+        'suffix.in'          => 'Please select a valid suffix.',
     ];
 
     public function mount()
@@ -85,9 +97,20 @@ class Profile extends Component
 
         $this->loadRegions();
 
-        if ($this->region)   $this->loadProvinces();
-        if ($this->province) $this->loadCities();
-        if ($this->city)     $this->loadBarangays();
+        // Set NCR flag if region is already NCR
+        $this->isNcrRegion = $this->region === self::NCR_REGION_NAME;
+
+        if ($this->region) {
+            if ($this->isNcrRegion) {
+                // NCR: skip provinces, load cities directly from region
+                $this->loadCitiesForNcr();
+            } else {
+                $this->loadProvinces();
+            }
+        }
+
+        if ($this->province && !$this->isNcrRegion) $this->loadCities();
+        if ($this->city) $this->loadBarangays();
     }
 
     public function loadRegions()
@@ -166,6 +189,21 @@ class Profile extends Component
         }
     }
 
+    /**
+     * NCR has no provinces — load cities/municipalities directly from the region.
+     */
+    public function loadCitiesForNcr()
+    {
+        try {
+            $response = Http::withOptions(['verify' => false])->get(
+                "https://psgc.gitlab.io/api/regions/" . self::NCR_REGION_CODE . "/cities-municipalities/"
+            );
+            if ($response->successful()) $this->cities = $response->json();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to load NCR cities.');
+        }
+    }
+
     public function loadCities()
     {
         if (!$this->province) return;
@@ -198,13 +236,22 @@ class Profile extends Component
 
     public function updatedRegion($value)
     {
-        $this->province  = '';
-        $this->city      = '';
-        $this->barangay  = '';
-        $this->provinces = [];
-        $this->cities    = [];
-        $this->barangays = [];
-        if ($value) $this->loadProvinces();
+        $this->province    = '';
+        $this->city        = '';
+        $this->barangay    = '';
+        $this->provinces   = [];
+        $this->cities      = [];
+        $this->barangays   = [];
+        $this->isNcrRegion = ($value === self::NCR_REGION_NAME);
+
+        if (!$value) return;
+
+        if ($this->isNcrRegion) {
+            // NCR: skip provinces, load cities directly
+            $this->loadCitiesForNcr();
+        } else {
+            $this->loadProvinces();
+        }
     }
 
     public function updatedProvince($value)
@@ -242,7 +289,7 @@ class Profile extends Component
 
     public function updateProfile()
     {
-        $this->validate();
+        $this->validate($this->getRules());
 
         Applicant::updateOrCreate(
             ['user_id' => Auth::id()],
